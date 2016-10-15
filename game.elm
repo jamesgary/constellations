@@ -78,22 +78,26 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     ( case msg of
         MouseMove newMousePos ->
-            { node =
-                { pos = calculatePosition model.node newMousePos
-                , velocity = calculateVelocity model.node newMousePos
-                }
-            , mouse =
-                { pos = newMousePos
-                }
+            { model
+                | mouse =
+                    { pos = newMousePos
+                    }
             }
 
         AnimationMsg time ->
-            { node =
-                { pos = calculatePosition model.node model.mouse.pos
-                , velocity = calculateVelocity model.node model.mouse.pos
+            let
+                newPos =
+                    calculatePosition model.node model.mouse.pos
+
+                newVelocity =
+                    calculateVelocity model.node model.mouse.pos
+            in
+                { model
+                    | node =
+                        { pos = newPos
+                        , velocity = newVelocity
+                        }
                 }
-            , mouse = model.mouse
-            }
     , Cmd.none
     )
 
