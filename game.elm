@@ -3,14 +3,20 @@ module Main exposing (..)
 import Html exposing (Html, div, text)
 import Html.App as App
 import Html.Events exposing (on)
-import Json.Decode as Json exposing ((:=))
-import Mouse exposing (Position)
+import AnimationFrame
+import Json.Decode as Json
+import Mouse
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
+import Time
 
 
-radius =
+baseRadius =
     50
+
+
+baseDragSpeed =
+    0.35
 
 
 main =
@@ -33,18 +39,30 @@ type alias Model =
 
 
 type alias Node =
-    { pos : Position
+    { pos : Pos
+    , velocity : Float
     }
 
 
 type alias Mouse =
-    { pos : Position
+    { pos : Mouse.Position
+    }
+
+
+type alias Pos =
+    { x : Float
+    , y : Float
     }
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( { node = (Node (Position 200 200)), mouse = (Mouse (Position 200 200)) }, Cmd.none )
+    ( { node = (Node (Pos 200 200) 0)
+      , mouse =
+            Mouse (Mouse.Position 200 200)
+      }
+    , Cmd.none
+    )
 
 
 
@@ -52,30 +70,65 @@ init =
 
 
 type Msg
-    = MouseMove Position
+    = MouseMove Mouse.Position
+    | AnimationMsg Time.Time
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     ( case msg of
         MouseMove newMousePos ->
-            { node = { pos = newMousePos }
-            , mouse = { pos = newMousePos }
+            { node =
+                { pos = calculatePosition model.node newMousePos
+                , velocity = calculateVelocity model.node newMousePos
+                }
+            , mouse =
+                { pos = newMousePos
+                }
+            }
+
+        AnimationMsg time ->
+            { node =
+                { pos = calculatePosition model.node model.mouse.pos
+                , velocity = calculateVelocity model.node model.mouse.pos
+                }
+            , mouse = model.mouse
             }
     , Cmd.none
     )
 
 
+calculatePosition : Node -> Mouse.Position -> Pos
+calculatePosition node mousePos =
+    let
+        newX =
+            node.pos.x - (baseDragSpeed * (node.pos.x - toFloat mousePos.x))
 
+        newY =
+            node.pos.y - (baseDragSpeed * (node.pos.y - toFloat mousePos.y))
+    in
+        Pos newX newY
+
+
+calculateVelocity : Node -> Mouse.Position -> Float
+calculateVelocity node mousePos =
+    0
+
+
+
+--toFloat (newPos.x - node.pos.x)
 -- SUBSCRIPTIONS
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    Sub.batch
+        [ AnimationFrame.diffs AnimationMsg
+        ]
 
 
 
+--Sub.none
 -- VIEW
 
 
@@ -96,14 +149,14 @@ view model =
             [ circle
                 [ cx (px realPosition.x)
                 , cy (px realPosition.y)
-                , r (toString radius)
+                , r (toString (baseRadius + model.node.velocity))
                 , fill "red"
                 ]
                 []
             ]
 
 
-px : Int -> String
+px : Float -> String
 px number =
     toString number ++ "px"
 
