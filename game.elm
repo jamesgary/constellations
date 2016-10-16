@@ -15,8 +15,8 @@ baseRadius =
     50
 
 
-baseDragSpeed =
-    0.35
+baseWeight =
+    100
 
 
 main =
@@ -35,6 +35,7 @@ main =
 type alias Model =
     { node : Node
     , mouse : Mouse
+    , now : Time.Time
     }
 
 
@@ -58,8 +59,10 @@ type alias Pos =
 init : ( Model, Cmd Msg )
 init =
     ( { node = (Node (Pos 200 200) 0)
-      , mouse =
-            Mouse (Mouse.Position 200 200)
+      , mouse = Mouse (Mouse.Position 200 200)
+      , now =
+            0
+            -- FIXME set to actual now
       }
     , Cmd.none
     )
@@ -86,41 +89,61 @@ update msg model =
 
         AnimationMsg time ->
             let
+                timeElapsed =
+                    time
+
+                --time - model.now
                 newPos =
-                    calculatePosition model.node model.mouse.pos
+                    calculatePosition model.node model.mouse.pos timeElapsed
 
                 newVelocity =
-                    calculateVelocity model.node model.mouse.pos
+                    calculateVelocity model.node newPos timeElapsed
             in
                 { model
                     | node =
                         { pos = newPos
                         , velocity = newVelocity
                         }
+                    , now = time
                 }
     , Cmd.none
     )
 
 
-calculatePosition : Node -> Mouse.Position -> Pos
-calculatePosition node mousePos =
+calculatePosition : Node -> Mouse.Position -> Time.Time -> Pos
+calculatePosition node mousePos timeElapsed =
     let
+        dragSpeed =
+            1 - (baseWeight / (baseWeight + timeElapsed))
+
+        --0.1
+        mouseX =
+            toFloat mousePos.x
+
+        mouseY =
+            toFloat mousePos.y
+
+        distX =
+            mouseX - node.pos.x
+
+        distY =
+            mouseY - node.pos.y
+
         newX =
-            node.pos.x - (baseDragSpeed * (node.pos.x - toFloat mousePos.x))
+            node.pos.x + (dragSpeed * distX)
 
         newY =
-            node.pos.y - (baseDragSpeed * (node.pos.y - toFloat mousePos.y))
+            node.pos.y + (dragSpeed * distY)
     in
         Pos newX newY
 
 
-calculateVelocity : Node -> Mouse.Position -> Float
-calculateVelocity node mousePos =
+calculateVelocity : Node -> Pos -> Time.Time -> Float
+calculateVelocity node newPos timeElapsed =
     0
 
 
 
---toFloat (newPos.x - node.pos.x)
 -- SUBSCRIPTIONS
 
 
