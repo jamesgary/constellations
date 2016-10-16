@@ -27,6 +27,10 @@ baseBlur =
     0.2
 
 
+angleConvert =
+    180 / pi
+
+
 main =
     App.program
         { init = init
@@ -229,7 +233,7 @@ getTransform : Node -> String
 getTransform node =
     let
         angleStr =
-            toString (360 * (node.vel.a / (pi * 2)))
+            toString (aToDegs node.vel.a)
 
         xStr =
             toString node.pos.x
@@ -238,6 +242,11 @@ getTransform node =
             toString node.pos.y
     in
         "rotate (" ++ angleStr ++ " " ++ xStr ++ " " ++ yStr ++ ")"
+
+
+aToDegs : Float -> Float
+aToDegs a =
+    angleConvert * a
 
 
 px : Float -> String
