@@ -12,7 +12,7 @@ import Time
 
 
 baseRadius =
-    50
+    30
 
 
 baseWeight =
@@ -199,9 +199,9 @@ view model =
             baseRadius * (baseRadius / realXRad)
     in
         svg
-            [ width "800"
-            , height "600"
-            , viewBox "0 0 800 600"
+            [ width "100%"
+            , height "100%"
+            , Svg.Attributes.style "background: black"
             , onMouseMove
             ]
             [ Svg.filter
@@ -219,7 +219,7 @@ view model =
                 , ry (toString realYRad)
                 , transform (getTransform model.node)
                 , Svg.Attributes.filter "url(#blur)"
-                , fill "red"
+                , fill "white"
                 ]
                 []
             ]
