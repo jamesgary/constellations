@@ -19,6 +19,10 @@ baseWeight =
     100
 
 
+baseStretch =
+    5
+
+
 main =
     App.program
         { init = init
@@ -41,7 +45,7 @@ type alias Model =
 
 type alias Node =
     { pos : Pos
-    , velocity : Float
+    , vel : Vel
     }
 
 
@@ -56,9 +60,15 @@ type alias Pos =
     }
 
 
+type alias Vel =
+    { r : Float
+    , a : Float
+    }
+
+
 init : ( Model, Cmd Msg )
 init =
-    ( { node = (Node (Pos 200 200) 0)
+    ( { node = (Node (Pos 200 200) (Vel 0 0))
       , mouse = Mouse (Mouse.Position 200 200)
       , now =
             0
@@ -92,17 +102,16 @@ update msg model =
                 timeElapsed =
                     time
 
-                --time - model.now
                 newPos =
                     calculatePosition model.node model.mouse.pos timeElapsed
 
-                newVelocity =
-                    calculateVelocity model.node newPos timeElapsed
+                newVel =
+                    calculateVel model.node newPos timeElapsed
             in
                 { model
                     | node =
                         { pos = newPos
-                        , velocity = newVelocity
+                        , vel = newVel
                         }
                     , now = time
                 }
@@ -116,7 +125,6 @@ calculatePosition node mousePos timeElapsed =
         dragSpeed =
             1 - (baseWeight / (baseWeight + timeElapsed))
 
-        --0.1
         mouseX =
             toFloat mousePos.x
 
@@ -138,9 +146,19 @@ calculatePosition node mousePos timeElapsed =
         Pos newX newY
 
 
-calculateVelocity : Node -> Pos -> Time.Time -> Float
-calculateVelocity node newPos timeElapsed =
-    0
+calculateVel : Node -> Pos -> Time.Time -> Vel
+calculateVel node newPos timeElapsed =
+    let
+        xDiff =
+            (newPos.x - node.pos.x) / timeElapsed
+
+        yDiff =
+            (newPos.y - node.pos.y) / timeElapsed
+
+        ( r, a ) =
+            toPolar ( xDiff, yDiff )
+    in
+        Vel r a
 
 
 
@@ -155,7 +173,6 @@ subscriptions model =
 
 
 
---Sub.none
 -- VIEW
 
 
@@ -165,7 +182,14 @@ view model =
         realPosition =
             model.node.pos
 
-        --getPosition model
+        stretch =
+            baseStretch * model.node.vel.r
+
+        realXRad =
+            baseRadius + stretch
+
+        realYRad =
+            baseRadius * (baseRadius / realXRad)
     in
         svg
             [ width "800"
@@ -173,14 +197,31 @@ view model =
             , viewBox "0 0 800 600"
             , onMouseMove
             ]
-            [ circle
+            [ ellipse
                 [ cx (px realPosition.x)
                 , cy (px realPosition.y)
-                , r (toString (baseRadius + model.node.velocity))
+                , rx (toString realXRad)
+                , ry (toString realYRad)
+                , transform (getTransform model.node)
                 , fill "red"
                 ]
                 []
             ]
+
+
+getTransform : Node -> String
+getTransform node =
+    let
+        angleStr =
+            toString (360 * (node.vel.a / (pi * 2)))
+
+        xStr =
+            toString node.pos.x
+
+        yStr =
+            toString node.pos.y
+    in
+        "rotate (" ++ angleStr ++ " " ++ xStr ++ " " ++ yStr ++ ")"
 
 
 px : Float -> String
