@@ -16,11 +16,15 @@ baseRadius =
 
 
 baseWeight =
-    100
+    50
 
 
 baseStretch =
     5
+
+
+baseBlur =
+    0.2
 
 
 main =
@@ -185,6 +189,9 @@ view model =
         stretch =
             baseStretch * model.node.vel.r
 
+        blur =
+            baseBlur * model.node.vel.r
+
         realXRad =
             baseRadius + stretch
 
@@ -197,12 +204,21 @@ view model =
             , viewBox "0 0 800 600"
             , onMouseMove
             ]
-            [ ellipse
+            [ Svg.filter
+                [ id "blur"
+                ]
+                [ feGaussianBlur
+                    [ stdDeviation (toString blur)
+                    ]
+                    []
+                ]
+            , ellipse
                 [ cx (px realPosition.x)
                 , cy (px realPosition.y)
                 , rx (toString realXRad)
                 , ry (toString realYRad)
                 , transform (getTransform model.node)
+                , Svg.Attributes.filter "url(#blur)"
                 , fill "red"
                 ]
                 []
