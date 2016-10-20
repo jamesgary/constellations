@@ -12,11 +12,10 @@ type alias Model =
 
 
 type alias Node =
-    { pos : Pos
-    , vel :
-        Vel
-        -- isDragged : Bool
-        --, isHovered : Bool
+    { rad : Float
+    , pos : Pos
+    , vel : Vel
+    , isHovered : Bool
     }
 
 

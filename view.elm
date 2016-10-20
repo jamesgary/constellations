@@ -13,10 +13,6 @@ import Svg.Attributes exposing (..)
 import Types exposing (..)
 
 
-baseRadius =
-    30
-
-
 baseStretch =
     5
 
@@ -41,15 +37,20 @@ view model =
         blur =
             baseBlur * model.node.vel.r
 
+        rad =
+            model.node.rad
+
         realXRad =
-            baseRadius + stretch
+            rad + stretch
 
         realYRad =
-            baseRadius * (baseRadius / realXRad)
+            rad * (rad / realXRad)
 
         color =
             if model.mouse.isPressed then
                 "red"
+            else if model.node.isHovered then
+                "green"
             else
                 "white"
     in
@@ -58,6 +59,7 @@ view model =
             , height "100%"
             , Svg.Attributes.style "background: black"
             , onMouseMove
+            , onMouseDown
             , onMouseUp
             ]
             [ Svg.filter
@@ -76,7 +78,6 @@ view model =
                 , transform (getTransform model.node)
                 , Svg.Attributes.filter "url(#blur)"
                 , fill color
-                , onMouseDown
                 ]
                 []
             ]

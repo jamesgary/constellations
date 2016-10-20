@@ -14,9 +14,13 @@ baseWeight =
     50
 
 
+baseRadius =
+    50
+
+
 init : ( Model, Cmd Msg )
 init =
-    ( { node = (Node (Pos 200 200) (Vel 0 0))
+    ( { node = (Node baseRadius (Pos 200 200) (Vel 0 0) False)
       , mouse = Mouse (Mouse.Position 200 200) False
       , now =
             0
@@ -35,16 +39,30 @@ update msg model =
     let
         mouse =
             model.mouse
+
+        node =
+            model.node
     in
         case msg of
             MouseMove mousePos ->
-                ( { model | mouse = updateMousePos mouse mousePos }
-                , Cmd.none
-                )
+                let
+                    mouse =
+                        updateMousePos mouse mousePos
+
+                    node =
+                        { node | isHovered = isTouching model.node mousePos }
+
+                    newModel =
+                        { model
+                            | mouse = mouse
+                            , node = node
+                        }
+                in
+                    ( newModel, Cmd.none )
 
             MouseDown mousePos ->
                 let
-                    model =
+                    newModel =
                         { model
                             | mouse =
                                 { pos = mousePos
@@ -52,7 +70,7 @@ update msg model =
                                 }
                         }
                 in
-                    ( model, Cmd.none )
+                    ( newModel, Cmd.none )
 
             MouseUp mousePos ->
                 ( { model
@@ -75,6 +93,21 @@ updateMousePos mouse newMousePos =
     { mouse | pos = newMousePos }
 
 
+isTouching : Node -> Mouse.Position -> Bool
+isTouching node mousePos =
+    let
+        aSquared =
+            (node.pos.x - (toFloat mousePos.x)) ^ 2
+
+        bSquared =
+            (node.pos.y - (toFloat mousePos.y)) ^ 2
+
+        c =
+            sqrt (aSquared + bSquared)
+    in
+        c < node.rad
+
+
 animate : Model -> Time.Time -> Model
 animate model time =
     let
@@ -94,6 +127,8 @@ animate model time =
             | node =
                 { pos = newPos
                 , vel = newVel
+                , isHovered = model.node.isHovered
+                , rad = model.node.rad
                 }
             , now = time
         }
