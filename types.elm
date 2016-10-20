@@ -15,7 +15,7 @@ type alias Node =
     { pos : Pos
     , vel :
         Vel
-        --, isDragged : Bool
+        -- isDragged : Bool
         --, isHovered : Bool
     }
 

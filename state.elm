@@ -33,36 +33,41 @@ init =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     let
-        node =
-            model.node
-
         mouse =
             model.mouse
     in
-        ( case msg of
-            MouseMove newMousePos ->
-                { model | mouse = updateMousePos mouse newMousePos }
+        case msg of
+            MouseMove mousePos ->
+                ( { model | mouse = updateMousePos mouse mousePos }
+                , Cmd.none
+                )
 
-            MouseDown newMousePos ->
-                { model
-                    | mouse =
-                        { pos = model.mouse.pos
-                        , isPressed = True
+            MouseDown mousePos ->
+                let
+                    model =
+                        { model
+                            | mouse =
+                                { pos = mousePos
+                                , isPressed = True
+                                }
                         }
-                }
+                in
+                    ( model, Cmd.none )
 
-            MouseUp newMousePos ->
-                { model
+            MouseUp mousePos ->
+                ( { model
                     | mouse =
-                        { pos = model.mouse.pos
+                        { pos = mousePos
                         , isPressed = False
                         }
-                }
+                  }
+                , Cmd.none
+                )
 
             AnimationMsg time ->
-                animateEvent model time
-        , Cmd.none
-        )
+                ( (animate model time)
+                , Cmd.none
+                )
 
 
 updateMousePos : Mouse -> Mouse.Position -> Mouse
@@ -70,14 +75,17 @@ updateMousePos mouse newMousePos =
     { mouse | pos = newMousePos }
 
 
-animateEvent : Model -> Time.Time -> Model
-animateEvent model time =
+animate : Model -> Time.Time -> Model
+animate model time =
     let
         timeElapsed =
             time
 
         newPos =
-            calculatePosition model.node model.mouse.pos timeElapsed
+            if model.mouse.isPressed then
+                calculatePosition model.node model.mouse.pos timeElapsed
+            else
+                model.node.pos
 
         newVel =
             calculateVel model.node newPos timeElapsed

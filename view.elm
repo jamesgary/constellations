@@ -46,12 +46,19 @@ view model =
 
         realYRad =
             baseRadius * (baseRadius / realXRad)
+
+        color =
+            if model.mouse.isPressed then
+                "red"
+            else
+                "white"
     in
         svg
             [ width "100%"
             , height "100%"
             , Svg.Attributes.style "background: black"
             , onMouseMove
+            , onMouseUp
             ]
             [ Svg.filter
                 [ id "blur"
@@ -68,9 +75,8 @@ view model =
                 , ry (toString realYRad)
                 , transform (getTransform model.node)
                 , Svg.Attributes.filter "url(#blur)"
-                , fill "white"
+                , fill color
                 , onMouseDown
-                , onMouseUp
                 ]
                 []
             ]
