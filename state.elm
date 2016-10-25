@@ -1,8 +1,8 @@
 module State exposing (init, update, subscriptions)
 
 import AnimationFrame
-import Mouse
 import Time
+import Mouse
 
 
 -- mine
@@ -20,8 +20,17 @@ baseRadius =
 
 init : ( Model, Cmd Msg )
 init =
-    ( { node = (Node baseRadius (Pos 200 200) (Vel 0 0) False)
-      , mouse = Mouse (Mouse.Position 200 200) False
+    ( { node =
+            { rad = baseRadius
+            , dest = (Pos 200 200)
+            , pos = (Pos 200 200)
+            , vel = (Vel 0 0)
+            , isHovered = False
+            }
+      , mouse =
+            { pos = (Pos 0 0)
+            , dragOffset = Nothing
+            }
       , now =
             0
             -- FIXME set to actual now
@@ -46,61 +55,119 @@ update msg model =
         case msg of
             MouseMove mousePos ->
                 let
-                    mouse =
-                        updateMousePos mouse mousePos
+                    newPos =
+                        mousePosToPos mousePos
 
-                    node =
-                        { node | isHovered = isTouching model.node mousePos }
+                    newMouse =
+                        { mouse
+                            | pos = newPos
+                        }
 
                     newModel =
-                        { model
-                            | mouse = mouse
-                            , node = node
-                        }
+                        { model | mouse = newMouse }
                 in
                     ( newModel, Cmd.none )
 
             MouseDown mousePos ->
                 let
-                    newModel =
-                        { model
-                            | mouse =
-                                { pos = mousePos
-                                , isPressed = True
-                                }
+                    newPos =
+                        mousePosToPos mousePos
+
+                    newMouse =
+                        { mouse
+                            | pos = newPos
+                            , dragOffset =
+                                if isTouching node newPos then
+                                    Just (Pos (node.pos.x - newPos.x) (node.pos.y - newPos.y))
+                                else
+                                    Nothing
                         }
+
+                    newModel =
+                        { model | mouse = newMouse }
                 in
                     ( newModel, Cmd.none )
 
             MouseUp mousePos ->
-                ( { model
-                    | mouse =
-                        { pos = mousePos
-                        , isPressed = False
+                let
+                    newPos =
+                        mousePosToPos mousePos
+
+                    newMouse =
+                        { mouse
+                            | pos = newPos
+                            , dragOffset = Nothing
                         }
-                  }
-                , Cmd.none
-                )
+
+                    newModel =
+                        { model | mouse = newMouse }
+                in
+                    ( newModel, Cmd.none )
 
             AnimationMsg time ->
-                ( (animate model time)
-                , Cmd.none
-                )
+                ( (animate model time), Cmd.none )
 
 
-updateMousePos : Mouse -> Mouse.Position -> Mouse
-updateMousePos mouse newMousePos =
-    { mouse | pos = newMousePos }
+animate : Model -> Time.Time -> Model
+animate model timeElapsed =
+    let
+        node =
+            model.node
+
+        mouse =
+            model.mouse
+
+        newDest =
+            case mouse.dragOffset of
+                Just dragOffset ->
+                    let
+                        destX =
+                            mouse.pos.x + dragOffset.x
+
+                        destY =
+                            mouse.pos.y + dragOffset.y
+                    in
+                        Pos destX destY
+
+                Nothing ->
+                    node.dest
+
+        newNode =
+            { node | dest = newDest }
+
+        newNewNode =
+            moveNodeToDest newNode timeElapsed
+
+        -- TODO isHovered
+    in
+        { model
+            | node = newNewNode
+        }
 
 
-isTouching : Node -> Mouse.Position -> Bool
+moveNodeToDest : Node -> Time.Time -> Node
+moveNodeToDest node timeElapsed =
+    let
+        newPos =
+            calculatePosition node timeElapsed
+
+        newVel =
+            calculateVel node newPos timeElapsed
+    in
+        { node
+            | pos = newPos
+            , vel = newVel
+        }
+
+
+isTouching : Node -> Pos -> Bool
 isTouching node mousePos =
     let
         aSquared =
-            (node.pos.x - (toFloat mousePos.x)) ^ 2
+            (node.pos.x - mousePos.x) ^ 2
 
         bSquared =
-            (node.pos.y - (toFloat mousePos.y)) ^ 2
+            (node.pos.y - mousePos.y) ^ 2
 
         c =
             sqrt (aSquared + bSquared)
@@ -108,43 +175,17 @@ isTouching node mousePos =
         c < node.rad
 
 
-animate : Model -> Time.Time -> Model
-animate model time =
-    let
-        timeElapsed =
-            time
-
-        newPos =
-            if model.mouse.isPressed then
-                calculatePosition model.node model.mouse.pos timeElapsed
-            else
-                model.node.pos
-
-        newVel =
-            calculateVel model.node newPos timeElapsed
-    in
-        { model
-            | node =
-                { pos = newPos
-                , vel = newVel
-                , isHovered = model.node.isHovered
-                , rad = model.node.rad
-                }
-            , now = time
-        }
-
-
-calculatePosition : Node -> Mouse.Position -> Time.Time -> Pos
-calculatePosition node mousePos timeElapsed =
+calculatePosition : Node -> Time.Time -> Pos
+calculatePosition node timeElapsed =
     let
         dragSpeed =
             1 - (baseWeight / (baseWeight + timeElapsed))
 
         mouseX =
-            toFloat mousePos.x
+            node.dest.x
 
         mouseY =
-            toFloat mousePos.y
+            node.dest.y
 
         distX =
             mouseX - node.pos.x
@@ -174,6 +215,11 @@ calculateVel node newPos timeElapsed =
             toPolar ( xDiff, yDiff )
     in
         Vel r a
+
+
+mousePosToPos : Mouse.Position -> Pos
+mousePosToPos mousePos =
+    Pos (toFloat mousePos.x) (toFloat mousePos.y)
 
 
 

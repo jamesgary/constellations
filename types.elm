@@ -13,6 +13,7 @@ type alias Model =
 
 type alias Node =
     { rad : Float
+    , dest : Pos
     , pos : Pos
     , vel : Vel
     , isHovered : Bool
@@ -20,8 +21,8 @@ type alias Node =
 
 
 type alias Mouse =
-    { pos : Mouse.Position
-    , isPressed : Bool
+    { pos : Pos
+    , dragOffset : Maybe Pos
     }
 
 

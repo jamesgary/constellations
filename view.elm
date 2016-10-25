@@ -1,6 +1,7 @@
 module View exposing (view)
 
-import Html exposing (Html, div, text)
+import Html exposing (Html, div)
+import Html.Attributes
 import Html.Events exposing (on)
 import Json.Decode as Json
 import Mouse
@@ -11,6 +12,7 @@ import Svg.Attributes exposing (..)
 -- mine
 
 import Types exposing (..)
+import Debugger exposing (debugger)
 
 
 baseStretch =
@@ -47,39 +49,37 @@ view model =
             rad * (rad / realXRad)
 
         color =
-            if model.mouse.isPressed then
-                "red"
-            else if model.node.isHovered then
-                "green"
-            else
-                "white"
+            "white"
     in
-        svg
-            [ width "100%"
-            , height "100%"
-            , Svg.Attributes.style "background: black"
-            , onMouseMove
-            , onMouseDown
-            , onMouseUp
-            ]
-            [ Svg.filter
-                [ id "blur"
+        div
+            [ Html.Attributes.style
+                [ ( "width", "100%" )
+                , ( "height", "100%" )
                 ]
-                [ feGaussianBlur
-                    [ stdDeviation (toString blur)
+            ]
+            [ svg
+                [ width "100%"
+                , height "100%"
+                , Svg.Attributes.style "background: black"
+                , onMouseMove
+                , onMouseDown
+                , onMouseUp
+                ]
+                [ Svg.filter
+                    [ id "blur" ]
+                    [ feGaussianBlur [ stdDeviation (toString blur) ] [] ]
+                , ellipse
+                    [ cx (px realPosition.x)
+                    , cy (px realPosition.y)
+                    , rx (toString realXRad)
+                    , ry (toString realYRad)
+                    , transform (getTransform model.node)
+                    , Svg.Attributes.filter "url(#blur)"
+                    , fill color
                     ]
                     []
                 ]
-            , ellipse
-                [ cx (px realPosition.x)
-                , cy (px realPosition.y)
-                , rx (toString realXRad)
-                , ry (toString realYRad)
-                , transform (getTransform model.node)
-                , Svg.Attributes.filter "url(#blur)"
-                , fill color
-                ]
-                []
+            , debugger model
             ]
 
 
