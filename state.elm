@@ -20,16 +20,27 @@ baseRadius =
 
 init : ( Model, Cmd Msg )
 init =
-    ( { node =
-            { rad = baseRadius
-            , dest = (Pos 200 200)
-            , pos = (Pos 200 200)
-            , vel = (Vel 0 0)
-            , isHovered = False
-            }
+    ( { nodes =
+            [ { id = 0
+              , rad = baseRadius
+              , dest = (Pos 300 300)
+              , pos = (Pos 300 300)
+              , vel = (Vel 0 0)
+              , isHovered = False
+              , dragOffset = Nothing
+              }
+            , { id = 1
+              , rad = baseRadius
+              , dest = (Pos 400 200)
+              , pos = (Pos 400 200)
+              , vel = (Vel 0 0)
+              , isHovered = False
+              , dragOffset = Nothing
+              }
+            ]
+      , draggedNode = Nothing
       , mouse =
             { pos = (Pos 0 0)
-            , dragOffset = Nothing
             }
       , now =
             0
@@ -49,8 +60,8 @@ update msg model =
         mouse =
             model.mouse
 
-        node =
-            model.node
+        nodes =
+            model.nodes
     in
         case msg of
             MouseMove mousePos ->
@@ -59,9 +70,7 @@ update msg model =
                         mousePosToPos mousePos
 
                     newMouse =
-                        { mouse
-                            | pos = newPos
-                        }
+                        { mouse | pos = newPos }
 
                     newModel =
                         { model | mouse = newMouse }
@@ -74,17 +83,31 @@ update msg model =
                         mousePosToPos mousePos
 
                     newMouse =
-                        { mouse
-                            | pos = newPos
-                            , dragOffset =
-                                if isTouching node newPos then
-                                    Just (Pos (node.pos.x - newPos.x) (node.pos.y - newPos.y))
+                        { mouse | pos = newPos }
+
+                    processMouseDown pos node =
+                        let
+                            ( dragOffset, newDest ) =
+                                if isTouching pos node then
+                                    ( Just (Pos (node.pos.x - newPos.x) (node.pos.y - newPos.y))
+                                    , pos
+                                    )
                                 else
-                                    Nothing
-                        }
+                                    ( Nothing, node.dest )
+                        in
+                            { node
+                                | dragOffset = dragOffset
+                                , dest = newDest
+                            }
+
+                    newNodes =
+                        List.map (processMouseDown newPos) nodes
 
                     newModel =
-                        { model | mouse = newMouse }
+                        { model
+                            | mouse = newMouse
+                            , nodes = newNodes
+                        }
                 in
                     ( newModel, Cmd.none )
 
@@ -96,36 +119,69 @@ update msg model =
                     newMouse =
                         { mouse
                             | pos = newPos
-                            , dragOffset = Nothing
                         }
 
+                    processMouseUp pos node =
+                        let
+                            newDest =
+                                case node.dragOffset of
+                                    Just dragOffset ->
+                                        Pos (pos.x + dragOffset.x) (pos.y + dragOffset.y)
+
+                                    Nothing ->
+                                        node.dest
+                        in
+                            { node
+                                | dragOffset = Nothing
+                                , dest = newDest
+                            }
+
+                    newNodes =
+                        List.map (processMouseUp newPos) nodes
+
                     newModel =
-                        { model | mouse = newMouse }
+                        { model
+                            | nodes = newNodes
+                            , mouse = newMouse
+                        }
                 in
                     ( newModel, Cmd.none )
 
             AnimationMsg time ->
-                ( (animate model time), Cmd.none )
+                ( (animate time model), Cmd.none )
 
 
-animate : Model -> Time.Time -> Model
-animate model timeElapsed =
+animate : Time.Time -> Model -> Model
+animate timeElapsed model =
     let
-        node =
-            model.node
+        nodes =
+            model.nodes
 
         mouse =
             model.mouse
 
+        newNodes =
+            List.map (animateNode timeElapsed mouse.pos) nodes
+
+        -- TODO isHovered
+    in
+        { model
+            | nodes = newNodes
+        }
+
+
+animateNode : Time.Time -> Pos -> Node -> Node
+animateNode timeElapsed mousePos node =
+    let
         newDest =
-            case mouse.dragOffset of
+            case node.dragOffset of
                 Just dragOffset ->
                     let
                         destX =
-                            mouse.pos.x + dragOffset.x
+                            mousePos.x + dragOffset.x
 
                         destY =
-                            mouse.pos.y + dragOffset.y
+                            mousePos.y + dragOffset.y
                     in
                         Pos destX destY
 
@@ -137,12 +193,8 @@ animate model timeElapsed =
 
         newNewNode =
             moveNodeToDest newNode timeElapsed
-
-        -- TODO isHovered
     in
-        { model
-            | node = newNewNode
-        }
+        newNewNode
 
 
 moveNodeToDest : Node -> Time.Time -> Node
@@ -160,8 +212,8 @@ moveNodeToDest node timeElapsed =
         }
 
 
-isTouching : Node -> Pos -> Bool
-isTouching node mousePos =
+isTouching : Pos -> Node -> Bool
+isTouching mousePos node =
     let
         aSquared =
             (node.pos.x - mousePos.x) ^ 2

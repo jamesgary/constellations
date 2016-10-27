@@ -5,24 +5,26 @@ import Time
 
 
 type alias Model =
-    { node : Node
+    { nodes : List Node
+    , draggedNode : Maybe Node
     , mouse : Mouse
     , now : Time.Time
     }
 
 
 type alias Node =
-    { rad : Float
+    { id : Int
+    , rad : Float
     , dest : Pos
     , pos : Pos
     , vel : Vel
     , isHovered : Bool
+    , dragOffset : Maybe Pos
     }
 
 
 type alias Mouse =
     { pos : Pos
-    , dragOffset : Maybe Pos
     }
 
 

@@ -12,8 +12,8 @@ import Types exposing (..)
 debugger : Model -> Html Msg
 debugger model =
     let
-        node =
-            model.node
+        nodes =
+            model.nodes
 
         mouse =
             model.mouse
@@ -35,7 +35,7 @@ debugger model =
                 ]
             ]
             [ table []
-                [ debugRow "node.rad" node.rad
+                [ {--debugRow "node.rad" node.rad
                 , debugRow "node.dest.x" node.dest.x
                 , debugRow "node.dest.y" node.dest.y
                 , debugRow "node.pos.x" node.pos.x
@@ -44,9 +44,9 @@ debugger model =
                 , debugRow "node.vel.a" node.vel.a
                 , debugRow "node.isHovered" node.isHovered
                 , debugRow "---" "---"
-                , debugRow "mouse.pos.x" mouse.pos.x
+                ,--}
+                  debugRow "mouse.pos.x" mouse.pos.x
                 , debugRow "mouse.pos.y" mouse.pos.y
-                , debugRow "mouse.drag" mouse.dragOffset
                 ]
             ]
 

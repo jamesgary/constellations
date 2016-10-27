@@ -29,18 +29,39 @@ angleConvert =
 
 view : Model -> Html Msg
 view model =
+    div
+        [ Html.Attributes.style
+            [ ( "width", "100%" )
+            , ( "height", "100%" )
+            ]
+        ]
+        [ svg
+            [ width "100%"
+            , height "100%"
+            , Svg.Attributes.style "background: black"
+            , onMouseMove
+            , onMouseDown
+            , onMouseUp
+            ]
+            (List.map drawNode model.nodes)
+        , debugger model
+        ]
+
+
+drawNode : Node -> Html Msg
+drawNode node =
     let
         realPosition =
-            model.node.pos
+            node.pos
 
         stretch =
-            baseStretch * model.node.vel.r
+            baseStretch * node.vel.r
 
         blur =
-            baseBlur * model.node.vel.r
+            baseBlur * node.vel.r
 
         rad =
-            model.node.rad
+            node.rad
 
         realXRad =
             rad + stretch
@@ -51,35 +72,27 @@ view model =
         color =
             "white"
     in
-        div
-            [ Html.Attributes.style
-                [ ( "width", "100%" )
-                , ( "height", "100%" )
-                ]
+        svg
+            [ width "100%"
+            , height "100%"
+            , Svg.Attributes.style "background: black"
+            , onMouseMove
+            , onMouseDown
+            , onMouseUp
             ]
-            [ svg
-                [ width "100%"
-                , height "100%"
-                , Svg.Attributes.style "background: black"
-                , onMouseMove
-                , onMouseDown
-                , onMouseUp
+            [ Svg.filter
+                [ id ("blur-node-" ++ (toString id)) ]
+                [ feGaussianBlur [ stdDeviation (toString blur) ] [] ]
+            , ellipse
+                [ cx (px realPosition.x)
+                , cy (px realPosition.y)
+                , rx (toString realXRad)
+                , ry (toString realYRad)
+                , transform (getTransform node)
+                , Svg.Attributes.filter (("url(#blur-node-" ++ (toString id)) ++ ")")
+                , fill color
                 ]
-                [ Svg.filter
-                    [ id "blur" ]
-                    [ feGaussianBlur [ stdDeviation (toString blur) ] [] ]
-                , ellipse
-                    [ cx (px realPosition.x)
-                    , cy (px realPosition.y)
-                    , rx (toString realXRad)
-                    , ry (toString realYRad)
-                    , transform (getTransform model.node)
-                    , Svg.Attributes.filter "url(#blur)"
-                    , fill color
-                    ]
-                    []
-                ]
-            , debugger model
+                []
             ]
 
 
