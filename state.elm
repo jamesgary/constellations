@@ -25,7 +25,7 @@ init =
               , rad = baseRadius
               , dest = (Pos 300 300)
               , pos = (Pos 300 300)
-              , vel = (Vel 0 0)
+              , vel = (Vel 0 0 0 0)
               , isHovered = False
               , dragOffset = Nothing
               }
@@ -33,12 +33,11 @@ init =
               , rad = baseRadius
               , dest = (Pos 400 200)
               , pos = (Pos 400 200)
-              , vel = (Vel 0 0)
+              , vel = (Vel 0 0 0 0)
               , isHovered = False
               , dragOffset = Nothing
               }
             ]
-      , draggedNode = Nothing
       , mouse =
             { pos = (Pos 0 0)
             }
@@ -266,7 +265,7 @@ calculateVel node newPos timeElapsed =
         ( r, a ) =
             toPolar ( xDiff, yDiff )
     in
-        Vel r a
+        Vel xDiff yDiff r a
 
 
 mousePosToPos : Mouse.Position -> Pos

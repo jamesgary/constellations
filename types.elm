@@ -6,7 +6,6 @@ import Time
 
 type alias Model =
     { nodes : List Node
-    , draggedNode : Maybe Node
     , mouse : Mouse
     , now : Time.Time
     }
@@ -35,7 +34,9 @@ type alias Pos =
 
 
 type alias Vel =
-    { r : Float
+    { x : Float
+    , y : Float
+    , r : Float
     , a : Float
     }
 

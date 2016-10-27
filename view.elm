@@ -5,6 +5,7 @@ import Html.Attributes
 import Html.Events exposing (on)
 import Json.Decode as Json
 import Mouse
+import String exposing (..)
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
 
@@ -20,7 +21,7 @@ baseStretch =
 
 
 baseBlur =
-    0.2
+    0.8
 
 
 angleConvert =
@@ -58,7 +59,7 @@ drawNode node =
             baseStretch * node.vel.r
 
         blur =
-            baseBlur * node.vel.r
+            getBlur node
 
         rad =
             node.rad
@@ -81,15 +82,15 @@ drawNode node =
             , onMouseUp
             ]
             [ Svg.filter
-                [ id ("blur-node-" ++ (toString id)) ]
-                [ feGaussianBlur [ stdDeviation (toString blur) ] [] ]
+                [ id ("blur-node-" ++ (toString node.id)) ]
+                [ feGaussianBlur [ stdDeviation blur ] [] ]
             , ellipse
                 [ cx (px realPosition.x)
                 , cy (px realPosition.y)
                 , rx (toString realXRad)
                 , ry (toString realYRad)
                 , transform (getTransform node)
-                , Svg.Attributes.filter (("url(#blur-node-" ++ (toString id)) ++ ")")
+                , Svg.Attributes.filter (("url(#blur-node-" ++ (toString node.id)) ++ ")")
                 , fill color
                 ]
                 []
@@ -109,6 +110,18 @@ getTransform node =
             toString node.pos.y
     in
         "rotate (" ++ angleStr ++ " " ++ xStr ++ " " ++ yStr ++ ")"
+
+
+getBlur : Node -> String
+getBlur node =
+    let
+        xStr =
+            toString (baseBlur * node.vel.x)
+
+        yStr =
+            toString (baseBlur * node.vel.y)
+    in
+        xStr ++ "," ++ yStr
 
 
 aToDegs : Float -> Float
