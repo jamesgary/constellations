@@ -37,6 +37,29 @@ init =
               , isHovered = False
               , dragOffset = Nothing
               }
+            , { id = 2
+              , rad = baseRadius
+              , dest = (Pos 600 400)
+              , pos = (Pos 600 400)
+              , vel = (Vel 0 0 0 0)
+              , isHovered = False
+              , dragOffset = Nothing
+              }
+            , { id = 3
+              , rad = baseRadius
+              , dest = (Pos 100 600)
+              , pos = (Pos 100 600)
+              , vel = (Vel 0 0 0 0)
+              , isHovered = False
+              , dragOffset = Nothing
+              }
+            ]
+      , edges =
+            [ ( 0, 1 )
+            , ( 1, 2 )
+            , ( 2, 3 )
+            , ( 3, 4 )
+            , ( 4, 0 )
             ]
       , mouse =
             { pos = (Pos 0 0)

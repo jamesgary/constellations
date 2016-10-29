@@ -41,15 +41,14 @@ view model =
             , height "100%"
             , Svg.Attributes.style "background: black"
             , onMouseMove
-            , onMouseDown
             , onMouseUp
             ]
-            (List.map drawNode model.nodes)
+            (List.concat (List.map drawNode model.nodes))
         , debugger model
         ]
 
 
-drawNode : Node -> Html Msg
+drawNode : Node -> List (Html Msg)
 drawNode node =
     let
         realPosition =
@@ -73,28 +72,22 @@ drawNode node =
         color =
             "white"
     in
-        svg
-            [ width "100%"
-            , height "100%"
-            , Svg.Attributes.style "background: black"
-            , onMouseMove
-            , onMouseDown
+        [ Svg.filter
+            [ id ("blur-node-" ++ (toString node.id)) ]
+            [ feGaussianBlur [ stdDeviation blur ] [] ]
+        , ellipse
+            [ onMouseDown
             , onMouseUp
+            , cx (px realPosition.x)
+            , cy (px realPosition.y)
+            , rx (toString realXRad)
+            , ry (toString realYRad)
+            , transform (getTransform node)
+            , Svg.Attributes.filter (("url(#blur-node-" ++ (toString node.id)) ++ ")")
+            , fill color
             ]
-            [ Svg.filter
-                [ id ("blur-node-" ++ (toString node.id)) ]
-                [ feGaussianBlur [ stdDeviation blur ] [] ]
-            , ellipse
-                [ cx (px realPosition.x)
-                , cy (px realPosition.y)
-                , rx (toString realXRad)
-                , ry (toString realYRad)
-                , transform (getTransform node)
-                , Svg.Attributes.filter (("url(#blur-node-" ++ (toString node.id)) ++ ")")
-                , fill color
-                ]
-                []
-            ]
+            []
+        ]
 
 
 getTransform : Node -> String

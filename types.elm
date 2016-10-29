@@ -6,6 +6,7 @@ import Time
 
 type alias Model =
     { nodes : List Node
+    , edges : List ( Int, Int )
     , mouse : Mouse
     , now : Time.Time
     }
