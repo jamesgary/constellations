@@ -1,19 +1,20 @@
 module Types exposing (..)
 
+import Dict exposing (Dict)
 import Mouse
 import Time
 
 
 type alias Model =
-    { nodes : List Node
-    , edges : List ( Int, Int )
+    { nodes : Dict Id Node
+    , edges : List ( Id, Id )
     , mouse : Mouse
     , now : Time.Time
     }
 
 
 type alias Node =
-    { id : Int
+    { id : Id
     , rad : Float
     , dest : Pos
     , pos : Pos
@@ -40,6 +41,10 @@ type alias Vel =
     , r : Float
     , a : Float
     }
+
+
+type alias Id =
+    Int
 
 
 type Msg

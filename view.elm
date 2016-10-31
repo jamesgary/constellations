@@ -1,5 +1,6 @@
 module View exposing (view)
 
+import Dict
 import Html exposing (Html, div)
 import Html.Attributes
 import Html.Events exposing (on)
@@ -43,9 +44,14 @@ view model =
             , onMouseMove
             , onMouseUp
             ]
-            (List.concat (List.map drawNode model.nodes))
+            (drawNodes (Dict.values model.nodes))
         , debugger model
         ]
+
+
+drawNodes : List Node -> List (Html Msg)
+drawNodes nodesList =
+    (List.concat (List.map drawNode nodesList))
 
 
 drawNode : Node -> List (Html Msg)

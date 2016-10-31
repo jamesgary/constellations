@@ -1,8 +1,9 @@
 module State exposing (init, update, subscriptions)
 
 import AnimationFrame
-import Time
+import Dict
 import Mouse
+import Time
 
 
 -- mine
@@ -21,39 +22,48 @@ baseRadius =
 init : ( Model, Cmd Msg )
 init =
     ( { nodes =
-            [ { id = 0
-              , rad = baseRadius
-              , dest = (Pos 300 300)
-              , pos = (Pos 300 300)
-              , vel = (Vel 0 0 0 0)
-              , isHovered = False
-              , dragOffset = Nothing
-              }
-            , { id = 1
-              , rad = baseRadius
-              , dest = (Pos 400 200)
-              , pos = (Pos 400 200)
-              , vel = (Vel 0 0 0 0)
-              , isHovered = False
-              , dragOffset = Nothing
-              }
-            , { id = 2
-              , rad = baseRadius
-              , dest = (Pos 600 400)
-              , pos = (Pos 600 400)
-              , vel = (Vel 0 0 0 0)
-              , isHovered = False
-              , dragOffset = Nothing
-              }
-            , { id = 3
-              , rad = baseRadius
-              , dest = (Pos 100 600)
-              , pos = (Pos 100 600)
-              , vel = (Vel 0 0 0 0)
-              , isHovered = False
-              , dragOffset = Nothing
-              }
-            ]
+            Dict.fromList
+                [ ( 0
+                  , { id = 0
+                    , rad = baseRadius
+                    , dest = (Pos 300 300)
+                    , pos = (Pos 300 300)
+                    , vel = (Vel 0 0 0 0)
+                    , isHovered = False
+                    , dragOffset = Nothing
+                    }
+                  )
+                , ( 1
+                  , { id = 1
+                    , rad = baseRadius
+                    , dest = (Pos 400 200)
+                    , pos = (Pos 400 200)
+                    , vel = (Vel 0 0 0 0)
+                    , isHovered = False
+                    , dragOffset = Nothing
+                    }
+                  )
+                , ( 2
+                  , { id = 2
+                    , rad = baseRadius
+                    , dest = (Pos 600 400)
+                    , pos = (Pos 600 400)
+                    , vel = (Vel 0 0 0 0)
+                    , isHovered = False
+                    , dragOffset = Nothing
+                    }
+                  )
+                , ( 3
+                  , { id = 3
+                    , rad = baseRadius
+                    , dest = (Pos 100 600)
+                    , pos = (Pos 100 600)
+                    , vel = (Vel 0 0 0 0)
+                    , isHovered = False
+                    , dragOffset = Nothing
+                    }
+                  )
+                ]
       , edges =
             [ ( 0, 1 )
             , ( 1, 2 )
@@ -107,7 +117,7 @@ update msg model =
                     newMouse =
                         { mouse | pos = newPos }
 
-                    processMouseDown pos node =
+                    processMouseDown pos unusedId node =
                         let
                             ( dragOffset, newDest ) =
                                 if isTouching pos node then
@@ -123,7 +133,7 @@ update msg model =
                             }
 
                     newNodes =
-                        List.map (processMouseDown newPos) nodes
+                        Dict.map (processMouseDown newPos) nodes
 
                     newModel =
                         { model
@@ -143,7 +153,7 @@ update msg model =
                             | pos = newPos
                         }
 
-                    processMouseUp pos node =
+                    processMouseUp pos unusedId node =
                         let
                             newDest =
                                 case node.dragOffset of
@@ -159,7 +169,7 @@ update msg model =
                             }
 
                     newNodes =
-                        List.map (processMouseUp newPos) nodes
+                        Dict.map (processMouseUp newPos) nodes
 
                     newModel =
                         { model
@@ -183,7 +193,7 @@ animate timeElapsed model =
             model.mouse
 
         newNodes =
-            List.map (animateNode timeElapsed mouse.pos) nodes
+            Dict.map (animateNode timeElapsed mouse.pos) nodes
 
         -- TODO isHovered
     in
@@ -192,8 +202,8 @@ animate timeElapsed model =
         }
 
 
-animateNode : Time.Time -> Pos -> Node -> Node
-animateNode timeElapsed mousePos node =
+animateNode : Time.Time -> Pos -> Id -> Node -> Node
+animateNode timeElapsed mousePos unusedId node =
     let
         newDest =
             case node.dragOffset of
