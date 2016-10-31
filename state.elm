@@ -16,7 +16,7 @@ baseWeight =
 
 
 baseRadius =
-    50
+    20
 
 
 init : ( Model, Cmd Msg )
@@ -56,8 +56,8 @@ init =
                 , ( 3
                   , { id = 3
                     , rad = baseRadius
-                    , dest = (Pos 100 600)
-                    , pos = (Pos 100 600)
+                    , dest = (Pos 600 100)
+                    , pos = (Pos 600 100)
                     , vel = (Vel 0 0 0 0)
                     , isHovered = False
                     , dragOffset = Nothing
@@ -68,8 +68,8 @@ init =
             [ ( 0, 1 )
             , ( 1, 2 )
             , ( 2, 3 )
-            , ( 3, 4 )
-            , ( 4, 0 )
+            , ( 2, 0 )
+            , ( 0, 3 )
             ]
       , mouse =
             { pos = (Pos 0 0)

@@ -1,6 +1,6 @@
 module View exposing (view)
 
-import Dict
+import Dict exposing (Dict)
 import Html exposing (Html, div)
 import Html.Attributes
 import Html.Events exposing (on)
@@ -44,7 +44,11 @@ view model =
             , onMouseMove
             , onMouseUp
             ]
-            (drawNodes (Dict.values model.nodes))
+            (List.concat
+                [ (drawEdges model.nodes model.edges)
+                , (drawNodes (Dict.values model.nodes))
+                ]
+            )
         , debugger model
         ]
 
@@ -94,6 +98,50 @@ drawNode node =
             ]
             []
         ]
+
+
+drawEdges : Dict Id Node -> List ( Id, Id ) -> List (Html Msg)
+drawEdges nodes edges =
+    (List.concat (List.map (drawEdge nodes) edges))
+
+
+drawEdge : Dict Id Node -> ( Int, Int ) -> List (Html Msg)
+drawEdge nodes edge =
+    let
+        node1 =
+            getNode nodes (fst edge)
+
+        node2 =
+            getNode nodes (snd edge)
+    in
+        [ line
+            [ x1 (toString node1.pos.x)
+            , y1 (toString node1.pos.y)
+            , x2 (toString node2.pos.x)
+            , y2 (toString node2.pos.y)
+            , strokeWidth "3"
+            , stroke "rgba(255,255,255,.5)"
+            ]
+            []
+        ]
+
+
+getNode : Dict Id Node -> Id -> Node
+getNode nodes id =
+    case Dict.get id nodes of
+        Just node ->
+            node
+
+        Nothing ->
+            -- should never happen
+            { id = -1
+            , rad = 42
+            , dest = Pos 42 42
+            , pos = Pos 42 42
+            , vel = Vel 0 0 0 0
+            , isHovered = False
+            , dragOffset = Nothing
+            }
 
 
 getTransform : Node -> String
