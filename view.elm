@@ -100,12 +100,12 @@ drawNode node =
         ]
 
 
-drawEdges : Dict Id Node -> List ( Id, Id ) -> List (Html Msg)
+drawEdges : Dict Id Node -> List Edge -> List (Html Msg)
 drawEdges nodes edges =
     (List.concat (List.map (drawEdge nodes) edges))
 
 
-drawEdge : Dict Id Node -> ( Int, Int ) -> List (Html Msg)
+drawEdge : Dict Id Node -> Edge -> List (Html Msg)
 drawEdge nodes edge =
     let
         node1 =

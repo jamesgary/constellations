@@ -7,7 +7,7 @@ import Time
 
 type alias Model =
     { nodes : Dict Id Node
-    , edges : List ( Id, Id )
+    , edges : List Edge
     , mouse : Mouse
     , now : Time.Time
     }
@@ -22,6 +22,10 @@ type alias Node =
     , isHovered : Bool
     , dragOffset : Maybe Pos
     }
+
+
+type alias Edge =
+    ( Id, Id )
 
 
 type alias Mouse =

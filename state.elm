@@ -117,7 +117,7 @@ update msg model =
                     newMouse =
                         { mouse | pos = newPos }
 
-                    processMouseDown pos unusedId node =
+                    processMouseDown pos _ node =
                         let
                             ( dragOffset, newDest ) =
                                 if isTouching pos node then
@@ -153,7 +153,7 @@ update msg model =
                             | pos = newPos
                         }
 
-                    processMouseUp pos unusedId node =
+                    processMouseUp pos _ node =
                         let
                             newDest =
                                 case node.dragOffset of
@@ -203,7 +203,7 @@ animate timeElapsed model =
 
 
 animateNode : Time.Time -> Pos -> Id -> Node -> Node
-animateNode timeElapsed mousePos unusedId node =
+animateNode timeElapsed mousePos _ node =
     let
         newDest =
             case node.dragOffset of
