@@ -14,7 +14,6 @@ import Svg.Attributes exposing (..)
 -- mine
 
 import Types exposing (..)
-import Debugger exposing (debugger)
 
 
 baseStretch =
@@ -35,6 +34,7 @@ view model =
         [ Html.Attributes.style
             [ ( "width", "100%" )
             , ( "height", "100%" )
+            , ( "background", "black" )
             ]
         ]
         [ svg
@@ -49,7 +49,6 @@ view model =
                 , (drawNodes (Dict.values model.nodes))
                 ]
             )
-        , debugger model
         ]
 
 
@@ -109,10 +108,10 @@ drawEdge : Dict Id Node -> Edge -> List (Html Msg)
 drawEdge nodes edge =
     let
         node1 =
-            getNode nodes (fst edge)
+            getNode nodes (Tuple.first edge)
 
         node2 =
-            getNode nodes (snd edge)
+            getNode nodes (Tuple.second edge)
     in
         [ line
             [ x1 (toString node1.pos.x)

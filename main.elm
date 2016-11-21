@@ -1,6 +1,6 @@
 module Main exposing (..)
 
-import Html.App as App
+import Html
 
 
 -- mine
@@ -11,7 +11,7 @@ import View exposing (view)
 
 
 main =
-    App.program
+    Html.program
         { init = init
         , view = view
         , update = update
