@@ -3,5 +3,5 @@
 ## To Run
 
 ```
-elm-reactor
+elm-make main.elm --output=public/js/main.js
 ```
