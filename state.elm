@@ -1,9 +1,10 @@
-module State exposing (init, update, subscriptions)
+port module State exposing (init, update, subscriptions)
 
 import AnimationFrame
 import Dict
 import Mouse
 import Time
+import Set
 
 
 -- mine
@@ -21,79 +22,132 @@ baseRadius =
 
 init : ( Model, Cmd Msg )
 init =
-    ( { nodes =
-            Dict.fromList
-                [ ( 0
-                  , { id = 0
-                    , rad = baseRadius
-                    , dest = (Pos 300 300)
-                    , pos = (Pos 300 300)
-                    , vel = (Vel 0 0 0 0)
-                    , isHovered = False
-                    , dragOffset = Nothing
-                    }
-                  )
-                , ( 1
-                  , { id = 1
-                    , rad = baseRadius
-                    , dest = (Pos 400 200)
-                    , pos = (Pos 400 200)
-                    , vel = (Vel 0 0 0 0)
-                    , isHovered = False
-                    , dragOffset = Nothing
-                    }
-                  )
-                , ( 2
-                  , { id = 2
-                    , rad = baseRadius
-                    , dest = (Pos 600 400)
-                    , pos = (Pos 600 400)
-                    , vel = (Vel 0 0 0 0)
-                    , isHovered = False
-                    , dragOffset = Nothing
-                    }
-                  )
-                , ( 3
-                  , { id = 3
-                    , rad = baseRadius
-                    , dest = (Pos 600 100)
-                    , pos = (Pos 600 100)
-                    , vel = (Vel 0 0 0 0)
-                    , isHovered = False
-                    , dragOffset = Nothing
-                    }
-                  )
-                ]
-      , edges =
-            [ ( 0, 1 )
-            , ( 1, 2 )
-            , ( 2, 3 )
-            , ( 2, 0 )
-            , ( 0, 3 )
-            ]
-      , mouse =
-            { pos = (Pos 0 0)
-            }
-      , now =
-            0
-            -- FIXME set to actual now
-      }
-    , Cmd.none
-    )
+    let
+        appState =
+            LoadingState 6
+    in
+        ( { appState = appState
+          }
+        , generateEdges 6
+        )
 
 
 
 -- UPDATE
 
 
+port generateEdges : Int -> Cmd msg
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
+    case model.appState of
+        LoadingState difficulty ->
+            updateFromLoadingState msg difficulty
+
+        ActiveState gameState ->
+            updateFromGameState msg gameState
+
+
+updateFromLoadingState : Msg -> Int -> ( Model, Cmd Msg )
+updateFromLoadingState msg difficulty =
+    let
+        loadingModel =
+            { appState = LoadingState difficulty }
+    in
+        case msg of
+            MouseMove mousePos ->
+                ( loadingModel, Cmd.none )
+
+            MouseDown mousePos ->
+                ( loadingModel, Cmd.none )
+
+            MouseUp mousePos ->
+                ( loadingModel, Cmd.none )
+
+            AnimationMsg time ->
+                ( loadingModel, Cmd.none )
+
+            -- request to js-land
+            GenerateEdges newDifficulty ->
+                ( loadingModel, generateEdges newDifficulty )
+
+            -- response from js-land TODO convert to non-stubbies
+            GeneratedEdges edgeData ->
+                let
+                    newGameState =
+                        ({ nodes =
+                            Dict.fromList
+                                [ ( 0
+                                  , { id = 0
+                                    , rad = baseRadius
+                                    , dest = (Pos 300 300)
+                                    , pos = (Pos 300 300)
+                                    , vel = (Vel 0 0 0 0)
+                                    , isHovered = False
+                                    , dragOffset = Nothing
+                                    }
+                                  )
+                                , ( 1
+                                  , { id = 1
+                                    , rad = baseRadius
+                                    , dest = (Pos 400 200)
+                                    , pos = (Pos 400 200)
+                                    , vel = (Vel 0 0 0 0)
+                                    , isHovered = False
+                                    , dragOffset = Nothing
+                                    }
+                                  )
+                                , ( 2
+                                  , { id = 2
+                                    , rad = baseRadius
+                                    , dest = (Pos 600 400)
+                                    , pos = (Pos 600 400)
+                                    , vel = (Vel 0 0 0 0)
+                                    , isHovered = False
+                                    , dragOffset = Nothing
+                                    }
+                                  )
+                                , ( 3
+                                  , { id = 3
+                                    , rad = baseRadius
+                                    , dest = (Pos 600 100)
+                                    , pos = (Pos 600 100)
+                                    , vel = (Vel 0 0 0 0)
+                                    , isHovered = False
+                                    , dragOffset = Nothing
+                                    }
+                                  )
+                                ]
+                         , edges =
+                            [ ( 0, 1 )
+                            , ( 1, 2 )
+                            , ( 2, 3 )
+                            , ( 2, 0 )
+                            , ( 0, 3 )
+                            ]
+                         , mouse =
+                            { pos = (Pos 0 0)
+                            }
+                         , now =
+                            0
+                            -- FIXME set to actual now
+                         , difficulty = 6
+                         }
+                        )
+                in
+                    -- return active state
+                    ( { appState = ActiveState newGameState }, Cmd.none )
+
+
+updateFromGameState : Msg -> GameState -> ( Model, Cmd Msg )
+updateFromGameState msg gameState =
     let
         mouse =
-            model.mouse
+            gameState.mouse
 
         nodes =
-            model.nodes
+            gameState.nodes
     in
         case msg of
             MouseMove mousePos ->
@@ -104,10 +158,10 @@ update msg model =
                     newMouse =
                         { mouse | pos = newPos }
 
-                    newModel =
-                        { model | mouse = newMouse }
+                    newGameState =
+                        { gameState | mouse = newMouse }
                 in
-                    ( newModel, Cmd.none )
+                    ( { appState = ActiveState newGameState }, Cmd.none )
 
             MouseDown mousePos ->
                 let
@@ -135,13 +189,13 @@ update msg model =
                     newNodes =
                         Dict.map (processMouseDown newPos) nodes
 
-                    newModel =
-                        { model
+                    newGameState =
+                        { gameState
                             | mouse = newMouse
                             , nodes = newNodes
                         }
                 in
-                    ( newModel, Cmd.none )
+                    ( { appState = ActiveState newGameState }, Cmd.none )
 
             MouseUp mousePos ->
                 let
@@ -171,33 +225,103 @@ update msg model =
                     newNodes =
                         Dict.map (processMouseUp newPos) nodes
 
-                    newModel =
-                        { model
+                    newGameState =
+                        { gameState
                             | nodes = newNodes
                             , mouse = newMouse
                         }
                 in
-                    ( newModel, Cmd.none )
+                    ( { appState = ActiveState newGameState }, Cmd.none )
+
+            -- request to js-land
+            GenerateEdges difficulty ->
+                ( { appState = ActiveState gameState }, generateEdges gameState.difficulty )
+
+            -- response from js-land
+            GeneratedEdges edgeData ->
+                let
+                    newGameState =
+                        ({ nodes =
+                            Dict.fromList
+                                [ ( 0
+                                  , { id = 0
+                                    , rad = baseRadius
+                                    , dest = (Pos 300 300)
+                                    , pos = (Pos 300 300)
+                                    , vel = (Vel 0 0 0 0)
+                                    , isHovered = False
+                                    , dragOffset = Nothing
+                                    }
+                                  )
+                                , ( 1
+                                  , { id = 1
+                                    , rad = baseRadius
+                                    , dest = (Pos 400 200)
+                                    , pos = (Pos 400 200)
+                                    , vel = (Vel 0 0 0 0)
+                                    , isHovered = False
+                                    , dragOffset = Nothing
+                                    }
+                                  )
+                                , ( 2
+                                  , { id = 2
+                                    , rad = baseRadius
+                                    , dest = (Pos 600 400)
+                                    , pos = (Pos 600 400)
+                                    , vel = (Vel 0 0 0 0)
+                                    , isHovered = False
+                                    , dragOffset = Nothing
+                                    }
+                                  )
+                                , ( 3
+                                  , { id = 3
+                                    , rad = baseRadius
+                                    , dest = (Pos 600 100)
+                                    , pos = (Pos 600 100)
+                                    , vel = (Vel 0 0 0 0)
+                                    , isHovered = False
+                                    , dragOffset = Nothing
+                                    }
+                                  )
+                                ]
+                         , edges =
+                            [ ( 0, 1 )
+                            , ( 1, 2 )
+                            , ( 2, 3 )
+                            , ( 2, 0 )
+                            , ( 0, 3 )
+                            ]
+                         , mouse =
+                            { pos = (Pos 0 0)
+                            }
+                         , now =
+                            0
+                            -- FIXME set to actual now
+                         , difficulty = 6
+                         }
+                        )
+                in
+                    ( { appState = ActiveState newGameState }, Cmd.none )
 
             AnimationMsg time ->
-                ( (animate time model), Cmd.none )
+                ( { appState = ActiveState (animate time gameState) }, Cmd.none )
 
 
-animate : Time.Time -> Model -> Model
-animate timeElapsed model =
+animate : Time.Time -> GameState -> GameState
+animate timeElapsed gameState =
     let
         nodes =
-            model.nodes
+            gameState.nodes
 
         mouse =
-            model.mouse
+            gameState.mouse
 
         newNodes =
             Dict.map (animateNode timeElapsed mouse.pos) nodes
 
         -- TODO isHovered
     in
-        { model
+        { gameState
             | nodes = newNodes
         }
 
@@ -310,8 +434,12 @@ mousePosToPos mousePos =
 -- SUBSCRIPTIONS
 
 
+port generatedEdges : (EdgeData -> msg) -> Sub msg
+
+
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ AnimationFrame.diffs AnimationMsg
+        [ generatedEdges GeneratedEdges
+        , AnimationFrame.diffs AnimationMsg
         ]

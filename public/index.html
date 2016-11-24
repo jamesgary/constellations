@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Untangle</title>
+    <title>Tangelo</title>
     <link rel="stylesheet" type="text/css" href="/css/main.css">
   </head>
   <body>
@@ -9,14 +9,21 @@
     <script src="/js/main.js"></script>
     <script>
       var app = Elm.Main.fullscreen();
-      //app.ports.check.subscribe(function(word) {
-      //    var suggestions = spellCheck(word);
-      //    app.ports.suggestions.send(suggestions);
-      //});
-      //function spellCheck(word) {
-      //    // have a real implementation!
-      //    return [];
-      //}
+
+      app.ports.generateEdges.subscribe(function(difficulty) {
+        app.ports.generatedEdges.send(generateEdges(difficulty));
+      });
+
+      function generateEdges(difficulty) {
+        console.log("Generating difficulty of " + difficulty + "...");
+        return [[
+          [0, 1],
+          [1, 2],
+          [2, 3],
+          [2, 0],
+          [0, 3]
+        ], 4];
+      }
     </script>
   </body>
 </html>

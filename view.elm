@@ -44,10 +44,16 @@ view model =
             , onMouseMove
             , onMouseUp
             ]
-            (List.concat
-                [ (drawEdges model.nodes model.edges)
-                , (drawNodes (Dict.values model.nodes))
-                ]
+            (case model.appState of
+                LoadingState difficulty ->
+                    []
+
+                ActiveState gameState ->
+                    (List.concat
+                        [ (drawEdges gameState.nodes gameState.edges)
+                        , (drawNodes (Dict.values gameState.nodes))
+                        ]
+                    )
             )
         ]
 
