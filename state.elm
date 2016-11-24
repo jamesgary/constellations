@@ -12,6 +12,10 @@ import Set
 import Types exposing (..)
 
 
+baseDifficulty =
+    10
+
+
 baseWeight =
     50
 
@@ -24,11 +28,13 @@ init : ( Model, Cmd Msg )
 init =
     let
         appState =
-            LoadingState 6
+            LoadingState -1
+
+        -- FIXME
     in
         ( { appState = appState
           }
-        , generateEdges 6
+        , generateEdges 16
         )
 
 
@@ -72,72 +78,68 @@ updateFromLoadingState msg difficulty =
             GenerateEdges newDifficulty ->
                 ( loadingModel, generateEdges newDifficulty )
 
-            -- response from js-land TODO convert to non-stubbies
+            -- response from js-land
             GeneratedEdges edgeData ->
-                let
-                    newGameState =
-                        ({ nodes =
-                            Dict.fromList
-                                [ ( 0
-                                  , { id = 0
-                                    , rad = baseRadius
-                                    , dest = (Pos 300 300)
-                                    , pos = (Pos 300 300)
-                                    , vel = (Vel 0 0 0 0)
-                                    , isHovered = False
-                                    , dragOffset = Nothing
-                                    }
-                                  )
-                                , ( 1
-                                  , { id = 1
-                                    , rad = baseRadius
-                                    , dest = (Pos 400 200)
-                                    , pos = (Pos 400 200)
-                                    , vel = (Vel 0 0 0 0)
-                                    , isHovered = False
-                                    , dragOffset = Nothing
-                                    }
-                                  )
-                                , ( 2
-                                  , { id = 2
-                                    , rad = baseRadius
-                                    , dest = (Pos 600 400)
-                                    , pos = (Pos 600 400)
-                                    , vel = (Vel 0 0 0 0)
-                                    , isHovered = False
-                                    , dragOffset = Nothing
-                                    }
-                                  )
-                                , ( 3
-                                  , { id = 3
-                                    , rad = baseRadius
-                                    , dest = (Pos 600 100)
-                                    , pos = (Pos 600 100)
-                                    , vel = (Vel 0 0 0 0)
-                                    , isHovered = False
-                                    , dragOffset = Nothing
-                                    }
-                                  )
-                                ]
-                         , edges =
-                            [ ( 0, 1 )
-                            , ( 1, 2 )
-                            , ( 2, 3 )
-                            , ( 2, 0 )
-                            , ( 0, 3 )
-                            ]
-                         , mouse =
-                            { pos = (Pos 0 0)
-                            }
-                         , now =
-                            0
-                            -- FIXME set to actual now
-                         , difficulty = 6
-                         }
-                        )
-                in
-                    -- return active state
-                    ( { appState = ActiveState newGameState }, Cmd.none )
+                ( { appState = ActiveState (edgeDataToGameData edgeData) }, Cmd.none )
+
+
+edgeDataToGameData : EdgeData -> GameState
+edgeDataToGameData edgeData =
+    let
+        ( edges, numNodes ) =
+            edgeData
+
+        nodeIdList =
+            List.range 0 (numNodes - 1)
+
+        nodes =
+            List.map (makeNode numNodes) nodeIdList
+
+        newGameState =
+            ({ nodes = Dict.fromList nodes
+             , edges = edges
+             , mouse = { pos = (Pos 0 0) }
+             , now = 0
+             , difficulty =
+                -1
+                -- FIXME
+             }
+            )
+    in
+        newGameState
+
+
+makeNode : Int -> Id -> ( Id, Node )
+makeNode maxNodes id =
+    let
+        graphCenterX =
+            500
+
+        graphCenterY =
+            250
+
+        graphRadius =
+            200
+
+        rotation =
+            toFloat id / (toFloat maxNodes - 1)
+
+        x =
+            graphCenterX + cos (2 * pi * rotation) * graphRadius
+
+        y =
+            graphCenterY + sin (2 * pi * rotation) * graphRadius
+    in
+        ( id
+        , { id = id
+          , rad = baseRadius
+          , dest = (Pos x y)
+          , pos = (Pos x y)
+          , vel = (Vel 0 0 0 0)
+          , isHovered = False
+          , dragOffset = Nothing
+          }
+        )
 
 
 updateFromGameState : Msg -> GameState -> ( Model, Cmd Msg )
@@ -239,69 +241,7 @@ updateFromGameState msg gameState =
 
             -- response from js-land
             GeneratedEdges edgeData ->
-                let
-                    newGameState =
-                        ({ nodes =
-                            Dict.fromList
-                                [ ( 0
-                                  , { id = 0
-                                    , rad = baseRadius
-                                    , dest = (Pos 300 300)
-                                    , pos = (Pos 300 300)
-                                    , vel = (Vel 0 0 0 0)
-                                    , isHovered = False
-                                    , dragOffset = Nothing
-                                    }
-                                  )
-                                , ( 1
-                                  , { id = 1
-                                    , rad = baseRadius
-                                    , dest = (Pos 400 200)
-                                    , pos = (Pos 400 200)
-                                    , vel = (Vel 0 0 0 0)
-                                    , isHovered = False
-                                    , dragOffset = Nothing
-                                    }
-                                  )
-                                , ( 2
-                                  , { id = 2
-                                    , rad = baseRadius
-                                    , dest = (Pos 600 400)
-                                    , pos = (Pos 600 400)
-                                    , vel = (Vel 0 0 0 0)
-                                    , isHovered = False
-                                    , dragOffset = Nothing
-                                    }
-                                  )
-                                , ( 3
-                                  , { id = 3
-                                    , rad = baseRadius
-                                    , dest = (Pos 600 100)
-                                    , pos = (Pos 600 100)
-                                    , vel = (Vel 0 0 0 0)
-                                    , isHovered = False
-                                    , dragOffset = Nothing
-                                    }
-                                  )
-                                ]
-                         , edges =
-                            [ ( 0, 1 )
-                            , ( 1, 2 )
-                            , ( 2, 3 )
-                            , ( 2, 0 )
-                            , ( 0, 3 )
-                            ]
-                         , mouse =
-                            { pos = (Pos 0 0)
-                            }
-                         , now =
-                            0
-                            -- FIXME set to actual now
-                         , difficulty = 6
-                         }
-                        )
-                in
-                    ( { appState = ActiveState newGameState }, Cmd.none )
+                ( { appState = ActiveState (edgeDataToGameData edgeData) }, Cmd.none )
 
             AnimationMsg time ->
                 ( { appState = ActiveState (animate time gameState) }, Cmd.none )

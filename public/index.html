@@ -6,9 +6,11 @@
   </head>
   <body>
     <div id="main"></div>
+    <script src="/js/tantalo.js"></script>
     <script src="/js/main.js"></script>
     <script>
       var app = Elm.Main.fullscreen();
+      var tantalo = new Tantalo();
 
       app.ports.generateEdges.subscribe(function(difficulty) {
         app.ports.generatedEdges.send(generateEdges(difficulty));
@@ -16,13 +18,7 @@
 
       function generateEdges(difficulty) {
         console.log("Generating difficulty of " + difficulty + "...");
-        return [[
-          [0, 1],
-          [1, 2],
-          [2, 3],
-          [2, 0],
-          [0, 3]
-        ], 4];
+        return tantalo.generateTantalo(difficulty);
       }
     </script>
   </body>
