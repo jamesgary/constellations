@@ -13,7 +13,7 @@ import Types exposing (..)
 
 
 baseDifficulty =
-    10
+    6
 
 
 baseWeight =
@@ -34,7 +34,7 @@ init =
     in
         ( { appState = appState
           }
-        , generateEdges 16
+        , generateEdges baseDifficulty
         )
 
 

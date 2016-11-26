@@ -50,12 +50,31 @@ view model =
 
                 ActiveState gameState ->
                     (List.concat
-                        [ (drawEdges gameState.nodes gameState.edges)
-                        , (drawNodes (Dict.values gameState.nodes))
+                        [ drawFilters
+                        , drawEdges gameState.nodes gameState.edges
+                        , drawNodes (Dict.values gameState.nodes)
                         ]
                     )
             )
         ]
+
+
+drawFilters : List (Html Msg)
+drawFilters =
+    [ (Svg.filter
+        [ id "node-shadow" ]
+        [ feGaussianBlur [ stdDeviation "2.5" ] [] ]
+      )
+    , (Svg.radialGradient
+        [ id "node-fill" ]
+        [ Svg.stop [ offset "75%", stopColor "rgba(255, 255, 255, 1.0)" ] []
+        , Svg.stop [ offset "85%", stopColor "rgba(220, 220, 220, 0.7)" ] []
+        , Svg.stop [ offset "90%", stopColor "rgba(200, 200, 200, 0.3)" ] []
+        , Svg.stop [ offset "95%", stopColor "rgba(0, 0, 0, 0.1)" ] []
+        , Svg.stop [ offset "100%", stopColor "rgba(0, 0, 0, 0)" ] []
+        ]
+      )
+    ]
 
 
 drawNodes : List Node -> List (Html Msg)
@@ -85,12 +104,20 @@ drawNode node =
             rad * (rad / realXRad)
 
         color =
-            "white"
+            "url(#node-fill)"
     in
-        [ Svg.filter
-            [ id ("blur-node-" ++ (toString node.id)) ]
-            [ feGaussianBlur [ stdDeviation blur ] [] ]
-        , ellipse
+        [ {--ellipse
+            [ cx (px realPosition.x)
+            , cy (px realPosition.y)
+            , rx (toString (realXRad * 1.15))
+            , ry (toString (realYRad * 1.15))
+            , transform (getTransform node)
+            , Svg.Attributes.filter "url(#node-shadow)"
+            , fill "black"
+            ]
+            []
+            , --}
+          ellipse
             [ onMouseDown
             , onMouseUp
             , cx (px realPosition.x)
@@ -98,7 +125,6 @@ drawNode node =
             , rx (toString realXRad)
             , ry (toString realYRad)
             , transform (getTransform node)
-            , Svg.Attributes.filter (("url(#blur-node-" ++ (toString node.id)) ++ ")")
             , fill color
             ]
             []

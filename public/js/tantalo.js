@@ -1,7 +1,8 @@
 Tantalo = function() {
   return {
+    // difficulty starts at 0
     generateTantalo: function(difficulty) {
-      let numLines = difficulty;
+      let numLines = 5 + difficulty;
 
       let lines = this.generateRandomLines(numLines); // just simple slope-intercept form, (y = mx + b)
 
@@ -9,7 +10,7 @@ Tantalo = function() {
       // get all intersections (id, x, y, [L1, L2])
       let intersections = this.findIntersections(lines);
 
-      let edgeData = this.getEdgeData(lines, intersections);
+      let edgeData = this.getEdgeData(lines);
       return [edgeData, intersections.length];
     },
 
@@ -79,7 +80,7 @@ Tantalo = function() {
       return intersections;
     },
 
-    getEdgeData: function(lines, intersections) {
+    getEdgeData: function(lines) {
       let edges = [];
 
       for (let i = 0; i < lines.length - 1; i++) {
