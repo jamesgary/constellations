@@ -12,6 +12,12 @@ type AppState
 
 type alias Model =
     { appState : AppState
+    , config : Config
+    }
+
+
+type alias Config =
+    { radius : Int
     }
 
 

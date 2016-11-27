@@ -28,11 +28,15 @@ init : ( Model, Cmd Msg )
 init =
     let
         appState =
+            -- FIXME
             LoadingState -1
 
-        -- FIXME
+        config =
+            { radius = 25
+            }
     in
         ( { appState = appState
+          , config = config
           }
         , generateEdges baseDifficulty
         )
@@ -47,40 +51,44 @@ port generateEdges : Int -> Cmd msg
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case model.appState of
-        LoadingState difficulty ->
-            updateFromLoadingState msg difficulty
+    let
+        ( newAppState, cmd ) =
+            case model.appState of
+                LoadingState difficulty ->
+                    updateFromLoadingState msg difficulty
 
-        ActiveState gameState ->
-            updateFromGameState msg gameState
+                ActiveState gameState ->
+                    updateFromGameState msg gameState
+    in
+        ( { model | appState = newAppState }, cmd )
 
 
-updateFromLoadingState : Msg -> Int -> ( Model, Cmd Msg )
+updateFromLoadingState : Msg -> Int -> ( AppState, Cmd Msg )
 updateFromLoadingState msg difficulty =
     let
-        loadingModel =
-            { appState = LoadingState difficulty }
+        loadingState =
+            LoadingState difficulty
     in
         case msg of
             MouseMove mousePos ->
-                ( loadingModel, Cmd.none )
+                ( loadingState, Cmd.none )
 
             MouseDown mousePos ->
-                ( loadingModel, Cmd.none )
+                ( loadingState, Cmd.none )
 
             MouseUp mousePos ->
-                ( loadingModel, Cmd.none )
+                ( loadingState, Cmd.none )
 
             AnimationMsg time ->
-                ( loadingModel, Cmd.none )
+                ( loadingState, Cmd.none )
 
             -- request to js-land
             GenerateEdges newDifficulty ->
-                ( loadingModel, generateEdges newDifficulty )
+                ( loadingState, generateEdges newDifficulty )
 
             -- response from js-land
             GeneratedEdges edgeData ->
-                ( { appState = ActiveState (edgeDataToGameData edgeData) }, Cmd.none )
+                ( ActiveState (edgeDataToGameData edgeData), Cmd.none )
 
 
 edgeDataToGameData : EdgeData -> GameState
@@ -142,7 +150,7 @@ makeNode maxNodes id =
         )
 
 
-updateFromGameState : Msg -> GameState -> ( Model, Cmd Msg )
+updateFromGameState : Msg -> GameState -> ( AppState, Cmd Msg )
 updateFromGameState msg gameState =
     let
         mouse =
@@ -163,7 +171,7 @@ updateFromGameState msg gameState =
                     newGameState =
                         { gameState | mouse = newMouse }
                 in
-                    ( { appState = ActiveState newGameState }, Cmd.none )
+                    ( ActiveState newGameState, Cmd.none )
 
             MouseDown mousePos ->
                 let
@@ -197,7 +205,7 @@ updateFromGameState msg gameState =
                             , nodes = newNodes
                         }
                 in
-                    ( { appState = ActiveState newGameState }, Cmd.none )
+                    ( ActiveState newGameState, Cmd.none )
 
             MouseUp mousePos ->
                 let
@@ -233,18 +241,18 @@ updateFromGameState msg gameState =
                             , mouse = newMouse
                         }
                 in
-                    ( { appState = ActiveState newGameState }, Cmd.none )
+                    ( ActiveState newGameState, Cmd.none )
 
             -- request to js-land
             GenerateEdges difficulty ->
-                ( { appState = ActiveState gameState }, generateEdges gameState.difficulty )
+                ( ActiveState gameState, generateEdges gameState.difficulty )
 
             -- response from js-land
             GeneratedEdges edgeData ->
-                ( { appState = ActiveState (edgeDataToGameData edgeData) }, Cmd.none )
+                ( ActiveState (edgeDataToGameData edgeData), Cmd.none )
 
             AnimationMsg time ->
-                ( { appState = ActiveState (animate time gameState) }, Cmd.none )
+                ( ActiveState (animate time gameState), Cmd.none )
 
 
 animate : Time.Time -> GameState -> GameState
