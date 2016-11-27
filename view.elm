@@ -31,16 +31,11 @@ angleConvert =
 view : Model -> Html Msg
 view model =
     div
-        [ Html.Attributes.style
-            [ ( "width", "100%" )
-            , ( "height", "100%" )
-            , ( "background", "black" )
-            ]
+        [ class "appState-container"
         ]
         [ svg
             [ width "100%"
             , height "100%"
-            , Svg.Attributes.style "background: black"
             , onMouseMove
             , onMouseUp
             ]
@@ -52,10 +47,11 @@ view model =
                     (List.concat
                         [ drawFilters
                         , drawEdges gameState.nodes gameState.edges
-                        , drawNodes (Dict.values gameState.nodes)
+                        , drawNodes model.config (Dict.values gameState.nodes)
                         ]
                     )
             )
+        , drawConfig (model.config)
         ]
 
 
@@ -77,13 +73,13 @@ drawFilters =
     ]
 
 
-drawNodes : List Node -> List (Html Msg)
-drawNodes nodesList =
-    (List.concat (List.map drawNode nodesList))
+drawNodes : Config -> List Node -> List (Html Msg)
+drawNodes config nodesList =
+    (List.concat (List.map (drawNode config) nodesList))
 
 
-drawNode : Node -> List (Html Msg)
-drawNode node =
+drawNode : Config -> Node -> List (Html Msg)
+drawNode config node =
     let
         realPosition =
             node.pos
@@ -95,7 +91,7 @@ drawNode node =
             getBlur node
 
         rad =
-            node.rad
+            config.radius
 
         realXRad =
             rad + stretch
@@ -106,20 +102,8 @@ drawNode node =
         color =
             "url(#node-fill)"
     in
-        [ {--ellipse
-            [ cx (px realPosition.x)
-            , cy (px realPosition.y)
-            , rx (toString (realXRad * 1.15))
-            , ry (toString (realYRad * 1.15))
-            , transform (getTransform node)
-            , Svg.Attributes.filter "url(#node-shadow)"
-            , fill "black"
-            ]
-            []
-            , --}
-          ellipse
+        [ ellipse
             [ onMouseDown
-            , onMouseUp
             , cx (px realPosition.x)
             , cy (px realPosition.y)
             , rx (toString realXRad)
@@ -157,6 +141,31 @@ drawEdge nodes edge =
         ]
 
 
+drawConfig : Config -> Html Msg
+drawConfig config =
+    div
+        [ class "config-container"
+        ]
+        [ div [ class "config-pair" ]
+            [ Html.label
+                [ class "config-label"
+                ]
+                [ text "Radius" ]
+            , Html.input
+                [ Html.Events.onInput ChangeConfigRadius
+                , Html.Attributes.type_ "range"
+                , Html.Attributes.min "1"
+                , Html.Attributes.max "100"
+                ]
+                []
+            , Html.span
+                [ class "config-val"
+                ]
+                [ text (toString config.radius) ]
+            ]
+        ]
+
+
 getNode : Dict Id Node -> Id -> Node
 getNode nodes id =
     case Dict.get id nodes of
@@ -166,7 +175,6 @@ getNode nodes id =
         Nothing ->
             -- should never happen
             { id = -1
-            , rad = 42
             , dest = Pos 42 42
             , pos = Pos 42 42
             , vel = Vel 0 0 0 0

@@ -32,7 +32,6 @@ type alias GameState =
 
 type alias Node =
     { id : Id
-    , rad : Float
     , dest : Pos
     , pos : Pos
     , vel : Vel
@@ -79,3 +78,5 @@ type Msg
     | MouseMove Mouse.Position
     | MouseUp Mouse.Position
     | AnimationMsg Time.Time
+      -- config stuff
+    | ChangeConfigRadius String

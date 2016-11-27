@@ -24,7 +24,6 @@ init : ( Model, Cmd Msg )
 init =
     let
         appState =
-            -- FIXME
             LoadingState -1
 
         config =
@@ -48,7 +47,7 @@ port generateEdges : Int -> Cmd msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     let
-        ( newAppState, cmd ) =
+        ( newConfig, newAppState, cmd ) =
             case model.appState of
                 LoadingState difficulty ->
                     updateFromLoadingState model.config msg difficulty
@@ -56,10 +55,15 @@ update msg model =
                 ActiveState gameState ->
                     updateFromGameState model.config msg gameState
     in
-        ( { model | appState = newAppState }, cmd )
+        ( { model
+            | appState = newAppState
+            , config = newConfig
+          }
+        , cmd
+        )
 
 
-updateFromLoadingState : Config -> Msg -> Int -> ( AppState, Cmd Msg )
+updateFromLoadingState : Config -> Msg -> Int -> ( Config, AppState, Cmd Msg )
 updateFromLoadingState config msg difficulty =
     let
         loadingState =
@@ -67,24 +71,30 @@ updateFromLoadingState config msg difficulty =
     in
         case msg of
             MouseMove mousePos ->
-                ( loadingState, Cmd.none )
+                ( config, loadingState, Cmd.none )
 
             MouseDown mousePos ->
-                ( loadingState, Cmd.none )
+                ( config, loadingState, Cmd.none )
 
             MouseUp mousePos ->
-                ( loadingState, Cmd.none )
+                ( config, loadingState, Cmd.none )
 
             AnimationMsg time ->
-                ( loadingState, Cmd.none )
+                ( config, loadingState, Cmd.none )
 
             -- request to js-land
             GenerateEdges newDifficulty ->
-                ( loadingState, generateEdges newDifficulty )
+                ( config, loadingState, generateEdges newDifficulty )
 
             -- response from js-land
             GeneratedEdges edgeData ->
-                ( ActiveState (edgeDataToGameData config edgeData), Cmd.none )
+                ( config, ActiveState (edgeDataToGameData config edgeData), Cmd.none )
+
+            ChangeConfigRadius newRadius ->
+                ( updateConfigRadius config newRadius
+                , loadingState
+                , Cmd.none
+                )
 
 
 edgeDataToGameData : Config -> EdgeData -> GameState
@@ -136,7 +146,6 @@ makeNode config maxNodes id =
     in
         ( id
         , { id = id
-          , rad = config.radius
           , dest = (Pos x y)
           , pos = (Pos x y)
           , vel = (Vel 0 0 0 0)
@@ -146,7 +155,7 @@ makeNode config maxNodes id =
         )
 
 
-updateFromGameState : Config -> Msg -> GameState -> ( AppState, Cmd Msg )
+updateFromGameState : Config -> Msg -> GameState -> ( Config, AppState, Cmd Msg )
 updateFromGameState config msg gameState =
     let
         mouse =
@@ -167,7 +176,7 @@ updateFromGameState config msg gameState =
                     newGameState =
                         { gameState | mouse = newMouse }
                 in
-                    ( ActiveState newGameState, Cmd.none )
+                    ( config, ActiveState newGameState, Cmd.none )
 
             MouseDown mousePos ->
                 let
@@ -180,7 +189,7 @@ updateFromGameState config msg gameState =
                     processMouseDown pos _ node =
                         let
                             ( dragOffset, newDest ) =
-                                if isTouching pos node then
+                                if isTouching config pos node then
                                     ( Just (Pos (node.pos.x - newPos.x) (node.pos.y - newPos.y))
                                     , pos
                                     )
@@ -201,7 +210,7 @@ updateFromGameState config msg gameState =
                             , nodes = newNodes
                         }
                 in
-                    ( ActiveState newGameState, Cmd.none )
+                    ( config, ActiveState newGameState, Cmd.none )
 
             MouseUp mousePos ->
                 let
@@ -237,18 +246,33 @@ updateFromGameState config msg gameState =
                             , mouse = newMouse
                         }
                 in
-                    ( ActiveState newGameState, Cmd.none )
+                    ( config, ActiveState newGameState, Cmd.none )
 
             -- request to js-land
             GenerateEdges difficulty ->
-                ( ActiveState gameState, generateEdges gameState.difficulty )
+                ( config, ActiveState gameState, generateEdges gameState.difficulty )
 
             -- response from js-land
             GeneratedEdges edgeData ->
-                ( ActiveState (edgeDataToGameData config edgeData), Cmd.none )
+                ( config, ActiveState (edgeDataToGameData config edgeData), Cmd.none )
 
             AnimationMsg time ->
-                ( ActiveState (animate time gameState), Cmd.none )
+                ( config, ActiveState (animate time gameState), Cmd.none )
+
+            ChangeConfigRadius newRadius ->
+                ( updateConfigRadius config newRadius
+                , ActiveState gameState
+                , Cmd.none
+                )
+
+
+updateConfigRadius : Config -> String -> Config
+updateConfigRadius config radiusString =
+    let
+        radiusFloat =
+            Result.withDefault config.radius (String.toFloat radiusString)
+    in
+        { config | radius = radiusFloat }
 
 
 animate : Time.Time -> GameState -> GameState
@@ -312,8 +336,8 @@ moveNodeToDest node timeElapsed =
         }
 
 
-isTouching : Pos -> Node -> Bool
-isTouching mousePos node =
+isTouching : Config -> Pos -> Node -> Bool
+isTouching config mousePos node =
     let
         aSquared =
             (node.pos.x - mousePos.x) ^ 2
@@ -324,7 +348,7 @@ isTouching mousePos node =
         c =
             sqrt (aSquared + bSquared)
     in
-        c < node.rad
+        c < config.radius
 
 
 calculatePosition : Node -> Time.Time -> Pos
