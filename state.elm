@@ -45,59 +45,200 @@ port saveConfig : Config -> Cmd msg
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
+    case msg of
+        MouseMove mousePos ->
+            updateMouseMove model mousePos
+
+        MouseDown mousePos ->
+            updateMouseDown model mousePos
+
+        MouseUp mousePos ->
+            updateMouseUp model mousePos
+
+        AnimationMsg time ->
+            updateAnimation model time
+
+        -- request to js-land
+        GenerateEdges newDifficulty ->
+            ( model, generateEdges newDifficulty )
+
+        -- response from js-land
+        GeneratedEdges edgeData ->
+            updateGeneratedEdges model edgeData
+
+        ChangeConfigRadius newRadius ->
+            updateConfigRadius model newRadius
+
+
+updateMouseMove : Model -> Mouse.Position -> ( Model, Cmd Msg )
+updateMouseMove model newMousePos =
+    case model.appState of
+        LoadingState difficulty ->
+            ( model, Cmd.none )
+
+        ActiveState gameState ->
+            let
+                newPos =
+                    mousePosToPos newMousePos
+
+                mouse =
+                    gameState.mouse
+
+                newMouse =
+                    { mouse | pos = newPos }
+
+                newGameState =
+                    { gameState | mouse = newMouse }
+
+                newModel =
+                    { model | appState = ActiveState newGameState }
+            in
+                ( newModel, Cmd.none )
+
+
+updateMouseDown : Model -> Mouse.Position -> ( Model, Cmd Msg )
+updateMouseDown model newMousePos =
+    case model.appState of
+        LoadingState difficulty ->
+            ( model, Cmd.none )
+
+        ActiveState gameState ->
+            let
+                mouse =
+                    gameState.mouse
+
+                newPos =
+                    mousePosToPos newMousePos
+
+                newMouse =
+                    { mouse | pos = newPos }
+
+                processMouseDown pos _ node =
+                    let
+                        ( dragOffset, newDest ) =
+                            if isTouching model.config pos node then
+                                ( Just (Pos (node.pos.x - newPos.x) (node.pos.y - newPos.y))
+                                , pos
+                                )
+                            else
+                                ( Nothing, node.dest )
+                    in
+                        { node
+                            | dragOffset = dragOffset
+                            , dest = newDest
+                        }
+
+                newNodes =
+                    Dict.map (processMouseDown newPos) gameState.nodes
+
+                newGameState =
+                    { gameState
+                        | mouse = newMouse
+                        , nodes = newNodes
+                    }
+
+                newModel =
+                    { model | appState = ActiveState newGameState }
+            in
+                ( newModel, Cmd.none )
+
+
+updateMouseUp : Model -> Mouse.Position -> ( Model, Cmd Msg )
+updateMouseUp model mousePos =
+    case model.appState of
+        LoadingState difficulty ->
+            ( model, Cmd.none )
+
+        ActiveState gameState ->
+            let
+                mouse =
+                    gameState.mouse
+
+                newPos =
+                    mousePosToPos mousePos
+
+                newMouse =
+                    { mouse
+                        | pos = newPos
+                    }
+
+                processMouseUp pos _ node =
+                    let
+                        newDest =
+                            case node.dragOffset of
+                                Just dragOffset ->
+                                    Pos (pos.x + dragOffset.x) (pos.y + dragOffset.y)
+
+                                Nothing ->
+                                    node.dest
+                    in
+                        { node
+                            | dragOffset = Nothing
+                            , dest = newDest
+                        }
+
+                newNodes =
+                    Dict.map (processMouseUp newPos) gameState.nodes
+
+                newGameState =
+                    { gameState
+                        | nodes = newNodes
+                        , mouse = newMouse
+                    }
+
+                newModel =
+                    { model | appState = ActiveState newGameState }
+            in
+                ( newModel, Cmd.none )
+
+
+updateAnimation : Model -> Time.Time -> ( Model, Cmd Msg )
+updateAnimation model time =
+    case model.appState of
+        LoadingState difficulty ->
+            ( model, Cmd.none )
+
+        ActiveState gameState ->
+            let
+                newGameState =
+                    animate time gameState
+
+                newModel =
+                    { model | appState = ActiveState newGameState }
+            in
+                ( newModel, Cmd.none )
+
+
+updateGeneratedEdges : Model -> EdgeData -> ( Model, Cmd Msg )
+updateGeneratedEdges model edgeData =
     let
-        ( newConfig, newAppState, cmd ) =
-            case model.appState of
-                LoadingState difficulty ->
-                    updateFromLoadingState model.config msg difficulty
+        newGameState =
+            edgeDataToGameData model.config edgeData
 
-                ActiveState gameState ->
-                    updateFromGameState model.config msg gameState
+        newModel =
+            { model | appState = ActiveState newGameState }
     in
-        ( { model
-            | appState = newAppState
-            , config = newConfig
-          }
-        , cmd
-        )
+        ( newModel, Cmd.none )
 
 
-updateFromLoadingState : Config -> Msg -> Int -> ( Config, AppState, Cmd Msg )
-updateFromLoadingState config msg difficulty =
+updateConfigRadius : Model -> String -> ( Model, Cmd Msg )
+updateConfigRadius model radiusString =
     let
-        loadingState =
-            LoadingState difficulty
+        config =
+            model.config
+
+        radiusFloat =
+            Result.withDefault
+                config.radius
+                (String.toFloat radiusString)
+
+        newConfig =
+            { config | radius = radiusFloat }
+
+        newModel =
+            { model | config = newConfig }
     in
-        case msg of
-            MouseMove mousePos ->
-                ( config, loadingState, Cmd.none )
-
-            MouseDown mousePos ->
-                ( config, loadingState, Cmd.none )
-
-            MouseUp mousePos ->
-                ( config, loadingState, Cmd.none )
-
-            AnimationMsg time ->
-                ( config, loadingState, Cmd.none )
-
-            -- request to js-land
-            GenerateEdges newDifficulty ->
-                ( config, loadingState, generateEdges newDifficulty )
-
-            -- response from js-land
-            GeneratedEdges edgeData ->
-                ( config, ActiveState (edgeDataToGameData config edgeData), Cmd.none )
-
-            ChangeConfigRadius newRadius ->
-                let
-                    newConfig =
-                        updateConfigRadius config newRadius
-                in
-                    ( newConfig
-                    , loadingState
-                    , saveConfig newConfig
-                    )
+        ( newModel, saveConfig newConfig )
 
 
 edgeDataToGameData : Config -> EdgeData -> GameState
@@ -156,130 +297,6 @@ makeNode config maxNodes id =
           , dragOffset = Nothing
           }
         )
-
-
-updateFromGameState : Config -> Msg -> GameState -> ( Config, AppState, Cmd Msg )
-updateFromGameState config msg gameState =
-    let
-        mouse =
-            gameState.mouse
-
-        nodes =
-            gameState.nodes
-    in
-        case msg of
-            MouseMove mousePos ->
-                let
-                    newPos =
-                        mousePosToPos mousePos
-
-                    newMouse =
-                        { mouse | pos = newPos }
-
-                    newGameState =
-                        { gameState | mouse = newMouse }
-                in
-                    ( config, ActiveState newGameState, Cmd.none )
-
-            MouseDown mousePos ->
-                let
-                    newPos =
-                        mousePosToPos mousePos
-
-                    newMouse =
-                        { mouse | pos = newPos }
-
-                    processMouseDown pos _ node =
-                        let
-                            ( dragOffset, newDest ) =
-                                if isTouching config pos node then
-                                    ( Just (Pos (node.pos.x - newPos.x) (node.pos.y - newPos.y))
-                                    , pos
-                                    )
-                                else
-                                    ( Nothing, node.dest )
-                        in
-                            { node
-                                | dragOffset = dragOffset
-                                , dest = newDest
-                            }
-
-                    newNodes =
-                        Dict.map (processMouseDown newPos) nodes
-
-                    newGameState =
-                        { gameState
-                            | mouse = newMouse
-                            , nodes = newNodes
-                        }
-                in
-                    ( config, ActiveState newGameState, Cmd.none )
-
-            MouseUp mousePos ->
-                let
-                    newPos =
-                        mousePosToPos mousePos
-
-                    newMouse =
-                        { mouse
-                            | pos = newPos
-                        }
-
-                    processMouseUp pos _ node =
-                        let
-                            newDest =
-                                case node.dragOffset of
-                                    Just dragOffset ->
-                                        Pos (pos.x + dragOffset.x) (pos.y + dragOffset.y)
-
-                                    Nothing ->
-                                        node.dest
-                        in
-                            { node
-                                | dragOffset = Nothing
-                                , dest = newDest
-                            }
-
-                    newNodes =
-                        Dict.map (processMouseUp newPos) nodes
-
-                    newGameState =
-                        { gameState
-                            | nodes = newNodes
-                            , mouse = newMouse
-                        }
-                in
-                    ( config, ActiveState newGameState, Cmd.none )
-
-            -- request to js-land
-            GenerateEdges difficulty ->
-                ( config, ActiveState gameState, generateEdges gameState.difficulty )
-
-            -- response from js-land
-            GeneratedEdges edgeData ->
-                ( config, ActiveState (edgeDataToGameData config edgeData), Cmd.none )
-
-            AnimationMsg time ->
-                ( config, ActiveState (animate time gameState), Cmd.none )
-
-            ChangeConfigRadius newRadius ->
-                let
-                    newConfig =
-                        updateConfigRadius config newRadius
-                in
-                    ( newConfig
-                    , ActiveState gameState
-                    , saveConfig newConfig
-                    )
-
-
-updateConfigRadius : Config -> String -> Config
-updateConfigRadius config radiusString =
-    let
-        radiusFloat =
-            Result.withDefault config.radius (String.toFloat radiusString)
-    in
-        { config | radius = radiusFloat }
 
 
 animate : Time.Time -> GameState -> GameState
