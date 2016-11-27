@@ -38,9 +38,10 @@ view model =
             , height "100%"
             , onMouseMove
             , onMouseUp
+            , onMouseDown
             ]
             (case model.appState of
-                LoadingState difficulty ->
+                LoadingState ->
                     []
 
                 ActiveState gameState ->
@@ -51,6 +52,7 @@ view model =
                         ]
                     )
             )
+        , drawLevelSelect (model)
         , drawConfig (model.config)
         ]
 
@@ -103,8 +105,7 @@ drawNode config node =
             "url(#node-fill)"
     in
         [ ellipse
-            [ onMouseDown
-            , cx (px realPosition.x)
+            [ cx (px realPosition.x)
             , cy (px realPosition.y)
             , rx (toString realXRad)
             , ry (toString realYRad)
@@ -139,6 +140,40 @@ drawEdge nodes edge =
             ]
             []
         ]
+
+
+drawLevelSelect : Model -> Html Msg
+drawLevelSelect model =
+    let
+        currentDifficulty =
+            case model.appState of
+                LoadingState ->
+                    -1
+
+                ActiveState gameState ->
+                    gameState.difficulty
+    in
+        div
+            [ class "levelSelect-container" ]
+            (List.map (drawLevelSelector currentDifficulty) (List.range 1 20))
+
+
+drawLevelSelector : Int -> Int -> Html Msg
+drawLevelSelector currentDifficulty difficulty =
+    let
+        isMatching =
+            currentDifficulty == difficulty
+    in
+        if isMatching then
+            div
+                [ class "levelSelect-selector levelSelect-selector-isCurrent" ]
+                [ text ("[[" ++ (toString difficulty) ++ "]]") ]
+        else
+            div
+                [ class "levelSelect-selector"
+                , Html.Events.onClick (GenerateEdges difficulty)
+                ]
+                [ text (toString difficulty) ]
 
 
 drawConfig : Config -> Html Msg

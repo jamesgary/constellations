@@ -1,7 +1,18 @@
+* {
+  -webkit-touch-callout: none; /* iOS Safari */
+  -webkit-user-select: none; /* Chrome/Safari/Opera */
+  -khtml-user-select: none; /* Konqueror */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+  user-select: none; /* Non-prefixed version, currently
+  not supported by any browser */
+}
+
 html, body {
   height: 100%;
   margin: 0;
   padding: 0;
+  overflow: hidden;
 }
 
 .appState-container {
@@ -10,8 +21,48 @@ html, body {
   height: 100%;
 }
 
+/* level select */
+
+.levelSelect-container {
+  width: 120px;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  right: 300px; /* butt up against .config-container */
+  overflow-y: scroll;
+}
+
+.levelSelect-selector {
+  width: 100%;
+  color: #123;
+  background: #abc;
+  padding: 15px;
+  text-align: center;
+  border-bottom: 1px solid #456;
+  box-sizing: border-box;
+  font-family: monospace;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.levelSelect-selector:hover {
+  background: #89a;
+}
+
+.levelSelect-selector:active {
+  background: #678;
+}
+
+.levelSelect-selector-isCurrent,
+.levelSelect-selector-isCurrent:hover {
+  background: #678;
+  cursor: default;
+}
+
+/* config */
+
 .config-container {
-  width: 400px;
+  width: 300px;
   height: 100%;
   background: #333;
   position: absolute;

@@ -11,7 +11,7 @@ Tantalo = function() {
       let intersections = this.findIntersections(lines);
 
       let edgeData = this.getEdgeData(lines);
-      return [edgeData, intersections.length];
+      return [edgeData, intersections.length, difficulty];
     },
 
     // private

@@ -6,7 +6,7 @@ import Time
 
 
 type AppState
-    = LoadingState Int
+    = LoadingState
     | ActiveState GameState
 
 
@@ -68,7 +68,7 @@ type alias Id =
 
 
 type alias EdgeData =
-    ( List Edge, Int )
+    ( List Edge, Int, Int )
 
 
 type Msg
@@ -79,8 +79,5 @@ type Msg
     | MouseUp Mouse.Position
     | AnimationMsg Time.Time
       -- config stuff
+      --| ChangeDifficulty String
     | ChangeConfigRadius String
-
-
-type alias Flags =
-    Config

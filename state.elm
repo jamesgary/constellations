@@ -24,7 +24,7 @@ init : Config -> ( Model, Cmd Msg )
 init config =
     let
         appState =
-            LoadingState -1
+            LoadingState
     in
         ( { appState = appState
           , config = config
@@ -73,7 +73,7 @@ update msg model =
 updateMouseMove : Model -> Mouse.Position -> ( Model, Cmd Msg )
 updateMouseMove model newMousePos =
     case model.appState of
-        LoadingState difficulty ->
+        LoadingState ->
             ( model, Cmd.none )
 
         ActiveState gameState ->
@@ -99,7 +99,7 @@ updateMouseMove model newMousePos =
 updateMouseDown : Model -> Mouse.Position -> ( Model, Cmd Msg )
 updateMouseDown model newMousePos =
     case model.appState of
-        LoadingState difficulty ->
+        LoadingState ->
             ( model, Cmd.none )
 
         ActiveState gameState ->
@@ -146,7 +146,7 @@ updateMouseDown model newMousePos =
 updateMouseUp : Model -> Mouse.Position -> ( Model, Cmd Msg )
 updateMouseUp model mousePos =
     case model.appState of
-        LoadingState difficulty ->
+        LoadingState ->
             ( model, Cmd.none )
 
         ActiveState gameState ->
@@ -195,7 +195,7 @@ updateMouseUp model mousePos =
 updateAnimation : Model -> Time.Time -> ( Model, Cmd Msg )
 updateAnimation model time =
     case model.appState of
-        LoadingState difficulty ->
+        LoadingState ->
             ( model, Cmd.none )
 
         ActiveState gameState ->
@@ -244,7 +244,7 @@ updateConfigRadius model radiusString =
 edgeDataToGameData : Config -> EdgeData -> GameState
 edgeDataToGameData config edgeData =
     let
-        ( edges, numNodes ) =
+        ( edges, numNodes, difficulty ) =
             edgeData
 
         nodeIdList =
@@ -258,9 +258,7 @@ edgeDataToGameData config edgeData =
              , edges = edges
              , mouse = { pos = (Pos 0 0) }
              , now = 0
-             , difficulty =
-                -1
-                -- FIXME
+             , difficulty = difficulty
              }
             )
     in
