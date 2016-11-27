@@ -11,7 +11,7 @@ import View exposing (view)
 
 
 main =
-    Html.program
+    Html.programWithFlags
         { init = init
         , view = view
         , update = update

@@ -20,15 +20,11 @@ baseWeight =
     50
 
 
-init : ( Model, Cmd Msg )
-init =
+init : Config -> ( Model, Cmd Msg )
+init config =
     let
         appState =
             LoadingState -1
-
-        config =
-            { radius = 25
-            }
     in
         ( { appState = appState
           , config = config
@@ -42,6 +38,9 @@ init =
 
 
 port generateEdges : Int -> Cmd msg
+
+
+port saveConfig : Config -> Cmd msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -91,10 +90,14 @@ updateFromLoadingState config msg difficulty =
                 ( config, ActiveState (edgeDataToGameData config edgeData), Cmd.none )
 
             ChangeConfigRadius newRadius ->
-                ( updateConfigRadius config newRadius
-                , loadingState
-                , Cmd.none
-                )
+                let
+                    newConfig =
+                        updateConfigRadius config newRadius
+                in
+                    ( newConfig
+                    , loadingState
+                    , saveConfig newConfig
+                    )
 
 
 edgeDataToGameData : Config -> EdgeData -> GameState
@@ -260,10 +263,14 @@ updateFromGameState config msg gameState =
                 ( config, ActiveState (animate time gameState), Cmd.none )
 
             ChangeConfigRadius newRadius ->
-                ( updateConfigRadius config newRadius
-                , ActiveState gameState
-                , Cmd.none
-                )
+                let
+                    newConfig =
+                        updateConfigRadius config newRadius
+                in
+                    ( newConfig
+                    , ActiveState gameState
+                    , saveConfig newConfig
+                    )
 
 
 updateConfigRadius : Config -> String -> Config

@@ -156,6 +156,7 @@ drawConfig config =
                 , Html.Attributes.type_ "range"
                 , Html.Attributes.min "1"
                 , Html.Attributes.max "100"
+                , Html.Attributes.defaultValue (toString config.radius)
                 ]
                 []
             , Html.span

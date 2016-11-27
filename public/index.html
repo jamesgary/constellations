@@ -9,16 +9,25 @@
     <script src="/js/tantalo.js"></script>
     <script src="/js/main.js"></script>
     <script>
-      var app = Elm.Main.fullscreen();
       var tantalo = new Tantalo();
+      var app = Elm.Main.fullscreen(loadConfig());
 
       app.ports.generateEdges.subscribe(function(difficulty) {
-        app.ports.generatedEdges.send(generateEdges(difficulty));
+        console.log("Generating difficulty of " + difficulty + "...");
+        app.ports.generatedEdges.send(tantalo.generateTantalo(difficulty));
       });
 
-      function generateEdges(difficulty) {
-        console.log("Generating difficulty of " + difficulty + "...");
-        return tantalo.generateTantalo(difficulty);
+      app.ports.saveConfig.subscribe(function(config) {
+        console.log("Saving config:", config);
+        localStorage.setItem("config:radius", config.radius);
+      });
+
+      function loadConfig() {
+        var config = {
+          radius: parseFloat(localStorage.getItem("config:radius")) || 25,
+        };
+        console.log("Loading config:", config);
+        return config;
       }
     </script>
   </body>

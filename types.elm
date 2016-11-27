@@ -80,3 +80,7 @@ type Msg
     | AnimationMsg Time.Time
       -- config stuff
     | ChangeConfigRadius String
+
+
+type alias Flags =
+    Config
