@@ -20,10 +20,6 @@ baseWeight =
     50
 
 
-baseRadius =
-    20
-
-
 init : ( Model, Cmd Msg )
 init =
     let
@@ -55,16 +51,16 @@ update msg model =
         ( newAppState, cmd ) =
             case model.appState of
                 LoadingState difficulty ->
-                    updateFromLoadingState msg difficulty
+                    updateFromLoadingState model.config msg difficulty
 
                 ActiveState gameState ->
-                    updateFromGameState msg gameState
+                    updateFromGameState model.config msg gameState
     in
         ( { model | appState = newAppState }, cmd )
 
 
-updateFromLoadingState : Msg -> Int -> ( AppState, Cmd Msg )
-updateFromLoadingState msg difficulty =
+updateFromLoadingState : Config -> Msg -> Int -> ( AppState, Cmd Msg )
+updateFromLoadingState config msg difficulty =
     let
         loadingState =
             LoadingState difficulty
@@ -88,11 +84,11 @@ updateFromLoadingState msg difficulty =
 
             -- response from js-land
             GeneratedEdges edgeData ->
-                ( ActiveState (edgeDataToGameData edgeData), Cmd.none )
+                ( ActiveState (edgeDataToGameData config edgeData), Cmd.none )
 
 
-edgeDataToGameData : EdgeData -> GameState
-edgeDataToGameData edgeData =
+edgeDataToGameData : Config -> EdgeData -> GameState
+edgeDataToGameData config edgeData =
     let
         ( edges, numNodes ) =
             edgeData
@@ -101,7 +97,7 @@ edgeDataToGameData edgeData =
             List.range 0 (numNodes - 1)
 
         nodes =
-            List.map (makeNode numNodes) nodeIdList
+            List.map (makeNode config numNodes) nodeIdList
 
         newGameState =
             ({ nodes = Dict.fromList nodes
@@ -117,8 +113,8 @@ edgeDataToGameData edgeData =
         newGameState
 
 
-makeNode : Int -> Id -> ( Id, Node )
-makeNode maxNodes id =
+makeNode : Config -> Int -> Id -> ( Id, Node )
+makeNode config maxNodes id =
     let
         graphCenterX =
             500
@@ -140,7 +136,7 @@ makeNode maxNodes id =
     in
         ( id
         , { id = id
-          , rad = baseRadius
+          , rad = config.radius
           , dest = (Pos x y)
           , pos = (Pos x y)
           , vel = (Vel 0 0 0 0)
@@ -150,8 +146,8 @@ makeNode maxNodes id =
         )
 
 
-updateFromGameState : Msg -> GameState -> ( AppState, Cmd Msg )
-updateFromGameState msg gameState =
+updateFromGameState : Config -> Msg -> GameState -> ( AppState, Cmd Msg )
+updateFromGameState config msg gameState =
     let
         mouse =
             gameState.mouse
@@ -249,7 +245,7 @@ updateFromGameState msg gameState =
 
             -- response from js-land
             GeneratedEdges edgeData ->
-                ( ActiveState (edgeDataToGameData edgeData), Cmd.none )
+                ( ActiveState (edgeDataToGameData config edgeData), Cmd.none )
 
             AnimationMsg time ->
                 ( ActiveState (animate time gameState), Cmd.none )

@@ -17,7 +17,7 @@ type alias Model =
 
 
 type alias Config =
-    { radius : Int
+    { radius : Float
     }
 
 
