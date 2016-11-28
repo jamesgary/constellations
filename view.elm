@@ -166,7 +166,9 @@ drawLevelSelector currentDifficulty difficulty =
     in
         if isMatching then
             div
-                [ class "levelSelect-selector levelSelect-selector-isCurrent" ]
+                [ class "levelSelect-selector levelSelect-selector-isCurrent"
+                , Html.Events.onClick (GenerateEdges difficulty)
+                ]
                 [ text ("[[" ++ (toString difficulty) ++ "]]") ]
         else
             div
