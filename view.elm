@@ -68,8 +68,8 @@ drawFilters =
         [ Svg.stop [ offset "75%", stopColor "rgba(255, 255, 255, 1.0)" ] []
         , Svg.stop [ offset "85%", stopColor "rgba(220, 220, 220, 0.7)" ] []
         , Svg.stop [ offset "90%", stopColor "rgba(200, 200, 200, 0.3)" ] []
-        , Svg.stop [ offset "95%", stopColor "rgba(0, 0, 0, 0.1)" ] []
-        , Svg.stop [ offset "100%", stopColor "rgba(0, 0, 0, 0)" ] []
+        , Svg.stop [ offset "95%", stopColor "rgba(180, 180, 180, 0.1)" ] []
+        , Svg.stop [ offset "100%", stopColor "rgba(100, 100, 100, 0)" ] []
         ]
       )
     ]
