@@ -48,7 +48,7 @@ view model =
                     (List.concat
                         [ drawFilters
                         , drawEdges gameState.nodes gameState.edges
-                        , drawNodes model.config (List.reverse (Dict.values gameState.nodes))
+                        , drawNodes model.config gameState.mouseState (List.reverse (Dict.values gameState.nodes))
                         ]
                     )
             )
@@ -84,13 +84,13 @@ drawFilters =
     ]
 
 
-drawNodes : Config -> List Node -> List (Html Msg)
-drawNodes config nodesList =
-    (List.concat (List.map (drawNode config) nodesList))
+drawNodes : Config -> MouseState -> List Node -> List (Html Msg)
+drawNodes config mouseState nodesList =
+    (List.concat (List.map (drawNode config mouseState) nodesList))
 
 
-drawNode : Config -> Node -> List (Html Msg)
-drawNode config node =
+drawNode : Config -> MouseState -> Node -> List (Html Msg)
+drawNode config mouseState node =
     let
         realPosition =
             node.pos
@@ -111,15 +111,15 @@ drawNode config node =
             rad * (rad / realXRad)
 
         color =
-            case node.state of
-                Default ->
+            case mouseState of
+                DefaultMouseState ->
                     "url(#node-fill-default)"
 
-                Hovered ->
-                    "url(#node-fill-hover)"
-
-                Dragged _ ->
-                    "blue"
+                HoveringMouseState hoveredId ->
+                    if node.id == hoveredId then
+                        "url(#node-fill-hover)"
+                    else
+                        "url(#node-fill-default)"
     in
         [ ellipse
             [ cx (px realPosition.x)
@@ -234,8 +234,6 @@ getNode nodes id =
             , dest = Pos 42 42
             , pos = Pos 42 42
             , vel = Vel 0 0 0 0
-            , isHovered = False
-            , state = Default
             }
 
 

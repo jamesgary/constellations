@@ -10,6 +10,11 @@ type AppState
     | ActiveState GameState
 
 
+type MouseState
+    = DefaultMouseState
+    | HoveringMouseState Id
+
+
 type alias Model =
     { appState : AppState
     , config : Config
@@ -24,8 +29,8 @@ type alias Config =
 type alias GameState =
     { nodes : Dict Id Node
     , edges : List Edge
-    , mouse : Mouse
     , difficulty : Int
+    , mouseState : MouseState
     }
 
 
@@ -34,15 +39,7 @@ type alias Node =
     , dest : Pos
     , pos : Pos
     , vel : Vel
-    , isHovered : Bool
-    , state : NodeState
     }
-
-
-type NodeState
-    = Default
-    | Hovered
-    | Dragged Pos
 
 
 type alias Edge =
