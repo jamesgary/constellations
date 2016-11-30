@@ -13,6 +13,7 @@ type AppState
 type MouseState
     = DefaultMouseState
     | HoveringMouseState Id
+    | DraggingMouseState Id Pos
 
 
 type alias Model =
@@ -83,3 +84,22 @@ type Msg
       -- config stuff
       --| ChangeDifficulty String
     | ChangeConfigRadius String
+
+
+
+-- Handy functions
+
+
+getNode : Dict Id Node -> Id -> Node
+getNode nodes id =
+    case Dict.get id nodes of
+        Just node ->
+            node
+
+        Nothing ->
+            -- should never happen
+            { id = -1
+            , dest = Pos 42 42
+            , pos = Pos 42 42
+            , vel = Vel 0 0 0 0
+            }

@@ -81,6 +81,24 @@ drawFilters =
         , Svg.stop [ offset "100%", stopColor "rgba(50, 100, 100, 0)" ] []
         ]
       )
+    , (Svg.radialGradient
+        [ id "node-fill-drag" ]
+        [ Svg.stop [ offset "75%", stopColor "rgba(145, 145, 255, 1.0)" ] []
+        , Svg.stop [ offset "85%", stopColor "rgba(120, 140, 220, 0.7)" ] []
+        , Svg.stop [ offset "90%", stopColor "rgba(90, 140, 200, 0.3)" ] []
+        , Svg.stop [ offset "95%", stopColor "rgba(80, 140, 180, 0.1)" ] []
+        , Svg.stop [ offset "100%", stopColor "rgba(50, 100, 100, 0)" ] []
+        ]
+      )
+    , (Svg.radialGradient
+        [ id "node-fill-neighbors" ]
+        [ Svg.stop [ offset "75%", stopColor "rgba(255, 205, 255, 1.0)" ] []
+        , Svg.stop [ offset "85%", stopColor "rgba(255, 200, 220, 0.7)" ] []
+        , Svg.stop [ offset "90%", stopColor "rgba(255, 200, 200, 0.3)" ] []
+        , Svg.stop [ offset "95%", stopColor "rgba(120, 180, 180, 0.1)" ] []
+        , Svg.stop [ offset "100%", stopColor "rgba(50, 100, 100, 0)" ] []
+        ]
+      )
     ]
 
 
@@ -118,6 +136,12 @@ drawNode config mouseState node =
                 HoveringMouseState hoveredId ->
                     if node.id == hoveredId then
                         "url(#node-fill-hover)"
+                    else
+                        "url(#node-fill-default)"
+
+                DraggingMouseState draggedId pos ->
+                    if node.id == draggedId then
+                        "url(#node-fill-drag)"
                     else
                         "url(#node-fill-default)"
     in
@@ -220,21 +244,6 @@ drawConfig config =
                 [ text (toString config.radius) ]
             ]
         ]
-
-
-getNode : Dict Id Node -> Id -> Node
-getNode nodes id =
-    case Dict.get id nodes of
-        Just node ->
-            node
-
-        Nothing ->
-            -- should never happen
-            { id = -1
-            , dest = Pos 42 42
-            , pos = Pos 42 42
-            , vel = Vel 0 0 0 0
-            }
 
 
 getTransform : Node -> String

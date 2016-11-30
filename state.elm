@@ -4,6 +4,7 @@ import AnimationFrame
 import Dict
 import Mouse
 import Time
+import Task
 import Set
 
 
@@ -81,19 +82,59 @@ updateMouseMove model newMousePos =
                 newPos =
                     mousePosToPos newMousePos
 
-                topTouchingNodeId =
-                    getTopTouchingNodeId model.config newPos gameState.nodes
-
-                newMouseState =
-                    case topTouchingNodeId of
-                        Just id ->
-                            HoveringMouseState id
-
-                        Nothing ->
-                            DefaultMouseState
-
                 newGameState =
-                    { gameState | mouseState = newMouseState }
+                    case gameState.mouseState of
+                        DefaultMouseState ->
+                            let
+                                topTouchingNodeId =
+                                    getTopTouchingNodeId model.config newPos gameState.nodes
+
+                                newMouseState =
+                                    case topTouchingNodeId of
+                                        Just id ->
+                                            HoveringMouseState id
+
+                                        Nothing ->
+                                            DefaultMouseState
+                            in
+                                { gameState | mouseState = newMouseState }
+
+                        HoveringMouseState id ->
+                            let
+                                topTouchingNodeId =
+                                    getTopTouchingNodeId model.config newPos gameState.nodes
+
+                                newMouseState =
+                                    case topTouchingNodeId of
+                                        Just id ->
+                                            HoveringMouseState id
+
+                                        Nothing ->
+                                            DefaultMouseState
+                            in
+                                { gameState | mouseState = newMouseState }
+
+                        DraggingMouseState id offset ->
+                            let
+                                draggedNode =
+                                    getNode gameState.nodes id
+
+                                destX =
+                                    newPos.x + offset.x
+
+                                destY =
+                                    newPos.y + offset.y
+
+                                newDest =
+                                    Pos destX destY
+
+                                newDraggedNode =
+                                    { draggedNode | dest = newDest }
+
+                                newNodes =
+                                    Dict.insert id newDraggedNode gameState.nodes
+                            in
+                                { gameState | nodes = newNodes }
 
                 newModel =
                     { model | appState = ActiveState newGameState }
@@ -145,28 +186,27 @@ updateMouseDown model newMousePos =
                 newPos =
                     mousePosToPos newMousePos
 
-                processMouseDown pos _ node =
-                    node
+                topTouchingNodeId =
+                    getTopTouchingNodeId model.config newPos gameState.nodes
 
-                --let
-                --    ( dragOffset, newDest ) =
-                --        if isTouching model.config pos node then
-                --            ( Just (Pos (node.pos.x - newPos.x) (node.pos.y - newPos.y))
-                --            , pos
-                --            )
-                --        else
-                --            ( Nothing, node.dest )
-                --in
-                --    { node
-                --        | state = Dragged dragOffset
-                --        , dest = newDest
-                --    }
-                newNodes =
-                    Dict.map (processMouseDown newPos) gameState.nodes
+                newMouseState =
+                    case topTouchingNodeId of
+                        Just draggedId ->
+                            let
+                                draggedNode =
+                                    getNode gameState.nodes draggedId
+
+                                dragOffset =
+                                    (Pos (draggedNode.pos.x - newPos.x) (draggedNode.pos.y - newPos.y))
+                            in
+                                DraggingMouseState draggedId dragOffset
+
+                        Nothing ->
+                            DefaultMouseState
 
                 newGameState =
                     { gameState
-                        | nodes = newNodes
+                        | mouseState = newMouseState
                     }
 
                 newModel =
@@ -183,36 +223,16 @@ updateMouseUp model mousePos =
 
         ActiveState gameState ->
             let
-                newPos =
-                    mousePosToPos mousePos
-
-                processMouseUp pos _ node =
-                    node
-
-                --let
-                --    newDest =
-                --        case node.dragOffset of
-                --            Just dragOffset ->
-                --                Pos (pos.x + dragOffset.x) (pos.y + dragOffset.y)
-                --            Nothing ->
-                --                node.dest
-                --in
-                --    { node
-                --        | dragOffset = Nothing
-                --        , dest = newDest
-                --    }
-                newNodes =
-                    Dict.map (processMouseUp newPos) gameState.nodes
+                newMouseState =
+                    DefaultMouseState
 
                 newGameState =
-                    { gameState
-                        | nodes = newNodes
-                    }
+                    { gameState | mouseState = newMouseState }
 
                 newModel =
                     { model | appState = ActiveState newGameState }
             in
-                ( newModel, Cmd.none )
+                updateMouseMove newModel mousePos
 
 
 updateAnimation : Model -> Time.Time -> ( Model, Cmd Msg )
@@ -333,45 +353,20 @@ animate timeElapsed gameState =
             gameState.nodes
 
         newNodes =
-            --Dict.map (animateNode timeElapsed) nodes
-            nodes
-
-        -- TODO isHovered
+            Dict.map (animateNode timeElapsed) nodes
     in
         { gameState
             | nodes = newNodes
         }
 
 
-
---animateNode : Time.Time -> Pos -> Id -> Node -> Node
---animateNode timeElapsed mousePos _ node =
---    let
---        newDest =
---            case node.state of
---                Default ->
---                    node.dest
---
---                Hovered ->
---                    node.dest
---
---                Dragged offset ->
---                    let
---                        destX =
---                            mousePos.x + offset.x
---
---                        destY =
---                            mousePos.y + offset.y
---                    in
---                        Pos destX destY
---
---        newNode =
---            { node | dest = newDest }
---
---        newNewNode =
---            moveNodeToDest newNode timeElapsed
---    in
---        newNewNode
+animateNode : Time.Time -> Id -> Node -> Node
+animateNode timeElapsed _ node =
+    let
+        newNode =
+            moveNodeToDest node timeElapsed
+    in
+        newNode
 
 
 moveNodeToDest : Node -> Time.Time -> Node
