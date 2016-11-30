@@ -5,16 +5,20 @@
     <link rel="stylesheet" type="text/css" href="/css/main.css">
   </head>
   <body>
-    <script src="/js/tantalo.js"></script>
     <script src="/js/main.js"></script>
     <script>
-      var tantalo = new Tantalo();
+      var tantaloWorker = new Worker ("/js/tantalo.js");
       var app = Elm.Main.fullscreen(loadConfig());
 
       app.ports.generateEdges.subscribe(function(difficulty) {
         console.log("Generating difficulty of " + difficulty + "...");
-        app.ports.generatedEdges.send(tantalo.generateTantalo(difficulty));
+        tantaloWorker.postMessage(difficulty);
       });
+
+      tantaloWorker.onmessage = function(event) {
+        var edgeData = event.data;
+        app.ports.generatedEdges.send(edgeData);
+      };
 
       app.ports.saveConfig.subscribe(function(config) {
         console.log("Saving config:", config);

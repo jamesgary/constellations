@@ -36,8 +36,14 @@ type alias Node =
     , pos : Pos
     , vel : Vel
     , isHovered : Bool
-    , dragOffset : Maybe Pos
+    , state : NodeState
     }
+
+
+type NodeState
+    = Default
+    | Hovered
+    | Dragged Pos
 
 
 type alias Edge =

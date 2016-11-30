@@ -48,7 +48,7 @@ view model =
                     (List.concat
                         [ drawFilters
                         , drawEdges gameState.nodes gameState.edges
-                        , drawNodes model.config (Dict.values gameState.nodes)
+                        , drawNodes model.config (List.reverse (Dict.values gameState.nodes))
                         ]
                     )
             )
@@ -64,12 +64,21 @@ drawFilters =
         [ feGaussianBlur [ stdDeviation "2.5" ] [] ]
       )
     , (Svg.radialGradient
-        [ id "node-fill" ]
+        [ id "node-fill-default" ]
         [ Svg.stop [ offset "75%", stopColor "rgba(255, 255, 255, 1.0)" ] []
         , Svg.stop [ offset "85%", stopColor "rgba(220, 220, 220, 0.7)" ] []
         , Svg.stop [ offset "90%", stopColor "rgba(200, 200, 200, 0.3)" ] []
         , Svg.stop [ offset "95%", stopColor "rgba(180, 180, 180, 0.1)" ] []
         , Svg.stop [ offset "100%", stopColor "rgba(100, 100, 100, 0)" ] []
+        ]
+      )
+    , (Svg.radialGradient
+        [ id "node-fill-hover" ]
+        [ Svg.stop [ offset "75%", stopColor "rgba(165, 205, 255, 1.0)" ] []
+        , Svg.stop [ offset "85%", stopColor "rgba(180, 200, 220, 0.7)" ] []
+        , Svg.stop [ offset "90%", stopColor "rgba(150, 200, 200, 0.3)" ] []
+        , Svg.stop [ offset "95%", stopColor "rgba(120, 180, 180, 0.1)" ] []
+        , Svg.stop [ offset "100%", stopColor "rgba(50, 100, 100, 0)" ] []
         ]
       )
     ]
@@ -102,7 +111,15 @@ drawNode config node =
             rad * (rad / realXRad)
 
         color =
-            "url(#node-fill)"
+            case node.state of
+                Default ->
+                    "url(#node-fill-default)"
+
+                Hovered ->
+                    "url(#node-fill-hover)"
+
+                Dragged _ ->
+                    "blue"
     in
         [ ellipse
             [ cx (px realPosition.x)
@@ -111,6 +128,7 @@ drawNode config node =
             , ry (toString realYRad)
             , transform (getTransform node)
             , fill color
+            , class "node"
             ]
             []
         ]
@@ -155,7 +173,7 @@ drawLevelSelect model =
     in
         div
             [ class "levelSelect-container" ]
-            (List.map (drawLevelSelector currentDifficulty) (List.range 1 20))
+            (List.map (drawLevelSelector currentDifficulty) (List.range 1 50))
 
 
 drawLevelSelector : Int -> Int -> Html Msg
@@ -217,7 +235,7 @@ getNode nodes id =
             , pos = Pos 42 42
             , vel = Vel 0 0 0 0
             , isHovered = False
-            , dragOffset = Nothing
+            , state = Default
             }
 
 

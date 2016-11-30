@@ -21,6 +21,12 @@ html, body {
   height: 100%;
 }
 
+/* game */
+
+.node {
+  cursor: pointer;
+}
+
 /* level select */
 
 .levelSelect-container {

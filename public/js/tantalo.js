@@ -141,3 +141,10 @@ Tantalo = function() {
     }
   };
 };
+
+var tantalo = new Tantalo();
+
+onmessage = function(event) {
+  var difficulty = event.data;
+  postMessage(tantalo.generateTantalo(difficulty));
+}
