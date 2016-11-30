@@ -320,7 +320,6 @@ edgeDataToGameData config edgeData =
             ({ nodes = Dict.fromList nodes
              , edges = edges
              , mouse = { pos = (Pos 0 0) }
-             , now = 0
              , difficulty = difficulty
              }
             )

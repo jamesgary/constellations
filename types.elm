@@ -25,7 +25,6 @@ type alias GameState =
     { nodes : Dict Id Node
     , edges : List Edge
     , mouse : Mouse
-    , now : Time.Time
     , difficulty : Int
     }
 
