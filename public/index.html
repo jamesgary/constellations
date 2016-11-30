@@ -2,12 +2,12 @@
 <html>
   <head>
     <title>Tangelo</title>
-    <link rel="stylesheet" type="text/css" href="/css/main.css">
+    <link rel="stylesheet" type="text/css" href="./css/main.css">
   </head>
   <body>
-    <script src="/js/main.js"></script>
+    <script src="./js/main.js"></script>
     <script>
-      var tantaloWorker = new Worker ("/js/tantalo.js");
+      var tantaloWorker = new Worker ("./js/tantalo.js");
       var app = Elm.Main.fullscreen(loadConfig());
 
       app.ports.generateEdges.subscribe(function(difficulty) {

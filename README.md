@@ -1,5 +1,7 @@
 # Tangelo
 
+Playable [here](https://s3-us-west-1.amazonaws.com/tangelo/index.html)!
+
 ## To Run
 
 ```
@@ -17,6 +19,10 @@ elm-live main.elm --output=public/js/main.js --dir=public/
 
 ```
 elm-make main.elm --output=public/js/main.js
+```
 
-# then upload /public to wherever
+## To Deploy to S3
+
+```
+./bin/deploy
 ```
