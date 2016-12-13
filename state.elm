@@ -12,7 +12,7 @@ import Types exposing (..)
 
 
 baseDifficulty =
-    6
+    1
 
 
 baseWeight =
@@ -327,7 +327,7 @@ makeNode config maxNodes id =
             200
 
         rotation =
-            toFloat id / (toFloat maxNodes - 1)
+            toFloat id / (toFloat maxNodes)
 
         x =
             graphCenterX + cos (2 * pi * rotation) * graphRadius
