@@ -84,6 +84,7 @@ Tantalo = function() {
 
     getEdgeData: function(lines) {
       var edges = [];
+      var edgeId = 0;
 
       for (var i = 0; i < lines.length - 1; i++) {
         var line = lines[i];
@@ -94,10 +95,16 @@ Tantalo = function() {
         });
 
         for (var k = 0; k < line.intersections.length - 1; k++) {
-          edges.push([
-            line.intersections[k].id,
-            line.intersections[k + 1].id
-          ]);
+          var edge = {
+            id: edgeId,
+            pair: [
+              line.intersections[k].id,
+              line.intersections[k + 1].id
+            ],
+            overlappingEdges: []
+          };
+          edges.push(edge);
+          edgeId++;
         }
       }
 
@@ -119,9 +126,9 @@ Tantalo = function() {
       };
 
       for (var i = 0; i < edgeData.length; i++) {
-        var node1 = edgeData[i][0];
-        var node2 = edgeData[i][1];
-        edgeData[i] = [
+        var node1 = edgeData[i].pair[0];
+        var node2 = edgeData[i].pair[1];
+        edgeData[i].pair = [
           idToRandomId(node1),
           idToRandomId(node2),
         ]

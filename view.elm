@@ -167,10 +167,10 @@ drawEdge : Dict Id Node -> Edge -> List (Html Msg)
 drawEdge nodes edge =
     let
         node1 =
-            getNode nodes (Tuple.first edge)
+            getNode nodes (Tuple.first edge.pair)
 
         node2 =
-            getNode nodes (Tuple.second edge)
+            getNode nodes (Tuple.second edge.pair)
     in
         [ line
             [ x1 (toString node1.pos.x)

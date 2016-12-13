@@ -44,7 +44,10 @@ type alias Node =
 
 
 type alias Edge =
-    ( Id, Id )
+    { id : Id
+    , pair : ( Id, Id )
+    , overlappingEdges : List Id
+    }
 
 
 type alias Mouse =
