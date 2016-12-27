@@ -17,6 +17,7 @@
 
       tantaloWorker.onmessage = function(event) {
         var edgeData = event.data;
+        console.log("Sending edge data:", edgeData);
         app.ports.generatedEdges.send(edgeData);
       };
 
@@ -25,12 +26,79 @@
         localStorage.setItem("config:radius", config.radius);
       });
 
+      app.ports.checkForIntersections.subscribe(function(nodesAndEdgeData) {
+        var nodes = nodesAndEdgeData[0];
+        var edgeData = nodesAndEdgeData[1];
+        console.log("Checking for intersections...");
+
+        var intersectionResults = getIntersectionResults(nodes, edgeData);
+        app.ports.intersectionResults.send(intersectionResults);
+      });
+
       function loadConfig() {
         var config = {
           radius: parseFloat(localStorage.getItem("config:radius")) || 25,
         };
         console.log("Loading config:", config);
         return config;
+      }
+
+      function getIntersectionResults(nodes, edgeData) {
+        // clear all the edges
+        var hasIntersections = false;
+        for (var i = 0; i < edgeData.length; i++) {
+          edgeData[i].overlappingEdges = [];
+        }
+
+        for (var i = 0; i < edgeData.length; i++) {
+          var edge1 = edgeData[i];
+          for (var j = i + 1; j < edgeData.length; j++) {
+            var edge2 = edgeData[j];
+
+            // check if edges share a node (skip if so)
+            var e1n1 = nodes[edge1.pair[0]];
+            var e1n2 = nodes[edge1.pair[1]];
+            var e2n1 = nodes[edge2.pair[0]];
+            var e2n2 = nodes[edge2.pair[1]];
+
+            if (e1n1.id !== e2n1.id &&
+                e1n1.id !== e2n2.id &&
+                e1n2.id !== e2n1.id &&
+                e1n2.id !== e2n2.id) {
+
+              if (isIntersecting(e1n1.dest, e1n2.dest, e2n1.dest, e2n2.dest)) {
+                edgeData[i].overlappingEdges.push(edge2.id);
+                edgeData[j].overlappingEdges.push(edge1.id);
+                hasIntersections = true;
+              }
+            }
+          }
+        }
+        return [hasIntersections, edgeData];
+      }
+
+      function isIntersecting(p1, p2, p3, p4) {
+        // See https://gist.github.com/Joncom/e8e8d18ebe7fe55c3894
+        var x1 = p1.x;
+        var y1 = p1.y;
+        var x2 = p2.x;
+        var y2 = p2.y;
+        var x3 = p3.x;
+        var y3 = p3.y;
+        var x4 = p4.x;
+        var y4 = p4.y;
+
+        var s1_x = x2 - x1;
+        var s1_y = y2 - y1;
+        var s2_x = x4 - x3;
+        var s2_y = y4 - y3;
+
+        var thing = (-s2_x * s1_y + s1_x * s2_y);
+
+        var s = (-s1_y * (x1 - x3) + s1_x * (y1 - y3)) / thing;
+        var t = ( s2_x * (y1 - y3) - s2_y * (x1 - x3)) / thing;
+
+        return (s >= 0 && s <= 1 && t >= 0 && t <= 1);
       }
     </script>
   </body>

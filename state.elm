@@ -42,6 +42,9 @@ port generateEdges : Int -> Cmd msg
 port saveConfig : Config -> Cmd msg
 
 
+port checkForIntersections : ( List Node, List Edge ) -> Cmd msg
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -68,6 +71,9 @@ update msg model =
         ChangeConfigRadius newRadius ->
             updateConfigRadius model newRadius
 
+        GetIntersectionResults intersectionResultData ->
+            updateGetIntersectionResults model intersectionResultData
+
 
 updateMouseMove : Model -> Mouse.Position -> ( Model, Cmd Msg )
 updateMouseMove model newMousePos =
@@ -89,33 +95,33 @@ updateMouseMove model newMousePos =
 
                                 newMouseState =
                                     case topTouchingNodeId of
-                                        Just id ->
-                                            HoveringMouseState id
+                                        Just nodeId ->
+                                            HoveringMouseState nodeId
 
                                         Nothing ->
                                             DefaultMouseState
                             in
                                 { gameState | mouseState = newMouseState }
 
-                        HoveringMouseState id ->
+                        HoveringMouseState _ ->
                             let
                                 topTouchingNodeId =
                                     getTopTouchingNodeId model.config newPos gameState.nodes
 
                                 newMouseState =
                                     case topTouchingNodeId of
-                                        Just id ->
-                                            HoveringMouseState id
+                                        Just nodeId ->
+                                            HoveringMouseState nodeId
 
                                         Nothing ->
                                             DefaultMouseState
                             in
                                 { gameState | mouseState = newMouseState }
 
-                        DraggingMouseState id offset ->
+                        DraggingMouseState nodeId offset ->
                             let
                                 draggedNode =
-                                    getNode gameState.nodes id
+                                    getNode gameState.nodes nodeId
 
                                 destX =
                                     newPos.x + offset.x
@@ -130,7 +136,7 @@ updateMouseMove model newMousePos =
                                     { draggedNode | dest = newDest }
 
                                 newNodes =
-                                    Dict.insert id newDraggedNode gameState.nodes
+                                    Dict.insert nodeId newDraggedNode gameState.nodes
                             in
                                 { gameState | nodes = newNodes }
 
@@ -140,7 +146,7 @@ updateMouseMove model newMousePos =
                 ( newModel, Cmd.none )
 
 
-getTopTouchingNodeId : Config -> Pos -> Dict.Dict Id Node -> Maybe Id
+getTopTouchingNodeId : Config -> Pos -> Dict.Dict NodeId Node -> Maybe NodeId
 getTopTouchingNodeId config mousePos nodes =
     let
         nodeList =
@@ -149,12 +155,12 @@ getTopTouchingNodeId config mousePos nodes =
         getTopTouchingNodeId_ config mousePos nodeList Nothing
 
 
-getTopTouchingNodeId_ : Config -> Pos -> List Node -> Maybe Id -> Maybe Id
+getTopTouchingNodeId_ : Config -> Pos -> List Node -> Maybe NodeId -> Maybe NodeId
 getTopTouchingNodeId_ config mousePos nodes foundId =
     case foundId of
-        Just id ->
+        Just nodeId ->
             -- short circuit
-            Just id
+            Just nodeId
 
         Nothing ->
             case List.head nodes of
@@ -230,7 +236,8 @@ updateMouseUp model mousePos =
                 newModel =
                     { model | appState = ActiveState newGameState }
             in
-                updateMouseMove newModel mousePos
+                --updateMouseMove newModel mousePos
+                ( newModel, checkForIntersections ( Dict.values newGameState.nodes, newGameState.edges ) )
 
 
 updateAnimation : Model -> Time.Time -> ( Model, Cmd Msg )
@@ -268,7 +275,7 @@ updateGeneratedEdges model edgeData =
         newModel =
             { model | appState = ActiveState newGameState }
     in
-        ( newModel, Cmd.none )
+        ( newModel, checkForIntersections ( Dict.values newGameState.nodes, newGameState.edges ) )
 
 
 updateConfigRadius : Model -> String -> ( Model, Cmd Msg )
@@ -314,8 +321,8 @@ edgeDataToGameData config edgeData =
         newGameState
 
 
-makeNode : Config -> Int -> Id -> ( Id, Node )
-makeNode config maxNodes id =
+makeNode : Config -> Int -> NodeId -> ( NodeId, Node )
+makeNode config maxNodes nodeId =
     let
         graphCenterX =
             500
@@ -327,7 +334,7 @@ makeNode config maxNodes id =
             200
 
         rotation =
-            toFloat id / (toFloat maxNodes)
+            toFloat nodeId / (toFloat maxNodes)
 
         x =
             graphCenterX + cos (2 * pi * rotation) * graphRadius
@@ -335,8 +342,8 @@ makeNode config maxNodes id =
         y =
             graphCenterY + sin (2 * pi * rotation) * graphRadius
     in
-        ( id
-        , { id = id
+        ( nodeId
+        , { id = nodeId
           , dest = (Pos x y)
           , pos = (Pos x y)
           , vel = (Vel 0 0 0 0)
@@ -358,7 +365,7 @@ animate timeElapsed gameState =
         }
 
 
-animateNode : Time.Time -> Id -> Node -> Node
+animateNode : Time.Time -> NodeId -> Node -> Node
 animateNode timeElapsed _ node =
     let
         newNode =
@@ -444,6 +451,29 @@ mousePosToPos mousePos =
     Pos (toFloat mousePos.x) (toFloat mousePos.y)
 
 
+updateGetIntersectionResults : Model -> IntersectionResultData -> ( Model, Cmd Msg )
+updateGetIntersectionResults model intersectionResultData =
+    case model.appState of
+        LoadingState ->
+            ( model, Cmd.none )
+
+        ActiveState gameState ->
+            let
+                isIntersecting =
+                    Tuple.first intersectionResultData
+
+                newEdges =
+                    Tuple.second intersectionResultData
+
+                newGameState =
+                    { gameState | edges = newEdges }
+
+                newModel =
+                    { model | appState = ActiveState newGameState }
+            in
+                ( newModel, Cmd.none )
+
+
 
 -- SUBSCRIPTIONS
 
@@ -451,9 +481,13 @@ mousePosToPos mousePos =
 port generatedEdges : (EdgeData -> msg) -> Sub msg
 
 
+port intersectionResults : (( Bool, List Edge ) -> msg) -> Sub msg
+
+
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ generatedEdges GeneratedEdges
+        , intersectionResults GetIntersectionResults
         , AnimationFrame.diffs AnimationMsg
         ]

@@ -12,8 +12,8 @@ type AppState
 
 type MouseState
     = DefaultMouseState
-    | HoveringMouseState Id
-    | DraggingMouseState Id Pos
+    | HoveringMouseState NodeId
+    | DraggingMouseState NodeId Pos
 
 
 type alias Model =
@@ -28,7 +28,7 @@ type alias Config =
 
 
 type alias GameState =
-    { nodes : Dict Id Node
+    { nodes : Dict NodeId Node
     , edges : List Edge
     , difficulty : Int
     , mouseState : MouseState
@@ -36,7 +36,7 @@ type alias GameState =
 
 
 type alias Node =
-    { id : Id
+    { id : NodeId
     , dest : Pos
     , pos : Pos
     , vel : Vel
@@ -44,9 +44,9 @@ type alias Node =
 
 
 type alias Edge =
-    { id : Id
-    , pair : ( Id, Id )
-    , overlappingEdges : List Id
+    { id : EdgeId
+    , pair : ( NodeId, NodeId )
+    , overlappingEdges : List EdgeId
     }
 
 
@@ -69,7 +69,11 @@ type alias Vel =
     }
 
 
-type alias Id =
+type alias NodeId =
+    Int
+
+
+type alias EdgeId =
     Int
 
 
@@ -77,8 +81,17 @@ type alias EdgeData =
     ( List Edge, Int, Int )
 
 
+
+-- edges, numNodes, difficulty
+
+
+type alias IntersectionResultData =
+    ( Bool, List Edge )
+
+
 type Msg
     = GenerateEdges Int
+      -- numNodes
     | GeneratedEdges EdgeData
     | MouseDown Mouse.Position
     | MouseMove Mouse.Position
@@ -87,15 +100,16 @@ type Msg
       -- config stuff
       --| ChangeDifficulty String
     | ChangeConfigRadius String
+    | GetIntersectionResults IntersectionResultData
 
 
 
 -- Handy functions
 
 
-getNode : Dict Id Node -> Id -> Node
-getNode nodes id =
-    case Dict.get id nodes of
+getNode : Dict NodeId Node -> NodeId -> Node
+getNode nodes nodeId =
+    case Dict.get nodeId nodes of
         Just node ->
             node
 

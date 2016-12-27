@@ -158,12 +158,12 @@ drawNode config mouseState node =
         ]
 
 
-drawEdges : Dict Id Node -> List Edge -> List (Html Msg)
+drawEdges : Dict NodeId Node -> List Edge -> List (Html Msg)
 drawEdges nodes edges =
     (List.concat (List.map (drawEdge nodes) edges))
 
 
-drawEdge : Dict Id Node -> Edge -> List (Html Msg)
+drawEdge : Dict NodeId Node -> Edge -> List (Html Msg)
 drawEdge nodes edge =
     let
         node1 =
@@ -171,6 +171,12 @@ drawEdge nodes edge =
 
         node2 =
             getNode nodes (Tuple.second edge.pair)
+
+        color =
+            if List.isEmpty edge.overlappingEdges then
+                "rgba(255,255,255,.5)"
+            else
+                "rgba(255,0,0,.5)"
     in
         [ line
             [ x1 (toString node1.pos.x)
@@ -178,7 +184,7 @@ drawEdge nodes edge =
             , x2 (toString node2.pos.x)
             , y2 (toString node2.pos.y)
             , strokeWidth "3"
-            , stroke "rgba(255,255,255,.5)"
+            , stroke color
             ]
             []
         ]

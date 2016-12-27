@@ -2,7 +2,7 @@ Tantalo = function() {
   return {
     // difficulty starts at 0
     generateTantalo: function(difficulty) {
-      var numLines = 5 + difficulty;
+      var numLines = 4 + difficulty;
 
       var lines = this.generateRandomLines(numLines); // just simple slope-intercept form, (y = mx + b)
 
