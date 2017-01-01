@@ -1,7 +1,7 @@
 module View exposing (view)
 
 import Dict exposing (Dict)
-import Html exposing (Html, div)
+import Html exposing (Html, div, span)
 import Html.Attributes
 import Html.Events exposing (on)
 import Json.Decode as Json
@@ -33,7 +33,8 @@ view model =
     div
         [ class "appState-container"
         ]
-        [ svg
+        [ drawWinModal (model)
+        , svg
             [ width "100%"
             , height "100%"
             , onMouseMove
@@ -100,6 +101,37 @@ drawFilters =
         ]
       )
     ]
+
+
+drawWinModal : Model -> Html Msg
+drawWinModal model =
+    let
+        isHidden =
+            case model.appState of
+                LoadingState ->
+                    True
+
+                ActiveState gameState ->
+                    if gameState.hasWon then
+                        False
+                    else
+                        True
+
+        className =
+            if isHidden then
+                "win-modal hidden"
+            else
+                "win-modal"
+    in
+        div
+            [ class className ]
+            [ div
+                [ class "win-modal-text" ]
+                [ text "You did it!" ]
+            , div
+                [ class "win-modal-button" ]
+                [ text "Next Level" ]
+            ]
 
 
 drawNodes : Config -> MouseState -> List Node -> List (Html Msg)

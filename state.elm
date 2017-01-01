@@ -315,6 +315,7 @@ edgeDataToGameData config edgeData =
              , edges = edges
              , difficulty = difficulty
              , mouseState = DefaultMouseState
+             , hasWon = False
              }
             )
     in
@@ -466,7 +467,10 @@ updateGetIntersectionResults model intersectionResultData =
                     Tuple.second intersectionResultData
 
                 newGameState =
-                    { gameState | edges = newEdges }
+                    { gameState
+                        | edges = newEdges
+                        , hasWon = not isIntersecting
+                    }
 
                 newModel =
                     { model | appState = ActiveState newGameState }

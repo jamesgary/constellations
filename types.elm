@@ -32,6 +32,7 @@ type alias GameState =
     , edges : List Edge
     , difficulty : Int
     , mouseState : MouseState
+    , hasWon : Bool
     }
 
 

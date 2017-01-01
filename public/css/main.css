@@ -87,3 +87,50 @@ html, body {
   font-size: 14px;
   margin: 14px;
 }
+
+/* Win Modal */
+
+.win-modal {
+  background: #158aff;
+  padding: 50px;
+  border: 2px solid #91c8ff;
+  border-radius: 5px;
+  text-align: center;
+  transition: top 1s cubic-bezier(0.87,-0.41, 0.19, 1.44);
+
+  /* center the modal */
+  position: absolute;
+  display: inline-block;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.win-modal.hidden {
+  top: 200%;
+}
+
+.win-modal-text {
+  font-family: sans-serif;
+  font-size: 24px;
+  color: #fff;
+  margin-bottom: 40px;
+}
+
+.win-modal-button {
+  font-family: sans-serif;
+  color: #fff;
+  background: #01a7a2;
+  padding: 10px;
+  border-radius: 5px;
+  border: 2px solid #036562;
+  cursor: pointer;
+}
+
+.win-modal-button:hover {
+  background: #06b7b2;
+}
+
+.win-modal-button:active {
+  background: #049a96;
+}
