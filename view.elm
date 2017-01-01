@@ -105,33 +105,38 @@ drawFilters =
 
 drawWinModal : Model -> Html Msg
 drawWinModal model =
-    let
-        isHidden =
-            case model.appState of
-                LoadingState ->
-                    True
+    case model.appState of
+        LoadingState ->
+            div [] []
 
-                ActiveState gameState ->
+        ActiveState gameState ->
+            let
+                isHidden =
                     if gameState.hasWon then
                         False
                     else
                         True
 
-        className =
-            if isHidden then
-                "win-modal hidden"
-            else
-                "win-modal"
-    in
-        div
-            [ class className ]
-            [ div
-                [ class "win-modal-text" ]
-                [ text "You did it!" ]
-            , div
-                [ class "win-modal-button" ]
-                [ text "Next Level" ]
-            ]
+                className =
+                    if isHidden then
+                        "win-modal hidden"
+                    else
+                        "win-modal"
+
+                nextDifficulty =
+                    gameState.difficulty + 1
+            in
+                div
+                    [ class className ]
+                    [ div
+                        [ class "win-modal-text" ]
+                        [ text "You did it!" ]
+                    , div
+                        [ class "win-modal-button"
+                        , Html.Events.onClick (GenerateEdges nextDifficulty)
+                        ]
+                        [ text "Next Level" ]
+                    ]
 
 
 drawNodes : Config -> MouseState -> List Node -> List (Html Msg)
