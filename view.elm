@@ -176,9 +176,11 @@ drawNode config mouseState node =
                     else
                         "url(#node-fill-default)"
 
-                DraggingMouseState draggedId pos ->
+                DraggingMouseState draggedId pos neighborIds ->
                     if node.id == draggedId then
                         "url(#node-fill-drag)"
+                    else if List.member node.id neighborIds then
+                        "url(#node-fill-neighbors)"
                     else
                         "url(#node-fill-default)"
     in

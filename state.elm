@@ -118,7 +118,7 @@ updateMouseMove model newMousePos =
                             in
                                 { gameState | mouseState = newMouseState }
 
-                        DraggingMouseState nodeId offset ->
+                        DraggingMouseState nodeId offset neighboringNodeIds ->
                             let
                                 draggedNode =
                                     getNode gameState.nodes nodeId
@@ -202,8 +202,23 @@ updateMouseDown model newMousePos =
 
                                 dragOffset =
                                     (Pos (draggedNode.pos.x - newPos.x) (draggedNode.pos.y - newPos.y))
+
+                                getNeighborNodeIfMatchingEdge nodeId edge =
+                                    let
+                                        ( node1, node2 ) =
+                                            edge.pair
+                                    in
+                                        if node1 == nodeId then
+                                            Just node2
+                                        else if node2 == nodeId then
+                                            Just node1
+                                        else
+                                            Nothing
+
+                                neighboringNodeIds =
+                                    List.filterMap (getNeighborNodeIfMatchingEdge draggedNode.id) gameState.edges
                             in
-                                DraggingMouseState draggedId dragOffset
+                                DraggingMouseState draggedId dragOffset neighboringNodeIds
 
                         Nothing ->
                             DefaultMouseState

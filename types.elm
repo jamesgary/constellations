@@ -13,7 +13,7 @@ type AppState
 type MouseState
     = DefaultMouseState
     | HoveringMouseState NodeId
-    | DraggingMouseState NodeId Pos
+    | DraggingMouseState NodeId Pos (List NodeId)
 
 
 type alias Model =
