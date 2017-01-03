@@ -30,7 +30,7 @@ sass --watch sass/main.scss:public/css/main.css
 ## Just To Make
 
 ```
-elm-make main.elm --output=public/js/main.js
+elm-make main.elm --output=public/js/main.js && sass sass/main.scss:public/css/main.css
 ```
 
 ## To Deploy to S3
