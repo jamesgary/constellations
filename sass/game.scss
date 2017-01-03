@@ -1,0 +1,48 @@
+$nodeFill: #F8E48A;
+$edgeWidth: 3px;
+
+/* node stroke and edge fill logic */
+$background: #111;
+$edgeFill: #fe8;
+$edgeFillOpacity: 0.5;
+
+// Gets us an opaque version of edge fill
+$nodeStroke: mix($edgeFill, $background, (100 * $edgeFillOpacity));
+
+/* Container */
+
+.appState-container {
+  background: $background;
+  width: 100%;
+  height: 100%;
+}
+
+/* Nodes */
+
+.node {
+  fill: $nodeFill;
+  stroke: $nodeStroke;
+  stroke-width: $edgeWidth;
+  transition: fill 3.0s;
+  cursor: pointer;
+}
+
+.node.is-hovering { fill: #46C4BC; }
+.node.is-dragging { fill: #45AAA4; }
+.node.is-neighboring { fill: #F770E3; }
+
+.node.is-hovering,
+.node.is-dragging,
+.node.is-neighboring {
+  transition: fill 0.05s;
+}
+
+// i only want transitions to be slow when going from neighboring to default
+// everything else is fast
+
+/* Edges */
+
+.edge {
+  stroke: rgba($edgeFill, $edgeFillOpacity); //rgba(255, 255, 255, 0.5);
+  stroke-width: $edgeWidth;
+}

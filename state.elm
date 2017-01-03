@@ -250,9 +250,12 @@ updateMouseUp model mousePos =
 
                 newModel =
                     { model | appState = ActiveState newGameState }
+
+                -- apply any new hover effects
+                ( newNewModel, _ ) =
+                    updateMouseMove newModel mousePos
             in
-                --updateMouseMove newModel mousePos
-                ( newModel, checkForIntersections ( Dict.values newGameState.nodes, newGameState.edges ) )
+                ( newNewModel, checkForIntersections ( Dict.values newGameState.nodes, newGameState.edges ) )
 
 
 updateAnimation : Model -> Time.Time -> ( Model, Cmd Msg )

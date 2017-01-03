@@ -47,8 +47,7 @@ view model =
 
                 ActiveState gameState ->
                     (List.concat
-                        [ drawFilters
-                        , drawEdges gameState.nodes gameState.edges
+                        [ drawEdges gameState.nodes gameState.edges
                         , drawNodes model.config gameState.mouseState (List.reverse (Dict.values gameState.nodes))
                         ]
                     )
@@ -56,51 +55,6 @@ view model =
         , drawLevelSelect (model)
         , drawConfig (model.config)
         ]
-
-
-drawFilters : List (Html Msg)
-drawFilters =
-    [ (Svg.filter
-        [ id "node-shadow" ]
-        [ feGaussianBlur [ stdDeviation "2.5" ] [] ]
-      )
-    , (Svg.radialGradient
-        [ id "node-fill-default" ]
-        [ Svg.stop [ offset "75%", stopColor "rgba(255, 255, 255, 1.0)" ] []
-        , Svg.stop [ offset "85%", stopColor "rgba(220, 220, 220, 0.7)" ] []
-        , Svg.stop [ offset "90%", stopColor "rgba(200, 200, 200, 0.3)" ] []
-        , Svg.stop [ offset "95%", stopColor "rgba(180, 180, 180, 0.1)" ] []
-        , Svg.stop [ offset "100%", stopColor "rgba(100, 100, 100, 0)" ] []
-        ]
-      )
-    , (Svg.radialGradient
-        [ id "node-fill-hover" ]
-        [ Svg.stop [ offset "75%", stopColor "rgba(165, 205, 255, 1.0)" ] []
-        , Svg.stop [ offset "85%", stopColor "rgba(180, 200, 220, 0.7)" ] []
-        , Svg.stop [ offset "90%", stopColor "rgba(150, 200, 200, 0.3)" ] []
-        , Svg.stop [ offset "95%", stopColor "rgba(120, 180, 180, 0.1)" ] []
-        , Svg.stop [ offset "100%", stopColor "rgba(50, 100, 100, 0)" ] []
-        ]
-      )
-    , (Svg.radialGradient
-        [ id "node-fill-drag" ]
-        [ Svg.stop [ offset "75%", stopColor "rgba(145, 145, 255, 1.0)" ] []
-        , Svg.stop [ offset "85%", stopColor "rgba(120, 140, 220, 0.7)" ] []
-        , Svg.stop [ offset "90%", stopColor "rgba(90, 140, 200, 0.3)" ] []
-        , Svg.stop [ offset "95%", stopColor "rgba(80, 140, 180, 0.1)" ] []
-        , Svg.stop [ offset "100%", stopColor "rgba(50, 100, 100, 0)" ] []
-        ]
-      )
-    , (Svg.radialGradient
-        [ id "node-fill-neighbors" ]
-        [ Svg.stop [ offset "75%", stopColor "rgba(255, 205, 255, 1.0)" ] []
-        , Svg.stop [ offset "85%", stopColor "rgba(255, 200, 220, 0.7)" ] []
-        , Svg.stop [ offset "90%", stopColor "rgba(255, 200, 200, 0.3)" ] []
-        , Svg.stop [ offset "95%", stopColor "rgba(120, 180, 180, 0.1)" ] []
-        , Svg.stop [ offset "100%", stopColor "rgba(50, 100, 100, 0)" ] []
-        ]
-      )
-    ]
 
 
 drawWinModal : Model -> Html Msg
@@ -165,24 +119,24 @@ drawNode config mouseState node =
         realYRad =
             rad * (rad / realXRad)
 
-        color =
+        className =
             case mouseState of
                 DefaultMouseState ->
-                    "url(#node-fill-default)"
+                    ""
 
                 HoveringMouseState hoveredId ->
                     if node.id == hoveredId then
-                        "url(#node-fill-hover)"
+                        "is-hovering"
                     else
-                        "url(#node-fill-default)"
+                        ""
 
                 DraggingMouseState draggedId pos neighborIds ->
                     if node.id == draggedId then
-                        "url(#node-fill-drag)"
+                        "is-dragging"
                     else if List.member node.id neighborIds then
-                        "url(#node-fill-neighbors)"
+                        "is-neighboring"
                     else
-                        "url(#node-fill-default)"
+                        ""
     in
         [ ellipse
             [ cx (px realPosition.x)
@@ -190,8 +144,7 @@ drawNode config mouseState node =
             , rx (toString realXRad)
             , ry (toString realYRad)
             , transform (getTransform node)
-            , fill color
-            , class "node"
+            , class ("node " ++ className)
             ]
             []
         ]
@@ -211,19 +164,18 @@ drawEdge nodes edge =
         node2 =
             getNode nodes (Tuple.second edge.pair)
 
-        color =
+        className =
             if List.isEmpty edge.overlappingEdges then
-                "rgba(255,255,255,.5)"
+                "is-overlapping"
             else
-                "rgba(255,0,0,.5)"
+                ""
     in
         [ line
             [ x1 (toString node1.pos.x)
             , y1 (toString node1.pos.y)
             , x2 (toString node2.pos.x)
             , y2 (toString node2.pos.y)
-            , strokeWidth "3"
-            , stroke color
+            , class ("edge " ++ className)
             ]
             []
         ]

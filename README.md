@@ -4,6 +4,8 @@ Playable [here](https://s3-us-west-1.amazonaws.com/tangelo/index.html)!
 
 ## To Run
 
+For compiling elm to js:
+
 ```
 # Requires https://github.com/tomekwi/elm-live
 # Runs on http://localhost:8000
@@ -13,6 +15,16 @@ Playable [here](https://s3-us-west-1.amazonaws.com/tangelo/index.html)!
 # which does:
 
 elm-live main.elm --output=public/js/main.js --dir=public/
+```
+
+For compiling sass to css:
+
+```
+./bin/sass
+
+# which does:
+
+sass --watch sass/main.scss:public/css/main.css
 ```
 
 ## Just To Make
