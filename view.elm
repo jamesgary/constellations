@@ -1,5 +1,6 @@
 module View exposing (view)
 
+import Animation
 import Dict exposing (Dict)
 import Html exposing (Html, div, span)
 import Html.Attributes
@@ -48,7 +49,8 @@ view model =
                 ActiveState gameState ->
                     (List.concat
                         [ drawEdges gameState.nodes gameState.edges
-                        , drawNodes model.config gameState.mouseState (List.reverse (Dict.values gameState.nodes))
+                          --, drawNodes model.config gameState.mouseState (List.reverse (Dict.values gameState.nodes))
+                        , drawNodes model.config gameState
                         ]
                     )
             )
@@ -93,14 +95,20 @@ drawWinModal model =
                     ]
 
 
-drawNodes : Config -> MouseState -> List Node -> List (Html Msg)
-drawNodes config mouseState nodesList =
-    (List.concat (List.map (drawNode config mouseState) nodesList))
+drawNodes : Config -> GameState -> List (Html Msg)
+drawNodes config gameState =
+    List.reverse (List.map (drawNode config gameState) (Dict.keys gameState.nodes))
 
 
-drawNode : Config -> MouseState -> Node -> List (Html Msg)
-drawNode config mouseState node =
+drawNode : Config -> GameState -> NodeId -> Html Msg
+drawNode config gameState nodeId =
     let
+        node =
+            getNode gameState.nodes nodeId
+
+        nodeStyle =
+            getNodeStyle gameState.nodeStyles nodeId
+
         realPosition =
             node.pos
 
@@ -118,36 +126,18 @@ drawNode config mouseState node =
 
         realYRad =
             rad * (rad / realXRad)
-
-        className =
-            case mouseState of
-                DefaultMouseState ->
-                    ""
-
-                HoveringMouseState hoveredId ->
-                    if node.id == hoveredId then
-                        "is-hovering"
-                    else
-                        ""
-
-                DraggingMouseState draggedId pos neighborIds ->
-                    if node.id == draggedId then
-                        "is-dragging"
-                    else if List.member node.id neighborIds then
-                        "is-neighboring"
-                    else
-                        ""
     in
-        [ ellipse
-            [ cx (px realPosition.x)
-            , cy (px realPosition.y)
-            , rx (toString realXRad)
-            , ry (toString realYRad)
-            , transform (getTransform node)
-            , class ("node " ++ className)
-            ]
+        ellipse
+            (Animation.render nodeStyle
+                ++ [ cx (px realPosition.x)
+                   , cy (px realPosition.y)
+                   , rx (toString realXRad)
+                   , ry (toString realYRad)
+                   , transform (getTransform node)
+                   , class "node"
+                   ]
+            )
             []
-        ]
 
 
 drawEdges : Dict NodeId Node -> List Edge -> List (Html Msg)

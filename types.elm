@@ -3,6 +3,7 @@ module Types exposing (..)
 import Dict exposing (Dict)
 import Mouse
 import Time
+import Animation
 
 
 type AppState
@@ -33,6 +34,7 @@ type alias GameState =
     , difficulty : Int
     , mouseState : MouseState
     , hasWon : Bool
+    , nodeStyles : Dict NodeId Animation.State
     }
 
 
@@ -98,6 +100,7 @@ type Msg
     | MouseMove Mouse.Position
     | MouseUp Mouse.Position
     | AnimationMsg Time.Time
+    | AnimateStyles Animation.Msg
       -- config stuff
       --| ChangeDifficulty String
     | ChangeConfigRadius String
@@ -121,3 +124,14 @@ getNode nodes nodeId =
             , pos = Pos 42 42
             , vel = Vel 0 0 0 0
             }
+
+
+getNodeStyle : Dict NodeId Animation.State -> NodeId -> Animation.State
+getNodeStyle nodeStyles nodeId =
+    case Dict.get nodeId nodeStyles of
+        Just nodeStyle ->
+            nodeStyle
+
+        Nothing ->
+            -- should never happen
+            Animation.style []

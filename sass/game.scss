@@ -20,10 +20,10 @@ $nodeStroke: mix($edgeFill, $background, (100 * $edgeFillOpacity));
 /* Nodes */
 
 .node {
-  fill: $nodeFill;
-  stroke: $nodeStroke;
-  stroke-width: $edgeWidth;
-  transition: fill 3.0s;
+  //fill: $nodeFill;
+  //stroke: $nodeStroke;
+  //stroke-width: $edgeWidth;
+  //transition: fill 3.0s;
   cursor: pointer;
 }
 

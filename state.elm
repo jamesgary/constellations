@@ -4,6 +4,8 @@ import AnimationFrame
 import Dict
 import Mouse
 import Time
+import Animation
+import Color
 
 
 -- mine
@@ -60,6 +62,27 @@ update msg model =
         AnimationMsg time ->
             updateAnimation model time
 
+        AnimateStyles animMsg ->
+            case model.appState of
+                LoadingState ->
+                    ( model, Cmd.none )
+
+                ActiveState gameState ->
+                    let
+                        animNodeStyle animMsg i ns =
+                            Animation.update animMsg ns
+
+                        newNodeStyles =
+                            Dict.map (animNodeStyle animMsg) gameState.nodeStyles
+
+                        newGameState =
+                            { gameState | nodeStyles = newNodeStyles }
+
+                        newModel =
+                            { model | appState = ActiveState newGameState }
+                    in
+                        ( newModel, Cmd.none )
+
         -- request to js-land
         GenerateEdges newDifficulty ->
             updateGenerateEdges model newDifficulty
@@ -89,34 +112,80 @@ updateMouseMove model newMousePos =
                 newGameState =
                     case gameState.mouseState of
                         DefaultMouseState ->
+                            case getTopTouchingNodeId model.config newPos gameState.nodes of
+                                Just nodeId ->
+                                    let
+                                        existingStyle =
+                                            getNodeStyle gameState.nodeStyles nodeId
+
+                                        stylize id existingStyle =
+                                            if id == nodeId then
+                                                (Animation.interrupt
+                                                    [ Animation.to [ Animation.fill Color.red ] ]
+                                                    existingStyle
+                                                )
+                                            else
+                                                (Animation.interrupt
+                                                    [ Animation.to [ Animation.fill Color.white ] ]
+                                                    existingStyle
+                                                )
+
+                                        newNodeStyles =
+                                            Dict.map stylize gameState.nodeStyles
+                                    in
+                                        { gameState
+                                            | mouseState = HoveringMouseState nodeId
+                                            , nodeStyles = newNodeStyles
+                                        }
+
+                                Nothing ->
+                                    { gameState | mouseState = DefaultMouseState }
+
+                        HoveringMouseState origHoverId ->
                             let
                                 topTouchingNodeId =
                                     getTopTouchingNodeId model.config newPos gameState.nodes
 
-                                newMouseState =
+                                ( newMouseState, newNodeStyles ) =
                                     case topTouchingNodeId of
                                         Just nodeId ->
-                                            HoveringMouseState nodeId
+                                            if nodeId == origHoverId then
+                                                -- no change needed
+                                                ( HoveringMouseState nodeId, gameState.nodeStyles )
+                                            else
+                                                -- new hover! deactive orig, activate new
+                                                ( HoveringMouseState nodeId
+                                                , gameState.nodeStyles
+                                                    |> Dict.insert
+                                                        origHoverId
+                                                        (Animation.interrupt
+                                                            [ Animation.to [ Animation.fill Color.white ] ]
+                                                            (getNodeStyle gameState.nodeStyles origHoverId)
+                                                        )
+                                                    |> Dict.insert
+                                                        nodeId
+                                                        (Animation.interrupt
+                                                            [ Animation.to [ Animation.fill Color.red ] ]
+                                                            (getNodeStyle gameState.nodeStyles nodeId)
+                                                        )
+                                                )
 
                                         Nothing ->
-                                            DefaultMouseState
+                                            -- no hover, deactive orig
+                                            ( DefaultMouseState
+                                            , gameState.nodeStyles
+                                                |> Dict.insert
+                                                    origHoverId
+                                                    (Animation.interrupt
+                                                        [ Animation.to [ Animation.fill Color.white ] ]
+                                                        (getNodeStyle gameState.nodeStyles origHoverId)
+                                                    )
+                                            )
                             in
-                                { gameState | mouseState = newMouseState }
-
-                        HoveringMouseState _ ->
-                            let
-                                topTouchingNodeId =
-                                    getTopTouchingNodeId model.config newPos gameState.nodes
-
-                                newMouseState =
-                                    case topTouchingNodeId of
-                                        Just nodeId ->
-                                            HoveringMouseState nodeId
-
-                                        Nothing ->
-                                            DefaultMouseState
-                            in
-                                { gameState | mouseState = newMouseState }
+                                { gameState
+                                    | mouseState = newMouseState
+                                    , nodeStyles = newNodeStyles
+                                }
 
                         DraggingMouseState nodeId offset neighboringNodeIds ->
                             let
@@ -328,12 +397,16 @@ edgeDataToGameData config edgeData =
         nodes =
             List.map (makeNode config numNodes) nodeIdList
 
+        nodeStyles =
+            List.map (\i -> ( i, Animation.styleWith (Animation.spring { stiffness = 400, damping = 23 }) [ Animation.fill Color.white ] )) nodeIdList
+
         newGameState =
             ({ nodes = Dict.fromList nodes
              , edges = edges
              , difficulty = difficulty
              , mouseState = DefaultMouseState
              , hasWon = False
+             , nodeStyles = Dict.fromList nodeStyles
              }
             )
     in
@@ -508,8 +581,18 @@ port intersectionResults : (( Bool, List Edge ) -> msg) -> Sub msg
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.batch
-        [ generatedEdges GeneratedEdges
-        , intersectionResults GetIntersectionResults
-        , AnimationFrame.diffs AnimationMsg
-        ]
+    let
+        nodeStyles =
+            case model.appState of
+                LoadingState ->
+                    []
+
+                ActiveState gameState ->
+                    Dict.values gameState.nodeStyles
+    in
+        Sub.batch
+            [ generatedEdges GeneratedEdges
+            , intersectionResults GetIntersectionResults
+            , AnimationFrame.diffs AnimationMsg
+            , Animation.subscription AnimateStyles nodeStyles
+            ]
