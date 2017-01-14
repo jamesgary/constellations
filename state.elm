@@ -21,6 +21,18 @@ baseWeight =
     50
 
 
+defaultColor =
+    Color.hsl (degrees 49) 0.89 0.76
+
+
+hoverColor =
+    Color.hsl (degrees 176) 0.52 0.52
+
+
+draggingColor =
+    Color.hsl (degrees 176) 0.42 0.35
+
+
 init : Config -> ( Model, Cmd Msg )
 init config =
     let
@@ -121,12 +133,12 @@ updateMouseMove model newMousePos =
                                         stylize id existingStyle =
                                             if id == nodeId then
                                                 (Animation.interrupt
-                                                    [ Animation.to [ Animation.fill Color.red ] ]
+                                                    [ Animation.to [ Animation.fill hoverColor ] ]
                                                     existingStyle
                                                 )
                                             else
                                                 (Animation.interrupt
-                                                    [ Animation.to [ Animation.fill Color.white ] ]
+                                                    [ Animation.to [ Animation.fill defaultColor ] ]
                                                     existingStyle
                                                 )
 
@@ -159,13 +171,13 @@ updateMouseMove model newMousePos =
                                                     |> Dict.insert
                                                         origHoverId
                                                         (Animation.interrupt
-                                                            [ Animation.to [ Animation.fill Color.white ] ]
+                                                            [ Animation.to [ Animation.fill defaultColor ] ]
                                                             (getNodeStyle gameState.nodeStyles origHoverId)
                                                         )
                                                     |> Dict.insert
                                                         nodeId
                                                         (Animation.interrupt
-                                                            [ Animation.to [ Animation.fill Color.red ] ]
+                                                            [ Animation.to [ Animation.fill hoverColor ] ]
                                                             (getNodeStyle gameState.nodeStyles nodeId)
                                                         )
                                                 )
@@ -177,7 +189,7 @@ updateMouseMove model newMousePos =
                                                 |> Dict.insert
                                                     origHoverId
                                                     (Animation.interrupt
-                                                        [ Animation.to [ Animation.fill Color.white ] ]
+                                                        [ Animation.to [ Animation.fill defaultColor ] ]
                                                         (getNodeStyle gameState.nodeStyles origHoverId)
                                                     )
                                             )
@@ -262,7 +274,7 @@ updateMouseDown model newMousePos =
                 topTouchingNodeId =
                     getTopTouchingNodeId model.config newPos gameState.nodes
 
-                newMouseState =
+                ( newMouseState, newNodeStyles ) =
                     case topTouchingNodeId of
                         Just draggedId ->
                             let
@@ -286,15 +298,25 @@ updateMouseDown model newMousePos =
 
                                 neighboringNodeIds =
                                     List.filterMap (getNeighborNodeIfMatchingEdge draggedNode.id) gameState.edges
+
+                                newNodeStyles =
+                                    gameState.nodeStyles
+                                        |> Dict.insert
+                                            draggedId
+                                            (Animation.interrupt
+                                                [ Animation.to [ Animation.fill draggingColor ] ]
+                                                (getNodeStyle gameState.nodeStyles draggedId)
+                                            )
                             in
-                                DraggingMouseState draggedId dragOffset neighboringNodeIds
+                                ( DraggingMouseState draggedId dragOffset neighboringNodeIds, newNodeStyles )
 
                         Nothing ->
-                            DefaultMouseState
+                            ( DefaultMouseState, gameState.nodeStyles )
 
                 newGameState =
                     { gameState
                         | mouseState = newMouseState
+                        , nodeStyles = newNodeStyles
                     }
 
                 newModel =
@@ -398,7 +420,16 @@ edgeDataToGameData config edgeData =
             List.map (makeNode config numNodes) nodeIdList
 
         nodeStyles =
-            List.map (\i -> ( i, Animation.styleWith (Animation.spring { stiffness = 400, damping = 23 }) [ Animation.fill Color.white ] )) nodeIdList
+            List.map
+                (\i ->
+                    ( i
+                    , Animation.styleWith
+                        --(Animation.spring { stiffness = 400, damping = 23 })
+                        (Animation.easing { duration = 0.1 * Time.second, ease = (\x -> sqrt x) })
+                        [ Animation.fill defaultColor ]
+                    )
+                )
+                nodeIdList
 
         newGameState =
             ({ nodes = Dict.fromList nodes
