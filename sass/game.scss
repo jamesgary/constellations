@@ -1,13 +1,16 @@
-$nodeFill: #F8E48A;
-$edgeWidth: 3px;
+$background: hsl(213, 55%, 7%);
+$nodeFill: hsl(49, 89%, 76%);
+$hoveringNodeFill: hsl(176, 52%, 52%);
+$draggingNodeFill: hsl(176, 42%, 47%);
+$neighborNodeFill: hsl(309, 89%, 70%);
 
-/* node stroke and edge fill logic */
-$background: #111;
-$edgeFill: #fe8;
-$edgeFillOpacity: 0.5;
+$edgeFillOpacity: 0.3;
+$edgeFill: hsl(51, 100%, 77%);
 
 // Gets us an opaque version of edge fill
 $nodeStroke: mix($edgeFill, $background, (100 * $edgeFillOpacity));
+
+$edgeWidth: 3px;
 
 /* Container */
 
@@ -23,26 +26,25 @@ $nodeStroke: mix($edgeFill, $background, (100 * $edgeFillOpacity));
   fill: $nodeFill;
   stroke: $nodeStroke;
   stroke-width: $edgeWidth;
-  transition: fill 3.0s;
+  transition: fill 2s cubic-bezier(0.0, 1.0, 0.0, 1.0); // slow, leaves a stain
   cursor: pointer;
 }
 
-.node.is-hovering { fill: #46C4BC; }
-.node.is-dragging { fill: #45AAA4; }
-.node.is-neighboring { fill: #F770E3; }
+.node.is-hovering { fill: $hoveringNodeFill }
+.node.is-dragging { fill: $draggingNodeFill; }
+.node.is-neighboring { fill: $neighborNodeFill; }
 
+// only want transitions to be slow when going from neighboring to default
+// everything else is fast
 .node.is-hovering,
 .node.is-dragging,
 .node.is-neighboring {
   transition: fill 0.05s;
 }
 
-// i only want transitions to be slow when going from neighboring to default
-// everything else is fast
-
 /* Edges */
 
 .edge {
-  stroke: rgba($edgeFill, $edgeFillOpacity); //rgba(255, 255, 255, 0.5);
+  stroke: rgba($edgeFill, $edgeFillOpacity);
   stroke-width: $edgeWidth;
 }
