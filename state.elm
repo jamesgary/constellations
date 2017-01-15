@@ -33,6 +33,10 @@ draggingColor =
     Color.hsl (degrees 176) 0.42 0.35
 
 
+neighboringColor =
+    Color.hsl (degrees 309) 0.89 0.7
+
+
 init : Config -> ( Model, Cmd Msg )
 init config =
     let
@@ -137,10 +141,11 @@ updateMouseMove model newMousePos =
                                                     existingStyle
                                                 )
                                             else
-                                                (Animation.interrupt
-                                                    [ Animation.to [ Animation.fill defaultColor ] ]
-                                                    existingStyle
-                                                )
+                                                --(Animation.interrupt
+                                                --    [ Animation.to [ Animation.fill defaultColor ] ]
+                                                --    existingStyle
+                                                --)
+                                                existingStyle
 
                                         newNodeStyles =
                                             Dict.map stylize gameState.nodeStyles
@@ -307,8 +312,23 @@ updateMouseDown model newMousePos =
                                                 [ Animation.to [ Animation.fill draggingColor ] ]
                                                 (getNodeStyle gameState.nodeStyles draggedId)
                                             )
+
+                                neighborizeNodeStyles neighboringId nodeStyles =
+                                    nodeStyles
+                                        |> Dict.insert
+                                            neighboringId
+                                            (Animation.interrupt
+                                                [ Animation.to [ Animation.fill neighboringColor ] ]
+                                                (getNodeStyle nodeStyles neighboringId)
+                                            )
+
+                                newNewNodeStyles =
+                                    List.foldr
+                                        (neighborizeNodeStyles)
+                                        newNodeStyles
+                                        neighboringNodeIds
                             in
-                                ( DraggingMouseState draggedId dragOffset neighboringNodeIds, newNodeStyles )
+                                ( DraggingMouseState draggedId dragOffset neighboringNodeIds, newNewNodeStyles )
 
                         Nothing ->
                             ( DefaultMouseState, gameState.nodeStyles )
@@ -336,8 +356,44 @@ updateMouseUp model mousePos =
                 newMouseState =
                     DefaultMouseState
 
+                -- fade away neighboring nodes
+                newNodeStyles =
+                    case gameState.mouseState of
+                        DefaultMouseState ->
+                            gameState.nodeStyles
+
+                        HoveringMouseState nodeId ->
+                            gameState.nodeStyles
+
+                        DraggingMouseState nodeId offset neighboringNodeIds ->
+                            let
+                                deneighborizeNodeStyles neighboringId nodeStyles =
+                                    nodeStyles
+                                        |> Dict.insert
+                                            neighboringId
+                                            (Animation.interrupt
+                                                --[ Animation.to [ Animation.fill Color.red ] ]
+                                                [ Animation.toWith
+                                                    (Animation.easing
+                                                        { duration = 1 * Time.second
+                                                        , ease = (\x -> x / 2)
+                                                        }
+                                                    )
+                                                    [ Animation.fill Color.red ]
+                                                ]
+                                                (getNodeStyle nodeStyles neighboringId)
+                                            )
+                            in
+                                List.foldr
+                                    (deneighborizeNodeStyles)
+                                    gameState.nodeStyles
+                                    neighboringNodeIds
+
                 newGameState =
-                    { gameState | mouseState = newMouseState }
+                    { gameState
+                        | mouseState = newMouseState
+                        , nodeStyles = newNodeStyles
+                    }
 
                 newModel =
                     { model | appState = ActiveState newGameState }
@@ -598,6 +654,28 @@ updateGetIntersectionResults model intersectionResultData =
                     { model | appState = ActiveState newGameState }
             in
                 ( newModel, Cmd.none )
+
+
+
+--transitionNodeStyle : NodeId -> Animation.State -> Dict.Dict NodeId Animation.State
+--transitionNodeStyle nodeId newState nodeStyles =
+--    Dict.insert
+--        nodeId
+--        (Animation.interrupt
+--            [ Animation.to newState ]
+--            (getNodeStyle nodeStyles nodeId)
+--        )
+
+
+transitionFill : NodeId -> Color.Color -> Dict.Dict NodeId Animation.State -> Dict.Dict NodeId Animation.State
+transitionFill nodeId newFillColor nodeStyles =
+    Dict.insert
+        nodeId
+        (Animation.interrupt
+            [ Animation.to [ Animation.fill newFillColor ] ]
+            (getNodeStyle nodeStyles nodeId)
+        )
+        nodeStyles
 
 
 
