@@ -8,7 +8,7 @@ import Json.Decode as Json
 import Mouse
 import String exposing (..)
 import Svg exposing (..)
-import Svg.Attributes exposing (..)
+import Svg.Attributes exposing (width, height, class, x1, y1, x2, y2, transform, rx, ry, cx, cy, fill, x, y)
 
 
 -- mine
@@ -49,12 +49,56 @@ view model =
                     (List.concat
                         [ drawEdges gameState.nodes gameState.edges
                         , drawNodes model.config gameState.mouseState (List.reverse (Dict.values gameState.nodes))
+                        , drawLasso gameState.mouseState
                         ]
                     )
             )
         , drawLevelSelect (model)
         , drawConfig (model.config)
         ]
+
+
+drawLasso : MouseState -> List (Html Msg)
+drawLasso mouseState =
+    case mouseState of
+        DefaultMouseState ->
+            []
+
+        HoveringMouseState _ ->
+            []
+
+        DraggingMouseState _ _ _ ->
+            []
+
+        LassoingMouseState startPos curPos nodeIds ->
+            let
+                minX =
+                    min startPos.x curPos.x
+
+                minY =
+                    min startPos.y curPos.y
+
+                maxX =
+                    max startPos.x curPos.x
+
+                maxY =
+                    max startPos.y curPos.y
+
+                lassoWidth =
+                    maxX - minX
+
+                lassoHeight =
+                    maxY - minY
+            in
+                [ rect
+                    [ x (px minX)
+                    , y (px minY)
+                    , width (px lassoWidth)
+                    , height (px lassoHeight)
+                    , class "lasso"
+                    ]
+                    []
+                ]
 
 
 drawWinModal : Model -> Html Msg
@@ -135,6 +179,12 @@ drawNode config mouseState node =
                         "is-dragging"
                     else if List.member node.id neighborIds then
                         "is-neighboring"
+                    else
+                        ""
+
+                LassoingMouseState startPos curPos nodeIds ->
+                    if List.member node.id nodeIds then
+                        "is-lassoing"
                     else
                         ""
     in

@@ -48,3 +48,12 @@ $edgeWidth: 3px;
   stroke: rgba($edgeFill, $edgeFillOpacity);
   stroke-width: $edgeWidth;
 }
+
+/* Lasso */
+
+.lasso {
+  fill: transparentize($hoveringNodeFill, 0.9);
+  stroke: $hoveringNodeFill;
+  stroke-width: $edgeWidth;
+  stroke-dasharray: 8 8;
+}

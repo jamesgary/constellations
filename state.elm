@@ -140,6 +140,14 @@ updateMouseMove model newMousePos =
                             in
                                 { gameState | nodes = newNodes }
 
+                        LassoingMouseState startPos curPos nodeIds ->
+                            let
+                                newMouseState =
+                                    -- add nodes here!
+                                    LassoingMouseState startPos newPos []
+                            in
+                                { gameState | mouseState = newMouseState }
+
                 newModel =
                     { model | appState = ActiveState newGameState }
             in
@@ -221,12 +229,10 @@ updateMouseDown model newMousePos =
                                 DraggingMouseState draggedId dragOffset neighboringNodeIds
 
                         Nothing ->
-                            DefaultMouseState
+                            LassoingMouseState newPos newPos []
 
                 newGameState =
-                    { gameState
-                        | mouseState = newMouseState
-                    }
+                    { gameState | mouseState = newMouseState }
 
                 newModel =
                     { model | appState = ActiveState newGameState }

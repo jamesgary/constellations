@@ -1,11 +1,13 @@
 /* level select */
 
+$configWidth: 0; //300px;
+
 .levelSelect-container {
   width: 120px;
   height: 100%;
   position: absolute;
   top: 0;
-  right: 300px; /* butt up against .config-container */
+  right: $configWidth; /* butt up against .config-container */
   overflow-y: scroll;
 }
 
@@ -39,7 +41,8 @@
 /* config */
 
 .config-container {
-  width: 300px;
+  display: none;
+  width: $configWidth;
   height: 100%;
   background: transparent;//#333;
   position: absolute;
