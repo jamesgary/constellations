@@ -4,6 +4,8 @@ $hoveringNodeFill: hsl(176, 52%, 52%);
 $draggingNodeFill: hsl(176, 42%, 47%);
 $neighborNodeFill: hsl(309, 89%, 70%);
 $lassoingNodeFill: hsl(100, 89%, 70%);
+$lassoedNodeFill: hsl(90, 89%, 70%);
+$lassoedNodeStroke: hsl(90, 100%, 90%);
 
 $edgeFillOpacity: 0.3;
 $edgeFill: hsl(51, 100%, 77%);
@@ -31,10 +33,29 @@ $edgeWidth: 3px;
   cursor: pointer;
 }
 
+@keyframes marchingAnts {
+  from {
+    stroke-dashoffset: 0;
+  }
+
+  to {
+    stroke-dashoffset: 16;
+  }
+}
+
 .node.is-hovering { fill: $hoveringNodeFill }
 .node.is-dragging { fill: $draggingNodeFill; }
 .node.is-neighboring { fill: $neighborNodeFill; }
 .node.is-lassoing { fill: $lassoingNodeFill; }
+.node.is-lassoed {
+  fill: $lassoedNodeFill;
+  stroke: $lassoedNodeStroke;
+  stroke-dasharray: 8 8;
+  animation-name: marchingAnts;
+  animation-duration: 1s;
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
+}
 
 // only want transitions to be slow when going from neighboring to default
 // everything else is fast

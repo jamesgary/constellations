@@ -150,6 +150,9 @@ updateMouseMove model newMousePos =
                             in
                                 { gameState | mouseState = newMouseState }
 
+                        LassoedMouseState nodeIds ->
+                            gameState
+
                 newModel =
                     { model | appState = ActiveState newGameState }
             in
@@ -277,7 +280,12 @@ updateMouseUp model mousePos =
         ActiveState gameState ->
             let
                 newMouseState =
-                    DefaultMouseState
+                    case gameState.mouseState of
+                        LassoingMouseState _ _ nodeIds ->
+                            LassoedMouseState nodeIds
+
+                        _ ->
+                            DefaultMouseState
 
                 newGameState =
                     { gameState | mouseState = newMouseState }

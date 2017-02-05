@@ -100,6 +100,9 @@ drawLasso mouseState =
                     []
                 ]
 
+        LassoedMouseState _ ->
+            []
+
 
 drawWinModal : Model -> Html Msg
 drawWinModal model =
@@ -185,6 +188,12 @@ drawNode config mouseState node =
                 LassoingMouseState startPos curPos nodeIds ->
                     if List.member node.id nodeIds then
                         "is-lassoing"
+                    else
+                        ""
+
+                LassoedMouseState nodeIds ->
+                    if List.member node.id nodeIds then
+                        "is-lassoed"
                     else
                         ""
     in
