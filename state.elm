@@ -140,11 +140,13 @@ updateMouseMove model newMousePos =
                             in
                                 { gameState | nodes = newNodes }
 
-                        LassoingMouseState startPos curPos nodeIds ->
+                        LassoingMouseState startPos _ nodeIds ->
                             let
+                                lassoedNodes =
+                                    List.filterMap (nodeInBoxFilterMap startPos newPos) (Dict.values gameState.nodes)
+
                                 newMouseState =
-                                    -- add nodes here!
-                                    LassoingMouseState startPos newPos []
+                                    LassoingMouseState startPos newPos lassoedNodes
                             in
                                 { gameState | mouseState = newMouseState }
 
@@ -152,6 +154,32 @@ updateMouseMove model newMousePos =
                     { model | appState = ActiveState newGameState }
             in
                 ( newModel, Cmd.none )
+
+
+nodeInBoxFilterMap pos1 pos2 node =
+    let
+        nodeX =
+            node.pos.x
+
+        nodeY =
+            node.pos.y
+
+        boxX1 =
+            min pos1.x pos2.x
+
+        boxX2 =
+            max pos1.x pos2.x
+
+        boxY1 =
+            min pos1.y pos2.y
+
+        boxY2 =
+            max pos1.y pos2.y
+    in
+        if ((boxX1 <= nodeX) && (nodeX <= boxX2) && (boxY1 <= nodeY) && (nodeY <= boxY2)) then
+            Just node.id
+        else
+            Nothing
 
 
 getTopTouchingNodeId : Config -> Pos -> Dict.Dict NodeId Node -> Maybe NodeId

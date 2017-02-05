@@ -3,6 +3,7 @@ $nodeFill: hsl(49, 89%, 76%);
 $hoveringNodeFill: hsl(176, 52%, 52%);
 $draggingNodeFill: hsl(176, 42%, 47%);
 $neighborNodeFill: hsl(309, 89%, 70%);
+$lassoingNodeFill: hsl(100, 89%, 70%);
 
 $edgeFillOpacity: 0.3;
 $edgeFill: hsl(51, 100%, 77%);
@@ -33,6 +34,7 @@ $edgeWidth: 3px;
 .node.is-hovering { fill: $hoveringNodeFill }
 .node.is-dragging { fill: $draggingNodeFill; }
 .node.is-neighboring { fill: $neighborNodeFill; }
+.node.is-lassoing { fill: $lassoingNodeFill; }
 
 // only want transitions to be slow when going from neighboring to default
 // everything else is fast
