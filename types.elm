@@ -16,6 +16,7 @@ type MouseState
     | DraggingMouseState NodeId Pos (List NodeId)
     | LassoingMouseState Pos Pos (List NodeId)
     | LassoedMouseState (List NodeId)
+    | DraggingLassoedMouseState (List ( NodeId, Pos ))
 
 
 type alias Model =

@@ -61,15 +61,6 @@ view model =
 drawLasso : MouseState -> List (Html Msg)
 drawLasso mouseState =
     case mouseState of
-        DefaultMouseState ->
-            []
-
-        HoveringMouseState _ ->
-            []
-
-        DraggingMouseState _ _ _ ->
-            []
-
         LassoingMouseState startPos curPos nodeIds ->
             let
                 minX =
@@ -100,7 +91,7 @@ drawLasso mouseState =
                     []
                 ]
 
-        LassoedMouseState _ ->
+        _ ->
             []
 
 
@@ -194,6 +185,12 @@ drawNode config mouseState node =
                 LassoedMouseState nodeIds ->
                     if List.member node.id nodeIds then
                         "is-lassoed"
+                    else
+                        ""
+
+                DraggingLassoedMouseState offsetNodeList ->
+                    if List.member node.id (List.map Tuple.first offsetNodeList) then
+                        "is-lassoing"
                     else
                         ""
     in
