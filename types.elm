@@ -7,6 +7,8 @@ import Time
 
 type AppState
     = StartState
+    | LoadingCampaignState
+    | CampaignState GameState
     | LoadingState
     | ActiveState GameState
 
@@ -106,6 +108,7 @@ type Msg
       --| ChangeDifficulty String
     | ChangeConfigRadius String
     | GetIntersectionResults IntersectionResultData
+    | StartCampaign
 
 
 

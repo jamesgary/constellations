@@ -75,6 +75,12 @@ update msg model =
         GetIntersectionResults intersectionResultData ->
             updateGetIntersectionResults model intersectionResultData
 
+        StartCampaign ->
+            ( { model | appState = LoadingCampaignState }
+            , generateEdges 1
+              -- TODO load save
+            )
+
 
 updateMouseMove : Model -> Mouse.Position -> ( Model, Cmd Msg )
 updateMouseMove model newMousePos =
@@ -410,8 +416,16 @@ updateGeneratedEdges model edgeData =
         newGameState =
             edgeDataToGameData model.config edgeData
 
+        newAppState =
+            case model.appState of
+                LoadingCampaignState ->
+                    CampaignState newGameState
+
+                _ ->
+                    ActiveState newGameState
+
         newModel =
-            { model | appState = ActiveState newGameState }
+            { model | appState = newAppState }
     in
         ( newModel, checkForIntersections ( Dict.values newGameState.nodes, newGameState.edges ) )
 

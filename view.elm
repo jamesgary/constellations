@@ -39,8 +39,19 @@ view model =
                     [ h1 [ class "title" ] [ text "Constellations" ]
                     , h2
                         [ class "author" ]
-                        [ text "By ", Html.a [ class "twitter", href "https://twitter.com/james_gary", target "_blank" ] [ text "@james_gary" ] ]
-                    , Html.a [ class "btn start-btn campaign-btn" ] [ text "Play Campaign" ]
+                        [ text "By "
+                        , Html.a
+                            [ class "twitter"
+                            , href "https://twitter.com/james_gary"
+                            , target "_blank"
+                            ]
+                            [ text "@james_gary" ]
+                        ]
+                    , Html.a
+                        [ class "btn start-btn campaign-btn"
+                        , Html.Events.onClick (StartCampaign)
+                        ]
+                        [ text "Play Campaign" ]
                     , br [] []
                     , Html.a
                         [ class "btn start-btn sandbox-btn"
@@ -51,6 +62,9 @@ view model =
                 ]
 
             LoadingState ->
+                []
+
+            LoadingCampaignState ->
                 []
 
             ActiveState gameState ->
@@ -70,6 +84,23 @@ view model =
                     )
                 , drawLevelSelect (gameState.difficulty)
                 , drawConfig (model.config)
+                ]
+
+            CampaignState gameState ->
+                [ drawWinModal (gameState)
+                , svg
+                    [ width "100%"
+                    , height "100%"
+                    , onMouseMove
+                    , onMouseUp
+                    , onMouseDown
+                    ]
+                    (List.concat
+                        [ drawEdges gameState.nodes gameState.edges
+                        , drawNodes model.config gameState.mouseState (List.reverse (Dict.values gameState.nodes))
+                        , drawLasso gameState.mouseState
+                        ]
+                    )
                 ]
         )
 
