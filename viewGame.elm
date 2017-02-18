@@ -28,9 +28,9 @@ angleConvert =
     180 / pi
 
 
-drawGameState : Bool -> Config -> GameState -> List (Html Msg)
-drawGameState isSandbox config gameState =
-    if isSandbox then
+drawGameState : Config -> GameState -> List (Html Msg)
+drawGameState config gameState =
+    if gameState.isSandbox then
         [ drawWinModal (gameState)
         , svg
             [ width "100%"

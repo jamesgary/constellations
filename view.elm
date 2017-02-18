@@ -62,9 +62,6 @@ view model =
             LoadingCampaignState ->
                 []
 
-            SandboxState gameState ->
-                ViewGame.drawGameState True model.config gameState
-
-            CampaignState gameState ->
-                ViewGame.drawGameState False model.config gameState
+            ActiveState gameState ->
+                ViewGame.drawGameState model.config gameState
         )

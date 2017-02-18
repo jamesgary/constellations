@@ -8,9 +8,8 @@ import Time
 type AppState
     = StartState
     | LoadingCampaignState
-    | CampaignState GameState
     | LoadingState
-    | SandboxState GameState
+    | ActiveState GameState
 
 
 type MouseState
@@ -39,6 +38,7 @@ type alias GameState =
     , difficulty : Int
     , mouseState : MouseState
     , hasWon : Bool
+    , isSandbox : Bool
     }
 
 
