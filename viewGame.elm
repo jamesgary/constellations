@@ -31,39 +31,34 @@ angleConvert =
 drawGameState : Config -> GameState -> List (Html Msg)
 drawGameState config gameState =
     if gameState.isSandbox then
-        [ drawWinModal (gameState)
-        , svg
-            [ width "100%"
-            , height "100%"
-            , onMouseMove
-            , onMouseUp
-            , onMouseDown
-            ]
-            (List.concat
-                [ drawEdges gameState.nodes gameState.edges
-                , drawNodes config gameState.mouseState (List.reverse (Dict.values gameState.nodes))
-                , drawLasso gameState.mouseState
-                ]
-            )
-        , drawLevelSelect (gameState.difficulty)
-        , drawConfig (config)
+        [ drawWinModal gameState
+        , drawConstellation config gameState
+        , drawLevelSelect gameState.difficulty
+        , drawConfig config
         ]
     else
-        [ drawWinModal (gameState)
-        , svg
-            [ width "100%"
-            , height "100%"
-            , onMouseMove
-            , onMouseUp
-            , onMouseDown
-            ]
-            (List.concat
-                [ drawEdges gameState.nodes gameState.edges
-                , drawNodes config gameState.mouseState (List.reverse (Dict.values gameState.nodes))
-                , drawLasso gameState.mouseState
-                ]
-            )
+        [ drawWinModal gameState
+        , drawConstellation config gameState
         ]
+
+
+drawConstellation : Config -> GameState -> Html Msg
+drawConstellation config gameState =
+    svg
+        [ width "100%"
+        , height "100%"
+        , onMouseMove
+        , onMouseUp
+        , onMouseDown
+        ]
+        (List.concat
+            [ drawEdges gameState.nodes gameState.edges
+            , drawNodes config
+                gameState.mouseState
+                (List.reverse (Dict.values gameState.nodes))
+            , drawLasso gameState.mouseState
+            ]
+        )
 
 
 drawLasso : MouseState -> List (Html Msg)
