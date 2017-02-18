@@ -10,7 +10,7 @@ type AppState
     | LoadingCampaignState
     | CampaignState GameState
     | LoadingState
-    | ActiveState GameState
+    | SandboxState GameState
 
 
 type MouseState

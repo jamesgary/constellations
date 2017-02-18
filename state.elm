@@ -85,7 +85,7 @@ update msg model =
 updateMouseMove : Model -> Mouse.Position -> ( Model, Cmd Msg )
 updateMouseMove model newMousePos =
     case model.appState of
-        ActiveState gameState ->
+        SandboxState gameState ->
             let
                 newPos =
                     mousePosToPos newMousePos
@@ -168,7 +168,7 @@ updateMouseMove model newMousePos =
                                 { gameState | nodes = newNodes }
 
                 newModel =
-                    { model | appState = ActiveState newGameState }
+                    { model | appState = SandboxState newGameState }
             in
                 ( newModel, Cmd.none )
 
@@ -259,7 +259,7 @@ getTopTouchingNodeId_ config mousePos nodes foundId =
 updateMouseDown : Model -> Mouse.Position -> ( Model, Cmd Msg )
 updateMouseDown model newMousePos =
     case model.appState of
-        ActiveState gameState ->
+        SandboxState gameState ->
             let
                 newPos =
                     mousePosToPos newMousePos
@@ -335,7 +335,7 @@ updateMouseDown model newMousePos =
                     { gameState | mouseState = newMouseState }
 
                 newModel =
-                    { model | appState = ActiveState newGameState }
+                    { model | appState = SandboxState newGameState }
             in
                 ( newModel, Cmd.none )
 
@@ -358,7 +358,7 @@ nodeIdToNodeOffset mousePos nodes nodeId =
 updateMouseUp : Model -> Mouse.Position -> ( Model, Cmd Msg )
 updateMouseUp model mousePos =
     case model.appState of
-        ActiveState gameState ->
+        SandboxState gameState ->
             let
                 newMouseState =
                     case gameState.mouseState of
@@ -372,7 +372,7 @@ updateMouseUp model mousePos =
                     { gameState | mouseState = newMouseState }
 
                 newModel =
-                    { model | appState = ActiveState newGameState }
+                    { model | appState = SandboxState newGameState }
 
                 -- apply any new hover effects
                 ( newNewModel, _ ) =
@@ -387,13 +387,13 @@ updateMouseUp model mousePos =
 updateAnimation : Model -> Time.Time -> ( Model, Cmd Msg )
 updateAnimation model time =
     case model.appState of
-        ActiveState gameState ->
+        SandboxState gameState ->
             let
                 newGameState =
                     animate time gameState
 
                 newModel =
-                    { model | appState = ActiveState newGameState }
+                    { model | appState = SandboxState newGameState }
             in
                 ( newModel, Cmd.none )
 
@@ -422,7 +422,7 @@ updateGeneratedEdges model edgeData =
                     CampaignState newGameState
 
                 _ ->
-                    ActiveState newGameState
+                    SandboxState newGameState
 
         newModel =
             { model | appState = newAppState }
@@ -607,7 +607,7 @@ mousePosToPos mousePos =
 updateGetIntersectionResults : Model -> IntersectionResultData -> ( Model, Cmd Msg )
 updateGetIntersectionResults model intersectionResultData =
     case model.appState of
-        ActiveState gameState ->
+        SandboxState gameState ->
             let
                 isIntersecting =
                     Tuple.first intersectionResultData
@@ -622,7 +622,7 @@ updateGetIntersectionResults model intersectionResultData =
                     }
 
                 newModel =
-                    { model | appState = ActiveState newGameState }
+                    { model | appState = SandboxState newGameState }
             in
                 ( newModel, Cmd.none )
 
