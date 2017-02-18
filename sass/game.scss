@@ -1,4 +1,3 @@
-$background: hsl(213, 55%, 7%);
 $nodeFill: hsl(49, 89%, 76%);
 $hoveringNodeFill: hsl(176, 52%, 52%);
 $draggingNodeFill: hsl(176, 42%, 47%);
@@ -14,14 +13,6 @@ $edgeFill: hsl(51, 100%, 77%);
 $nodeStroke: mix($edgeFill, $background, (100 * $edgeFillOpacity));
 
 $edgeWidth: 3px;
-
-/* Container */
-
-.appState-container {
-  background: $background;
-  width: 100%;
-  height: 100%;
-}
 
 /* Nodes */
 

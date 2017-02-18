@@ -6,7 +6,8 @@ import Time
 
 
 type AppState
-    = LoadingState
+    = StartState
+    | LoadingState
     | ActiveState GameState
 
 

@@ -1,5 +1,8 @@
+$background: hsl(213, 55%, 7%);
+
 @import 'game';
 @import 'menus';
+@import 'start';
 
 * {
   -webkit-touch-callout: none; /* iOS Safari */
@@ -15,6 +18,12 @@ html, body {
   height: 100%;
   margin: 0;
   padding: 0;
-  overflow: hidden;
+  overflow: scroll;
+  font-family: 'Comfortaa', cursive;
+  background: $background;
 }
 
+.appState-container {
+  width: 100%;
+  height: 100%;
+}

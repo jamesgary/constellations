@@ -23,12 +23,13 @@ init : Config -> ( Model, Cmd Msg )
 init config =
     let
         appState =
-            LoadingState
+            StartState
     in
         ( { appState = appState
           , config = config
           }
-        , generateEdges baseDifficulty
+          --, generateEdges baseDifficulty
+        , Cmd.none
         )
 
 
@@ -78,9 +79,6 @@ update msg model =
 updateMouseMove : Model -> Mouse.Position -> ( Model, Cmd Msg )
 updateMouseMove model newMousePos =
     case model.appState of
-        LoadingState ->
-            ( model, Cmd.none )
-
         ActiveState gameState ->
             let
                 newPos =
@@ -168,6 +166,9 @@ updateMouseMove model newMousePos =
             in
                 ( newModel, Cmd.none )
 
+        _ ->
+            ( model, Cmd.none )
+
 
 moveNodeOffset : Pos -> ( NodeId, Pos ) -> Dict.Dict NodeId Node -> Dict.Dict NodeId Node
 moveNodeOffset mousePos ( nodeId, offset ) nodes =
@@ -252,9 +253,6 @@ getTopTouchingNodeId_ config mousePos nodes foundId =
 updateMouseDown : Model -> Mouse.Position -> ( Model, Cmd Msg )
 updateMouseDown model newMousePos =
     case model.appState of
-        LoadingState ->
-            ( model, Cmd.none )
-
         ActiveState gameState ->
             let
                 newPos =
@@ -335,6 +333,9 @@ updateMouseDown model newMousePos =
             in
                 ( newModel, Cmd.none )
 
+        _ ->
+            ( model, Cmd.none )
+
 
 nodeIdToNodeOffset : Pos -> Dict.Dict NodeId Node -> NodeId -> ( NodeId, Pos )
 nodeIdToNodeOffset mousePos nodes nodeId =
@@ -351,9 +352,6 @@ nodeIdToNodeOffset mousePos nodes nodeId =
 updateMouseUp : Model -> Mouse.Position -> ( Model, Cmd Msg )
 updateMouseUp model mousePos =
     case model.appState of
-        LoadingState ->
-            ( model, Cmd.none )
-
         ActiveState gameState ->
             let
                 newMouseState =
@@ -376,13 +374,13 @@ updateMouseUp model mousePos =
             in
                 ( newNewModel, checkForIntersections ( Dict.values newGameState.nodes, newGameState.edges ) )
 
+        _ ->
+            ( model, Cmd.none )
+
 
 updateAnimation : Model -> Time.Time -> ( Model, Cmd Msg )
 updateAnimation model time =
     case model.appState of
-        LoadingState ->
-            ( model, Cmd.none )
-
         ActiveState gameState ->
             let
                 newGameState =
@@ -392,6 +390,9 @@ updateAnimation model time =
                     { model | appState = ActiveState newGameState }
             in
                 ( newModel, Cmd.none )
+
+        _ ->
+            ( model, Cmd.none )
 
 
 updateGenerateEdges : Model -> Int -> ( Model, Cmd Msg )
@@ -592,9 +593,6 @@ mousePosToPos mousePos =
 updateGetIntersectionResults : Model -> IntersectionResultData -> ( Model, Cmd Msg )
 updateGetIntersectionResults model intersectionResultData =
     case model.appState of
-        LoadingState ->
-            ( model, Cmd.none )
-
         ActiveState gameState ->
             let
                 isIntersecting =
@@ -613,6 +611,9 @@ updateGetIntersectionResults model intersectionResultData =
                     { model | appState = ActiveState newGameState }
             in
                 ( newModel, Cmd.none )
+
+        _ ->
+            ( model, Cmd.none )
 
 
 

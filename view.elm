@@ -1,8 +1,8 @@
 module View exposing (view)
 
 import Dict exposing (Dict)
-import Html exposing (Html, div, span)
-import Html.Attributes
+import Html exposing (Html, div, span, h1, h2, main_, br)
+import Html.Attributes exposing (href, target)
 import Html.Events exposing (on)
 import Json.Decode as Json
 import Mouse
@@ -33,29 +33,45 @@ view model =
     div
         [ class "appState-container"
         ]
-        [ drawWinModal (model)
-        , svg
-            [ width "100%"
-            , height "100%"
-            , onMouseMove
-            , onMouseUp
-            , onMouseDown
-            ]
-            (case model.appState of
-                LoadingState ->
-                    []
+        (case model.appState of
+            StartState ->
+                [ main_ [ Html.Attributes.id "start" ]
+                    [ h1 [ class "title" ] [ text "Constellations" ]
+                    , h2
+                        [ class "author" ]
+                        [ text "By ", Html.a [ class "twitter", href "https://twitter.com/james_gary", target "_blank" ] [ text "@james_gary" ] ]
+                    , Html.a [ class "btn start-btn campaign-btn" ] [ text "Play Campaign" ]
+                    , br [] []
+                    , Html.a
+                        [ class "btn start-btn sandbox-btn"
+                        , Html.Events.onClick (GenerateEdges 1)
+                        ]
+                        [ text "Sandbox" ]
+                    ]
+                ]
 
-                ActiveState gameState ->
+            LoadingState ->
+                []
+
+            ActiveState gameState ->
+                [ drawWinModal (gameState)
+                , svg
+                    [ width "100%"
+                    , height "100%"
+                    , onMouseMove
+                    , onMouseUp
+                    , onMouseDown
+                    ]
                     (List.concat
                         [ drawEdges gameState.nodes gameState.edges
                         , drawNodes model.config gameState.mouseState (List.reverse (Dict.values gameState.nodes))
                         , drawLasso gameState.mouseState
                         ]
                     )
-            )
-        , drawLevelSelect (model)
-        , drawConfig (model.config)
-        ]
+                , drawLevelSelect (gameState.difficulty)
+                , drawConfig (model.config)
+                ]
+        )
 
 
 drawLasso : MouseState -> List (Html Msg)
@@ -95,40 +111,35 @@ drawLasso mouseState =
             []
 
 
-drawWinModal : Model -> Html Msg
-drawWinModal model =
-    case model.appState of
-        LoadingState ->
-            div [] []
+drawWinModal : GameState -> Html Msg
+drawWinModal gameState =
+    let
+        isHidden =
+            if gameState.hasWon then
+                False
+            else
+                True
 
-        ActiveState gameState ->
-            let
-                isHidden =
-                    if gameState.hasWon then
-                        False
-                    else
-                        True
+        className =
+            if isHidden then
+                "win-modal hidden"
+            else
+                "win-modal"
 
-                className =
-                    if isHidden then
-                        "win-modal hidden"
-                    else
-                        "win-modal"
-
-                nextDifficulty =
-                    gameState.difficulty + 1
-            in
-                div
-                    [ class className ]
-                    [ div
-                        [ class "win-modal-text" ]
-                        [ text "You did it!" ]
-                    , div
-                        [ class "win-modal-button"
-                        , Html.Events.onClick (GenerateEdges nextDifficulty)
-                        ]
-                        [ text "Next Level" ]
-                    ]
+        nextDifficulty =
+            gameState.difficulty + 1
+    in
+        div
+            [ class className ]
+            [ div
+                [ class "win-modal-text" ]
+                [ text "You did it!" ]
+            , div
+                [ class "win-modal-button"
+                , Html.Events.onClick (GenerateEdges nextDifficulty)
+                ]
+                [ text "Next Level" ]
+            ]
 
 
 drawNodes : Config -> MouseState -> List Node -> List (Html Msg)
@@ -237,20 +248,11 @@ drawEdge nodes edge =
         ]
 
 
-drawLevelSelect : Model -> Html Msg
-drawLevelSelect model =
-    let
-        currentDifficulty =
-            case model.appState of
-                LoadingState ->
-                    -1
-
-                ActiveState gameState ->
-                    gameState.difficulty
-    in
-        div
-            [ class "levelSelect-container" ]
-            (List.map (drawLevelSelector currentDifficulty) (List.range 1 50))
+drawLevelSelect : Int -> Html Msg
+drawLevelSelect currentDifficulty =
+    div
+        [ class "levelSelect-container" ]
+        (List.map (drawLevelSelector currentDifficulty) (List.range 1 50))
 
 
 drawLevelSelector : Int -> Int -> Html Msg
