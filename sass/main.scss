@@ -18,12 +18,53 @@ html, body {
   height: 100%;
   margin: 0;
   padding: 0;
-  overflow: scroll;
+  overflow: hidden;
   font-family: 'Comfortaa', cursive;
-  background: $background;
+  background: black;
 }
 
 .appState-container {
-  width: 100%;
+  background: $background;
+  border: 2px solid lighten($background, 20%);
+
+  // maintain a 16:9 ratio, 90% the max screen size
+  // From http://stackoverflow.com/a/20593342
+  $max: 0.9;
+  width: 100vw * $max;
+  height: 56.25vw * $max;
+  max-height: 100vh * $max;
+  max-width: 177.78vh * $max;
+
+  margin: auto;
+  position: absolute;
+  top:0;bottom:0;
+  left:0;right:0;
+
+  position: absolute;
+  margin: auto;
+  top:0;bottom:0; /* vertical center */
+  left:0;right:0; /* horizontal center */
+}
+
+.constellation {
+}
+
+.constellation-glass.is-hovering {
+  cursor: pointer;
+}
+
+.constellation-glass.is-dragging {
+  cursor: pointer;
+}
+
+.constellation-glass.is-lassoing {
+  cursor: crosshair;
+}
+
+.constellation-glass {
   height: 100%;
+  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
 }

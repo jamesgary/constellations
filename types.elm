@@ -57,9 +57,8 @@ type alias Edge =
     }
 
 
-type alias Mouse =
-    { pos : Pos
-    }
+type alias MousePos =
+    ( Float, Float )
 
 
 type alias Pos =
@@ -100,9 +99,9 @@ type Msg
     = GenerateEdges Int
       -- numNodes
     | GeneratedEdges EdgeData
-    | MouseDown Mouse.Position
-    | MouseMove Mouse.Position
-    | MouseUp Mouse.Position
+    | MouseDown MousePos
+    | MouseMove MousePos
+    | MouseUp MousePos
     | AnimationMsg Time.Time
       -- config stuff
       --| ChangeDifficulty String

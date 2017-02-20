@@ -71,6 +71,7 @@ $configWidth: 0; //300px;
   border-radius: 5px;
   text-align: center;
   transition: top 1s cubic-bezier(0.87,-0.41, 0.19, 1.44);
+  z-index: 9999;
 
   /* center the modal */
   position: absolute;

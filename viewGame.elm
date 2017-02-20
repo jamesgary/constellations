@@ -4,11 +4,12 @@ import Dict exposing (Dict)
 import Html exposing (Html, div, span, h1, h2, main_, br)
 import Html.Attributes exposing (href, target)
 import Html.Events exposing (on)
-import Json.Decode as Json
+import Json.Decode as Decode
 import Mouse
 import String exposing (..)
 import Svg exposing (..)
-import Svg.Attributes exposing (width, height, class, x1, y1, x2, y2, transform, rx, ry, cx, cy, fill, x, y)
+import Svg.Events
+import Svg.Attributes exposing (width, height, class, x1, y1, x2, y2, transform, rx, ry, cx, cy, fill, x, y, viewBox)
 
 
 -- mine
@@ -44,21 +45,45 @@ drawGameState config gameState =
 
 drawConstellation : Config -> GameState -> Html Msg
 drawConstellation config gameState =
-    svg
-        [ width "100%"
-        , height "100%"
-        , onMouseMove
-        , onMouseUp
-        , onMouseDown
-        ]
-        (List.concat
-            [ drawEdges gameState.nodes gameState.edges
-            , drawNodes config
-                gameState.mouseState
-                (List.reverse (Dict.values gameState.nodes))
-            , drawLasso gameState.mouseState
+    let
+        modClass =
+            case gameState.mouseState of
+                HoveringMouseState _ ->
+                    "is-hovering"
+
+                DraggingMouseState _ _ _ ->
+                    "is-dragging"
+
+                LassoingMouseState _ _ _ ->
+                    "is-lassoing"
+
+                _ ->
+                    ""
+
+        constellationGlassClass =
+            "constellation-glass " ++ modClass
+    in
+        div [ class "constellation-container" ]
+            [ svg
+                [ class "constellation"
+                , viewBox "0 0 1600 900"
+                ]
+                (List.concat
+                    [ drawEdges gameState.nodes gameState.edges
+                    , drawNodes config
+                        gameState.mouseState
+                        (List.reverse (Dict.values gameState.nodes))
+                    , drawLasso gameState.mouseState
+                    ]
+                )
+            , div
+                [ class constellationGlassClass
+                , onMouseMove
+                , onMouseUp
+                , onMouseDown
+                ]
+                []
             ]
-        )
 
 
 drawLasso : MouseState -> List (Html Msg)
@@ -327,14 +352,27 @@ px number =
 
 onMouseMove : Attribute Msg
 onMouseMove =
-    on "mousemove" (Json.map MouseMove Mouse.position)
+    on "mousemove" (Decode.map MouseMove decodeClickLocation)
 
 
 onMouseDown : Attribute Msg
 onMouseDown =
-    on "mousedown" (Json.map MouseDown Mouse.position)
+    on "mousedown" (Decode.map MouseDown decodeClickLocation)
 
 
 onMouseUp : Attribute Msg
 onMouseUp =
-    on "mouseup" (Json.map MouseUp Mouse.position)
+    on "mouseup" (Decode.map MouseUp decodeClickLocation)
+
+
+decodeClickLocation : Decode.Decoder ( Float, Float )
+decodeClickLocation =
+    Decode.map2 (,)
+        (Decode.map2 (/)
+            (Decode.at [ "offsetX" ] Decode.float)
+            (Decode.at [ "target", "clientWidth" ] Decode.float)
+        )
+        (Decode.map2 (/)
+            (Decode.at [ "offsetY" ] Decode.float)
+            (Decode.at [ "target", "clientHeight" ] Decode.float)
+        )

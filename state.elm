@@ -82,7 +82,7 @@ update msg model =
             )
 
 
-updateMouseMove : Model -> Mouse.Position -> ( Model, Cmd Msg )
+updateMouseMove : Model -> MousePos -> ( Model, Cmd Msg )
 updateMouseMove model newMousePos =
     case model.appState of
         ActiveState gameState ->
@@ -159,9 +159,6 @@ updateMouseMove model newMousePos =
 
                         DraggingLassoedMouseState nodeOffsetList ->
                             let
-                                _ =
-                                    Debug.log "hi" "hello"
-
                                 newNodes =
                                     List.foldr (moveNodeOffset newPos) gameState.nodes nodeOffsetList
                             in
@@ -256,7 +253,7 @@ getTopTouchingNodeId_ config mousePos nodes foundId =
                     Nothing
 
 
-updateMouseDown : Model -> Mouse.Position -> ( Model, Cmd Msg )
+updateMouseDown : Model -> MousePos -> ( Model, Cmd Msg )
 updateMouseDown model newMousePos =
     case model.appState of
         ActiveState gameState ->
@@ -355,7 +352,7 @@ nodeIdToNodeOffset mousePos nodes nodeId =
         ( nodeId, offset )
 
 
-updateMouseUp : Model -> Mouse.Position -> ( Model, Cmd Msg )
+updateMouseUp : Model -> MousePos -> ( Model, Cmd Msg )
 updateMouseUp model mousePos =
     case model.appState of
         ActiveState gameState ->
@@ -493,13 +490,13 @@ makeNode : Config -> Int -> NodeId -> ( NodeId, Node )
 makeNode config maxNodes nodeId =
     let
         graphCenterX =
-            500
+            800
 
         graphCenterY =
-            250
+            450
 
         graphRadius =
-            200
+            300
 
         rotation =
             toFloat nodeId / (toFloat maxNodes)
@@ -614,9 +611,9 @@ calculateVel node newPos timeElapsed =
         Vel xDiff yDiff r a
 
 
-mousePosToPos : Mouse.Position -> Pos
+mousePosToPos : MousePos -> Pos
 mousePosToPos mousePos =
-    Pos (toFloat mousePos.x) (toFloat mousePos.y)
+    Pos (1600 * (Tuple.first mousePos)) (900 * (Tuple.second mousePos))
 
 
 updateGetIntersectionResults : Model -> IntersectionResultData -> ( Model, Cmd Msg )
