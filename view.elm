@@ -1,6 +1,6 @@
 module View exposing (view)
 
-import Html exposing (Html, div, span, h1, h2, main_, br, text)
+import Html exposing (Html, div, span, h1, h2, main_, br, text, button)
 import Html.Attributes exposing (href, target, class)
 import Html.Events
 
@@ -42,13 +42,13 @@ view model =
                             ]
                             [ text "@james_gary" ]
                         ]
-                    , Html.a
+                    , button
                         [ class "btn start-btn campaign-btn"
                         , Html.Events.onClick (StartCampaign)
                         ]
                         [ text "Play Campaign" ]
                     , br [] []
-                    , Html.a
+                    , button
                         [ class "btn start-btn sandbox-btn"
                         , Html.Events.onClick (GenerateEdges 1)
                         ]

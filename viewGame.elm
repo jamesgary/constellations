@@ -1,7 +1,7 @@
 module ViewGame exposing (drawGameState)
 
 import Dict exposing (Dict)
-import Html exposing (Html, div, span, h1, h2, main_, br)
+import Html exposing (Html, div, span, h1, h2, main_, br, p, button)
 import Html.Attributes exposing (href, target)
 import Html.Events exposing (on)
 import Json.Decode as Decode
@@ -39,7 +39,17 @@ drawGameState config gameState =
         ]
     else
         [ drawWinModal gameState
+        , drawNarration gameState.difficulty
         , drawConstellation config gameState
+        ]
+
+
+drawNarration : Int -> Html Msg
+drawNarration difficulty =
+    div
+        [ class "narration" ]
+        [ p [] [ text (difficultyToNarration difficulty) ]
+        , button [ class "btn" ] [ text "OK" ]
         ]
 
 
@@ -376,3 +386,13 @@ decodeClickLocation =
             (Decode.at [ "offsetY" ] Decode.float)
             (Decode.at [ "target", "clientHeight" ] Decode.float)
         )
+
+
+difficultyToNarration : Int -> String
+difficultyToNarration difficulty =
+    case difficulty of
+        1 ->
+            "Untangle the stars so that no edges overlap."
+
+        _ ->
+            "HERP"

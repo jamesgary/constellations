@@ -1,9 +1,5 @@
 $background: hsl(213, 55%, 7%);
 
-@import 'game';
-@import 'menus';
-@import 'start';
-
 * {
   -webkit-touch-callout: none; /* iOS Safari */
   -webkit-user-select: none; /* Chrome/Safari/Opera */
@@ -12,6 +8,16 @@ $background: hsl(213, 55%, 7%);
   -ms-user-select: none; /* Internet Explorer/Edge */
   user-select: none; /* Non-prefixed version, currently
   not supported by any browser */
+}
+
+@mixin centered {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  top: 50%;
+  left: 50%;
+  //margin: auto;
+  //top:0;bottom:0; /* vertical center */
+  //left:0;right:0; /* horizontal center */
 }
 
 html, body {
@@ -23,7 +29,15 @@ html, body {
   background: black;
 }
 
+button {
+  font-family: 'Comfortaa', cursive;
+  &:focus {
+    outline: 0;
+  }
+}
+
 .appState-container {
+  @include centered;
   background: $background;
   border: 2px solid lighten($background, 20%);
 
@@ -34,19 +48,11 @@ html, body {
   height: 56.25vw * $max;
   max-height: 100vh * $max;
   max-width: 177.78vh * $max;
-
-  margin: auto;
-  position: absolute;
-  top:0;bottom:0;
-  left:0;right:0;
-
-  position: absolute;
-  margin: auto;
-  top:0;bottom:0; /* vertical center */
-  left:0;right:0; /* horizontal center */
+  z-index: 100;
 }
 
 .constellation {
+  z-index: 1;
 }
 
 .constellation-glass.is-hovering {
@@ -67,4 +73,10 @@ html, body {
   position: absolute;
   top: 0;
   left: 0;
+  z-index: 50;
 }
+
+@import 'game';
+@import 'menus';
+@import 'narration';
+@import 'start';
