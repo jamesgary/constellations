@@ -39,6 +39,7 @@ type alias GameState =
     , mouseState : MouseState
     , hasWon : Bool
     , isSandbox : Bool
+    , isNarrationVisible : Bool
     }
 
 
@@ -108,6 +109,7 @@ type Msg
     | ChangeConfigRadius String
     | GetIntersectionResults IntersectionResultData
     | StartCampaign
+    | CloseNarration
 
 
 

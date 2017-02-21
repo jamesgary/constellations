@@ -81,6 +81,21 @@ update msg model =
               -- TODO load save
             )
 
+        CloseNarration ->
+            case model.appState of
+                ActiveState gameState ->
+                    let
+                        newGameState =
+                            { gameState | isNarrationVisible = False }
+
+                        newModel =
+                            { model | appState = ActiveState newGameState }
+                    in
+                        ( newModel, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
 
 updateMouseMove : Model -> MousePos -> ( Model, Cmd Msg )
 updateMouseMove model newMousePos =
@@ -480,6 +495,7 @@ edgeDataToGameData config edgeData =
              , mouseState = DefaultMouseState
              , hasWon = False
              , isSandbox = True
+             , isNarrationVisible = True
              }
             )
     in

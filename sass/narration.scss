@@ -13,6 +13,8 @@
   padding: 16px;
   width: 240px;
   text-align: center;
+  opacity: 1;
+  transition: opacity 0.2s, top 1s;
 
   p {
     color: white;
@@ -30,7 +32,6 @@
     color: white;
     border-radius: 8px;
 
-    ///background-image: linear-gradient(to right, #f78ca0 0%, #f9748f 19%, #fd868c 60%, #fe9a8b 100%);
     background-image: linear-gradient(to left, #f78ca0 0%, #f9748f 19%, #fd868c 60%, #fe9a8b 100%);
     display: inline-block;
 
@@ -43,5 +44,10 @@
     &:active {
       background: #f9748f;
     }
+  }
+
+  &.is-hidden {
+    top: 200%;
+    opacity: 0;
   }
 }

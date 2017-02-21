@@ -39,18 +39,25 @@ drawGameState config gameState =
         ]
     else
         [ drawWinModal gameState
-        , drawNarration gameState.difficulty
+        , drawNarration gameState.isNarrationVisible gameState.difficulty
         , drawConstellation config gameState
         ]
 
 
-drawNarration : Int -> Html Msg
-drawNarration difficulty =
-    div
-        [ class "narration" ]
-        [ p [] [ text (difficultyToNarration difficulty) ]
-        , button [ class "btn" ] [ text "OK" ]
-        ]
+drawNarration : Bool -> Int -> Html Msg
+drawNarration isVisible difficulty =
+    let
+        className =
+            if isVisible then
+                "narration"
+            else
+                "narration is-hidden"
+    in
+        div
+            [ class className ]
+            [ p [] [ text (difficultyToNarration difficulty) ]
+            , button [ class "btn", Html.Events.onClick CloseNarration ] [ text "OK" ]
+            ]
 
 
 drawConstellation : Config -> GameState -> Html Msg
@@ -394,5 +401,17 @@ difficultyToNarration difficulty =
         1 ->
             "Untangle the stars so that no edges overlap."
 
+        2 ->
+            "Great job! Can you solve this one, too?"
+
+        3 ->
+            "Huzzah! There's three more constellations to untangle. Can you solve them all?"
+
+        4 ->
+            "You're over halfway there! Take my hand, we'll make it, I swear."
+
+        5 ->
+            "It's the final level! Get ready!"
+
         _ ->
-            "HERP"
+            "I AM ERROR"
