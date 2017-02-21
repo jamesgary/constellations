@@ -7,7 +7,7 @@ $configWidth: 0; //300px;
   height: 100%;
   position: absolute;
   top: 0;
-  right: $configWidth; /* butt up against .config-container */
+  right: -122px;
   overflow-y: scroll;
 }
 
