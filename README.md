@@ -1,6 +1,6 @@
-# Tangelo
+# Constellations
 
-Playable [here](https://s3-us-west-1.amazonaws.com/tangelo/index.html)!
+Playable at [constellationsgame.com](constellationsgame.com)!
 
 ## To Run
 
