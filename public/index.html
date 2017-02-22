@@ -8,7 +8,7 @@
   <body>
     <script src="./js/main.js"></script>
     <script>
-      var tantaloWorker = new Worker ("./js/tantalo.js");
+      var tantaloWorker = new Worker("./js/tantalo.js");
       var app = Elm.Main.fullscreen(loadConfig());
 
       app.ports.generateEdges.subscribe(function(difficulty) {

@@ -1,6 +1,6 @@
 module View exposing (view)
 
-import Html exposing (Html, div, span, h1, h2, main_, br, text, button)
+import Html exposing (Html, div, span, h1, h2, h3, main_, br, text, button)
 import Html.Attributes exposing (href, target, class)
 import Html.Events
 
@@ -41,6 +41,16 @@ view model =
                             , target "_blank"
                             ]
                             [ text "@james_gary" ]
+                        ]
+                    , h3
+                        [ class "source" ]
+                        [ text "Source code: "
+                        , Html.a
+                            [ class "link"
+                            , href "https://github.com/jamesgary/constellations"
+                            , target "_blank"
+                            ]
+                            [ text "github.com/jamesgary/constellation" ]
                         ]
                     , button
                         [ class "btn start-btn campaign-btn"
