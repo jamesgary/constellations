@@ -50,7 +50,7 @@ view model =
                             , href "https://github.com/jamesgary/constellations"
                             , target "_blank"
                             ]
-                            [ text "github.com/jamesgary/constellation" ]
+                            [ text "github.com/jamesgary/constellations" ]
                         ]
                     , button
                         [ class "btn start-btn campaign-btn"
