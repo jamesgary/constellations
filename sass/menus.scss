@@ -41,13 +41,13 @@ $configWidth: 0; //300px;
 /* config */
 
 .config-container {
-  display: none;
   width: $configWidth;
   height: 100%;
-  background: transparent;//#333;
+  background: #333;
   position: absolute;
   top: 0;
-  right: 0;
+  left: 0;
+  z-index: 100;
 }
 
 .config-pair {
