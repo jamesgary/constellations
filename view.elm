@@ -53,6 +53,11 @@ view model =
                         , Html.Events.onClick (GenerateEdges 1)
                         ]
                         [ text "Sandbox" ]
+                    , div [ class "stars-bg" ]
+                        [ div [ Html.Attributes.id "stars" ] []
+                        , div [ Html.Attributes.id "stars2" ] []
+                        , div [ Html.Attributes.id "stars3" ] []
+                        ]
                     ]
                 ]
 
