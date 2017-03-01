@@ -191,6 +191,9 @@ updateMouseMove model newMousePos =
 moveNodeOffset : Pos -> ( NodeId, Pos ) -> Dict.Dict NodeId Node -> Dict.Dict NodeId Node
 moveNodeOffset mousePos ( nodeId, offset ) nodes =
     let
+        buffer =
+            10
+
         node =
             getNode nodes nodeId
 
@@ -200,8 +203,11 @@ moveNodeOffset mousePos ( nodeId, offset ) nodes =
         destY =
             mousePos.y + offset.y
 
+        -- make sure we don't go off the edge!
         newDest =
-            Pos destX destY
+            Pos
+                (clamp (0 + buffer) (1600 - buffer) destX)
+                (clamp (0 + buffer) (900 - buffer) destY)
 
         newNode =
             { node | dest = newDest }
