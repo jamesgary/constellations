@@ -8,17 +8,7 @@ import Types exposing (..)
 
 
 debugger : Model -> Html Msg
-debugger model =
-    let
-        nodes =
-            model.nodes
-
-        mouse =
-            model.mouse
-
-        now =
-            model.now
-    in
+debugger { nodes, mouse, now } =
     div
         [ Html.Attributes.style
             [ ( "width", "500px" )

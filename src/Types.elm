@@ -2,6 +2,7 @@ module Types exposing (..)
 
 import Dict exposing (Dict)
 import Mouse
+import Navigation
 import Time
 
 
@@ -110,6 +111,7 @@ type Msg
     | GetIntersectionResults IntersectionResultData
     | StartCampaign
     | CloseNarration
+    | UrlChange Navigation.Location
 
 
 

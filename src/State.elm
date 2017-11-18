@@ -5,6 +5,7 @@ port module State exposing (init, subscriptions, update)
 import AnimationFrame
 import Dict
 import Mouse
+import Navigation
 import Time
 import Types exposing (..)
 
@@ -17,18 +18,22 @@ baseWeight =
     50
 
 
-init : Config -> ( Model, Cmd Msg )
-init config =
-    let
-        appState =
-            StartState
-    in
-    ( { appState = appState
-      , config = config
-      }
-      --, generateEdges baseDifficulty
-    , Cmd.none
-    )
+init : Config -> Navigation.Location -> ( Model, Cmd Msg )
+init config location =
+    case location.hash of
+        "#load" ->
+            ( { appState = LoadingState
+              , config = config
+              }
+            , generateEdges 5
+            )
+
+        _ ->
+            ( { appState = StartState
+              , config = config
+              }
+            , Cmd.none
+            )
 
 
 
@@ -93,6 +98,9 @@ update msg model =
 
                 _ ->
                     ( model, Cmd.none )
+
+        UrlChange location ->
+            ( model, Cmd.none )
 
 
 updateMouseMove : Model -> MousePos -> ( Model, Cmd Msg )
