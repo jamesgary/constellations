@@ -1,12 +1,10 @@
 module View exposing (view)
 
-import Html exposing (Html, div, span, h1, h2, h3, main_, br, text, button)
-import Html.Attributes exposing (href, target, class)
-import Html.Events
-
-
 -- mine
 
+import Html exposing (Html, br, button, div, h1, h2, h3, main_, span, text)
+import Html.Attributes exposing (class, href, target)
+import Html.Events
 import Types exposing (..)
 import ViewGame
 
@@ -54,7 +52,7 @@ view model =
                         ]
                     , button
                         [ class "btn start-btn campaign-btn"
-                        , Html.Events.onClick (StartCampaign)
+                        , Html.Events.onClick StartCampaign
                         ]
                         [ text "Play Campaign" ]
                     , br [] []

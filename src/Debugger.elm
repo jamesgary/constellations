@@ -1,11 +1,9 @@
 module Debugger exposing (debugger)
 
-import Html exposing (Html, div, text, table, tr, td)
-import Html.Attributes exposing (style)
-
-
 -- mine
 
+import Html exposing (Html, div, table, td, text, tr)
+import Html.Attributes exposing (style)
 import Types exposing (..)
 
 
@@ -21,21 +19,21 @@ debugger model =
         now =
             model.now
     in
-        div
-            [ Html.Attributes.style
-                [ ( "width", "500px" )
-                , ( "height", "100%" )
-                , ( "background", "gray" )
-                , ( "position", "absolute" )
-                , ( "right", "0" )
-                , ( "bottom", "0" )
-                , ( "font-family", "Consolas, monospace" )
-                , ( "user-select", "none" )
-                , ( "-webkit-user-select", "none" )
-                ]
+    div
+        [ Html.Attributes.style
+            [ ( "width", "500px" )
+            , ( "height", "100%" )
+            , ( "background", "gray" )
+            , ( "position", "absolute" )
+            , ( "right", "0" )
+            , ( "bottom", "0" )
+            , ( "font-family", "Consolas, monospace" )
+            , ( "user-select", "none" )
+            , ( "-webkit-user-select", "none" )
             ]
-            [ table []
-                [ {--debugRow "node.rad" node.rad
+        ]
+        [ table []
+            [ {--debugRow "node.rad" node.rad
                 , debugRow "node.dest.x" node.dest.x
                 , debugRow "node.dest.y" node.dest.y
                 , debugRow "node.pos.x" node.pos.x
@@ -45,10 +43,10 @@ debugger model =
                 , debugRow "node.isHovered" node.isHovered
                 , debugRow "---" "---"
                 ,--}
-                  debugRow "mouse.pos.x" mouse.pos.x
-                , debugRow "mouse.pos.y" mouse.pos.y
-                ]
+              debugRow "mouse.pos.x" mouse.pos.x
+            , debugRow "mouse.pos.y" mouse.pos.y
             ]
+        ]
 
 
 debugRow : String -> a -> Html Msg

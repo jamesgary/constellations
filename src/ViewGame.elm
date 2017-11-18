@@ -1,19 +1,17 @@
 module ViewGame exposing (drawGameState)
 
+-- mine
+
 import Dict exposing (Dict)
-import Html exposing (Html, div, span, h1, h2, main_, br, p, button)
+import Html exposing (Html, br, button, div, h1, h2, main_, p, span)
 import Html.Attributes exposing (href, target)
 import Html.Events exposing (on)
 import Json.Decode as Decode
 import Mouse
 import String exposing (..)
 import Svg exposing (..)
+import Svg.Attributes exposing (class, cx, cy, fill, height, rx, ry, transform, viewBox, width, x, x1, x2, y, y1, y2)
 import Svg.Events
-import Svg.Attributes exposing (width, height, class, x1, y1, x2, y2, transform, rx, ry, cx, cy, fill, x, y, viewBox)
-
-
--- mine
-
 import Types exposing (..)
 
 
@@ -53,11 +51,11 @@ drawNarration isVisible difficulty =
             else
                 "narration is-hidden"
     in
-        div
-            [ class className ]
-            [ p [] [ text (difficultyToNarration difficulty) ]
-            , button [ class "btn", Html.Events.onClick CloseNarration ] [ text "OK" ]
-            ]
+    div
+        [ class className ]
+        [ p [] [ text (difficultyToNarration difficulty) ]
+        , button [ class "btn", Html.Events.onClick CloseNarration ] [ text "OK" ]
+        ]
 
 
 drawConstellation : Config -> GameState -> Html Msg
@@ -80,27 +78,27 @@ drawConstellation config gameState =
         constellationGlassClass =
             "constellation-glass " ++ modClass
     in
-        div [ class "constellation-container" ]
-            [ svg
-                [ class "constellation"
-                , viewBox "0 0 1600 900"
-                ]
-                (List.concat
-                    [ drawEdges gameState.nodes gameState.edges
-                    , drawNodes config
-                        gameState.mouseState
-                        (List.reverse (Dict.values gameState.nodes))
-                    , drawLasso gameState.mouseState
-                    ]
-                )
-            , div
-                [ class constellationGlassClass
-                , onMouseMove
-                , onMouseUp
-                , onMouseDown
-                ]
-                []
+    div [ class "constellation-container" ]
+        [ svg
+            [ class "constellation"
+            , viewBox "0 0 1600 900"
             ]
+            (List.concat
+                [ drawEdges gameState.nodes gameState.edges
+                , drawNodes config
+                    gameState.mouseState
+                    (List.reverse (Dict.values gameState.nodes))
+                , drawLasso gameState.mouseState
+                ]
+            )
+        , div
+            [ class constellationGlassClass
+            , onMouseMove
+            , onMouseUp
+            , onMouseDown
+            ]
+            []
+        ]
 
 
 drawLasso : MouseState -> List (Html Msg)
@@ -126,15 +124,15 @@ drawLasso mouseState =
                 lassoHeight =
                     maxY - minY
             in
-                [ rect
-                    [ x (px minX)
-                    , y (px minY)
-                    , width (px lassoWidth)
-                    , height (px lassoHeight)
-                    , class "lasso"
-                    ]
-                    []
+            [ rect
+                [ x (px minX)
+                , y (px minY)
+                , width (px lassoWidth)
+                , height (px lassoHeight)
+                , class "lasso"
                 ]
+                []
+            ]
 
         _ ->
             []
@@ -158,22 +156,22 @@ drawWinModal gameState =
         nextDifficulty =
             gameState.difficulty + 1
     in
-        div
-            [ class className ]
-            [ div
-                [ class "win-modal-text" ]
-                [ text "You did it!" ]
-            , div
-                [ class "win-modal-button"
-                , Html.Events.onClick (GenerateEdges nextDifficulty)
-                ]
-                [ text "Next Level" ]
+    div
+        [ class className ]
+        [ div
+            [ class "win-modal-text" ]
+            [ text "You did it!" ]
+        , div
+            [ class "win-modal-button"
+            , Html.Events.onClick (GenerateEdges nextDifficulty)
             ]
+            [ text "Next Level" ]
+        ]
 
 
 drawNodes : Config -> MouseState -> List Node -> List (Html Msg)
 drawNodes config mouseState nodesList =
-    (List.concat (List.map (drawNode config mouseState) nodesList))
+    List.concat (List.map (drawNode config mouseState) nodesList)
 
 
 drawNode : Config -> MouseState -> Node -> List (Html Msg)
@@ -234,21 +232,21 @@ drawNode config mouseState node =
                     else
                         ""
     in
-        [ ellipse
-            [ cx (px realPosition.x)
-            , cy (px realPosition.y)
-            , rx (toString realXRad)
-            , ry (toString realYRad)
-            , transform (getTransform node)
-            , class ("node " ++ className)
-            ]
-            []
+    [ ellipse
+        [ cx (px realPosition.x)
+        , cy (px realPosition.y)
+        , rx (toString realXRad)
+        , ry (toString realYRad)
+        , transform (getTransform node)
+        , class ("node " ++ className)
         ]
+        []
+    ]
 
 
 drawEdges : Dict NodeId Node -> List Edge -> List (Html Msg)
 drawEdges nodes edges =
-    (List.concat (List.map (drawEdge nodes) edges))
+    List.concat (List.map (drawEdge nodes) edges)
 
 
 drawEdge : Dict NodeId Node -> Edge -> List (Html Msg)
@@ -266,15 +264,15 @@ drawEdge nodes edge =
             else
                 ""
     in
-        [ line
-            [ x1 (toString node1.pos.x)
-            , y1 (toString node1.pos.y)
-            , x2 (toString node2.pos.x)
-            , y2 (toString node2.pos.y)
-            , class ("edge " ++ className)
-            ]
-            []
+    [ line
+        [ x1 (toString node1.pos.x)
+        , y1 (toString node1.pos.y)
+        , x2 (toString node2.pos.x)
+        , y2 (toString node2.pos.y)
+        , class ("edge " ++ className)
         ]
+        []
+    ]
 
 
 drawLevelSelect : Int -> Html Msg
@@ -290,18 +288,18 @@ drawLevelSelector currentDifficulty difficulty =
         isMatching =
             currentDifficulty == difficulty
     in
-        if isMatching then
-            div
-                [ class "levelSelect-selector levelSelect-selector-isCurrent"
-                , Html.Events.onClick (GenerateEdges difficulty)
-                ]
-                [ text ("[[" ++ (toString difficulty) ++ "]]") ]
-        else
-            div
-                [ class "levelSelect-selector"
-                , Html.Events.onClick (GenerateEdges difficulty)
-                ]
-                [ text (toString difficulty) ]
+    if isMatching then
+        div
+            [ class "levelSelect-selector levelSelect-selector-isCurrent"
+            , Html.Events.onClick (GenerateEdges difficulty)
+            ]
+            [ text ("[[" ++ toString difficulty ++ "]]") ]
+    else
+        div
+            [ class "levelSelect-selector"
+            , Html.Events.onClick (GenerateEdges difficulty)
+            ]
+            [ text (toString difficulty) ]
 
 
 drawConfig : Config -> Html Msg
@@ -342,7 +340,7 @@ getTransform node =
         yStr =
             toString node.pos.y
     in
-        "rotate (" ++ angleStr ++ " " ++ xStr ++ " " ++ yStr ++ ")"
+    "rotate (" ++ angleStr ++ " " ++ xStr ++ " " ++ yStr ++ ")"
 
 
 getBlur : Node -> String
@@ -354,7 +352,7 @@ getBlur node =
         yStr =
             toString (baseBlur * node.vel.y)
     in
-        xStr ++ "," ++ yStr
+    xStr ++ "," ++ yStr
 
 
 aToDegs : Float -> Float

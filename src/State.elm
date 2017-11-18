@@ -1,13 +1,11 @@
-port module State exposing (init, update, subscriptions)
+port module State exposing (init, subscriptions, update)
+
+-- mine
 
 import AnimationFrame
 import Dict
 import Mouse
 import Time
-
-
--- mine
-
 import Types exposing (..)
 
 
@@ -25,12 +23,12 @@ init config =
         appState =
             StartState
     in
-        ( { appState = appState
-          , config = config
-          }
-          --, generateEdges baseDifficulty
-        , Cmd.none
-        )
+    ( { appState = appState
+      , config = config
+      }
+      --, generateEdges baseDifficulty
+    , Cmd.none
+    )
 
 
 
@@ -91,7 +89,7 @@ update msg model =
                         newModel =
                             { model | appState = ActiveState newGameState }
                     in
-                        ( newModel, Cmd.none )
+                    ( newModel, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
@@ -120,7 +118,7 @@ updateMouseMove model newMousePos =
                                         Nothing ->
                                             DefaultMouseState
                             in
-                                { gameState | mouseState = newMouseState }
+                            { gameState | mouseState = newMouseState }
 
                         HoveringMouseState _ ->
                             let
@@ -135,7 +133,7 @@ updateMouseMove model newMousePos =
                                         Nothing ->
                                             DefaultMouseState
                             in
-                                { gameState | mouseState = newMouseState }
+                            { gameState | mouseState = newMouseState }
 
                         DraggingMouseState nodeId offset neighboringNodeIds ->
                             let
@@ -157,7 +155,7 @@ updateMouseMove model newMousePos =
                                 newNodes =
                                     Dict.insert nodeId newDraggedNode gameState.nodes
                             in
-                                { gameState | nodes = newNodes }
+                            { gameState | nodes = newNodes }
 
                         LassoingMouseState startPos _ nodeIds ->
                             let
@@ -167,7 +165,7 @@ updateMouseMove model newMousePos =
                                 newMouseState =
                                     LassoingMouseState startPos newPos lassoedNodes
                             in
-                                { gameState | mouseState = newMouseState }
+                            { gameState | mouseState = newMouseState }
 
                         LassoedMouseState nodeIds ->
                             gameState
@@ -177,12 +175,12 @@ updateMouseMove model newMousePos =
                                 newNodes =
                                     List.foldr (moveNodeOffset newPos) gameState.nodes nodeOffsetList
                             in
-                                { gameState | nodes = newNodes }
+                            { gameState | nodes = newNodes }
 
                 newModel =
                     { model | appState = ActiveState newGameState }
             in
-                ( newModel, Cmd.none )
+            ( newModel, Cmd.none )
 
         _ ->
             ( model, Cmd.none )
@@ -212,7 +210,7 @@ moveNodeOffset mousePos ( nodeId, offset ) nodes =
         newNode =
             { node | dest = newDest }
     in
-        Dict.insert nodeId newNode nodes
+    Dict.insert nodeId newNode nodes
 
 
 nodeInBoxFilterMap pos1 pos2 node =
@@ -235,10 +233,10 @@ nodeInBoxFilterMap pos1 pos2 node =
         boxY2 =
             max pos1.y pos2.y
     in
-        if ((boxX1 <= nodeX) && (nodeX <= boxX2) && (boxY1 <= nodeY) && (nodeY <= boxY2)) then
-            Just node.id
-        else
-            Nothing
+    if (boxX1 <= nodeX) && (nodeX <= boxX2) && (boxY1 <= nodeY) && (nodeY <= boxY2) then
+        Just node.id
+    else
+        Nothing
 
 
 getTopTouchingNodeId : Config -> Pos -> Dict.Dict NodeId Node -> Maybe NodeId
@@ -247,7 +245,7 @@ getTopTouchingNodeId config mousePos nodes =
         nodeList =
             Dict.values nodes
     in
-        getTopTouchingNodeId_ config mousePos nodeList Nothing
+    getTopTouchingNodeId_ config mousePos nodeList Nothing
 
 
 getTopTouchingNodeId_ : Config -> Pos -> List Node -> Maybe NodeId -> Maybe NodeId
@@ -295,45 +293,20 @@ updateMouseDown model newMousePos =
                                             nodeOffsetList =
                                                 List.map (nodeIdToNodeOffset newPos gameState.nodes) nodeIds
                                         in
-                                            DraggingLassoedMouseState nodeOffsetList
+                                        DraggingLassoedMouseState nodeOffsetList
                                     else
                                         let
                                             draggedNode =
                                                 getNode gameState.nodes draggedId
 
                                             dragOffset =
-                                                (Pos (draggedNode.pos.x - newPos.x) (draggedNode.pos.y - newPos.y))
+                                                Pos (draggedNode.pos.x - newPos.x) (draggedNode.pos.y - newPos.y)
 
                                             getNeighborNodeIfMatchingEdge nodeId edge =
                                                 let
                                                     ( node1, node2 ) =
                                                         edge.pair
                                                 in
-                                                    if node1 == nodeId then
-                                                        Just node2
-                                                    else if node2 == nodeId then
-                                                        Just node1
-                                                    else
-                                                        Nothing
-
-                                            neighboringNodeIds =
-                                                List.filterMap (getNeighborNodeIfMatchingEdge draggedNode.id) gameState.edges
-                                        in
-                                            DraggingMouseState draggedId dragOffset neighboringNodeIds
-
-                                _ ->
-                                    let
-                                        draggedNode =
-                                            getNode gameState.nodes draggedId
-
-                                        dragOffset =
-                                            (Pos (draggedNode.pos.x - newPos.x) (draggedNode.pos.y - newPos.y))
-
-                                        getNeighborNodeIfMatchingEdge nodeId edge =
-                                            let
-                                                ( node1, node2 ) =
-                                                    edge.pair
-                                            in
                                                 if node1 == nodeId then
                                                     Just node2
                                                 else if node2 == nodeId then
@@ -341,10 +314,35 @@ updateMouseDown model newMousePos =
                                                 else
                                                     Nothing
 
+                                            neighboringNodeIds =
+                                                List.filterMap (getNeighborNodeIfMatchingEdge draggedNode.id) gameState.edges
+                                        in
+                                        DraggingMouseState draggedId dragOffset neighboringNodeIds
+
+                                _ ->
+                                    let
+                                        draggedNode =
+                                            getNode gameState.nodes draggedId
+
+                                        dragOffset =
+                                            Pos (draggedNode.pos.x - newPos.x) (draggedNode.pos.y - newPos.y)
+
+                                        getNeighborNodeIfMatchingEdge nodeId edge =
+                                            let
+                                                ( node1, node2 ) =
+                                                    edge.pair
+                                            in
+                                            if node1 == nodeId then
+                                                Just node2
+                                            else if node2 == nodeId then
+                                                Just node1
+                                            else
+                                                Nothing
+
                                         neighboringNodeIds =
                                             List.filterMap (getNeighborNodeIfMatchingEdge draggedNode.id) gameState.edges
                                     in
-                                        DraggingMouseState draggedId dragOffset neighboringNodeIds
+                                    DraggingMouseState draggedId dragOffset neighboringNodeIds
 
                         Nothing ->
                             LassoingMouseState newPos newPos []
@@ -355,7 +353,7 @@ updateMouseDown model newMousePos =
                 newModel =
                     { model | appState = ActiveState newGameState }
             in
-                ( newModel, Cmd.none )
+            ( newModel, Cmd.none )
 
         _ ->
             ( model, Cmd.none )
@@ -370,7 +368,7 @@ nodeIdToNodeOffset mousePos nodes nodeId =
         offset =
             Pos (node.pos.x - mousePos.x) (node.pos.y - mousePos.y)
     in
-        ( nodeId, offset )
+    ( nodeId, offset )
 
 
 updateMouseUp : Model -> MousePos -> ( Model, Cmd Msg )
@@ -396,7 +394,7 @@ updateMouseUp model mousePos =
                 ( newNewModel, _ ) =
                     updateMouseMove newModel mousePos
             in
-                ( newNewModel, checkForIntersections ( Dict.values newGameState.nodes, newGameState.edges ) )
+            ( newNewModel, checkForIntersections ( Dict.values newGameState.nodes, newGameState.edges ) )
 
         _ ->
             ( model, Cmd.none )
@@ -413,7 +411,7 @@ updateAnimation model time =
                 newModel =
                     { model | appState = ActiveState newGameState }
             in
-                ( newModel, Cmd.none )
+            ( newModel, Cmd.none )
 
         _ ->
             ( model, Cmd.none )
@@ -436,7 +434,7 @@ updateGenerateEdges model difficulty =
         newModel =
             { model | appState = newAppState }
     in
-        ( newModel, generateEdges difficulty )
+    ( newModel, generateEdges difficulty )
 
 
 updateGeneratedEdges : Model -> EdgeData -> ( Model, Cmd Msg )
@@ -459,7 +457,7 @@ updateGeneratedEdges model edgeData =
         newModel =
             { model | appState = newAppState }
     in
-        ( newModel, checkForIntersections ( Dict.values newGameState.nodes, newGameState.edges ) )
+    ( newModel, checkForIntersections ( Dict.values newGameState.nodes, newGameState.edges ) )
 
 
 updateConfigRadius : Model -> String -> ( Model, Cmd Msg )
@@ -479,7 +477,7 @@ updateConfigRadius model radiusString =
         newModel =
             { model | config = newConfig }
     in
-        ( newModel, saveConfig newConfig )
+    ( newModel, saveConfig newConfig )
 
 
 edgeDataToGameData : Config -> EdgeData -> GameState
@@ -495,17 +493,16 @@ edgeDataToGameData config edgeData =
             List.map (makeNode config numNodes) nodeIdList
 
         newGameState =
-            ({ nodes = Dict.fromList nodes
-             , edges = edges
-             , difficulty = difficulty
-             , mouseState = DefaultMouseState
-             , hasWon = False
-             , isSandbox = True
-             , isNarrationVisible = True
-             }
-            )
+            { nodes = Dict.fromList nodes
+            , edges = edges
+            , difficulty = difficulty
+            , mouseState = DefaultMouseState
+            , hasWon = False
+            , isSandbox = True
+            , isNarrationVisible = True
+            }
     in
-        newGameState
+    newGameState
 
 
 makeNode : Config -> Int -> NodeId -> ( NodeId, Node )
@@ -521,7 +518,7 @@ makeNode config maxNodes nodeId =
             300
 
         rotation =
-            toFloat nodeId / (toFloat maxNodes)
+            toFloat nodeId / toFloat maxNodes
 
         x =
             graphCenterX + cos (2 * pi * rotation) * graphRadius
@@ -529,13 +526,13 @@ makeNode config maxNodes nodeId =
         y =
             graphCenterY + sin (2 * pi * rotation) * graphRadius
     in
-        ( nodeId
-        , { id = nodeId
-          , dest = (Pos x y)
-          , pos = (Pos x y)
-          , vel = (Vel 0 0 0 0)
-          }
-        )
+    ( nodeId
+    , { id = nodeId
+      , dest = Pos x y
+      , pos = Pos x y
+      , vel = Vel 0 0 0 0
+      }
+    )
 
 
 animate : Time.Time -> GameState -> GameState
@@ -547,9 +544,9 @@ animate timeElapsed gameState =
         newNodes =
             Dict.map (animateNode timeElapsed) nodes
     in
-        { gameState
-            | nodes = newNodes
-        }
+    { gameState
+        | nodes = newNodes
+    }
 
 
 animateNode : Time.Time -> NodeId -> Node -> Node
@@ -558,7 +555,7 @@ animateNode timeElapsed _ node =
         newNode =
             moveNodeToDest node timeElapsed
     in
-        newNode
+    newNode
 
 
 moveNodeToDest : Node -> Time.Time -> Node
@@ -570,10 +567,10 @@ moveNodeToDest node timeElapsed =
         newVel =
             calculateVel node newPos timeElapsed
     in
-        { node
-            | pos = newPos
-            , vel = newVel
-        }
+    { node
+        | pos = newPos
+        , vel = newVel
+    }
 
 
 isTouching : Config -> Pos -> Node -> Bool
@@ -588,7 +585,7 @@ isTouching config mousePos node =
         c =
             sqrt (aSquared + bSquared)
     in
-        c < config.radius
+    c < config.radius
 
 
 calculatePosition : Node -> Time.Time -> Pos
@@ -615,7 +612,7 @@ calculatePosition node timeElapsed =
         newY =
             node.pos.y + (dragSpeed * distY)
     in
-        Pos newX newY
+    Pos newX newY
 
 
 calculateVel : Node -> Pos -> Time.Time -> Vel
@@ -630,12 +627,12 @@ calculateVel node newPos timeElapsed =
         ( r, a ) =
             toPolar ( xDiff, yDiff )
     in
-        Vel xDiff yDiff r a
+    Vel xDiff yDiff r a
 
 
 mousePosToPos : MousePos -> Pos
 mousePosToPos mousePos =
-    Pos (1600 * (Tuple.first mousePos)) (900 * (Tuple.second mousePos))
+    Pos (1600 * Tuple.first mousePos) (900 * Tuple.second mousePos)
 
 
 updateGetIntersectionResults : Model -> IntersectionResultData -> ( Model, Cmd Msg )
@@ -658,7 +655,7 @@ updateGetIntersectionResults model intersectionResultData =
                 newModel =
                     { model | appState = ActiveState newGameState }
             in
-                ( newModel, Cmd.none )
+            ( newModel, Cmd.none )
 
         _ ->
             ( model, Cmd.none )

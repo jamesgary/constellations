@@ -1,12 +1,10 @@
 module Main exposing (..)
 
-import Html
-
-
 -- mine
 
+import Html
+import State exposing (init, subscriptions, update)
 import Types exposing (..)
-import State exposing (init, update, subscriptions)
 import View exposing (view)
 
 
