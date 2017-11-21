@@ -69,8 +69,8 @@ view model =
                     ]
                 ]
 
-            LoadingState ->
-                []
+            LoadingState age numNodes ->
+                ViewGame.drawLoadingAnim model.config age numNodes
 
             LoadingCampaignState ->
                 []

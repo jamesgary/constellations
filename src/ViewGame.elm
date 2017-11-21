@@ -1,17 +1,18 @@
-module ViewGame exposing (drawGameState)
+module ViewGame exposing (drawGameState, drawLoadingAnim)
 
 -- mine
 
 import Dict exposing (Dict)
+import Ease
 import Html exposing (Html, br, button, div, h1, h2, main_, p, span)
 import Html.Attributes exposing (href, target)
 import Html.Events exposing (on)
 import Json.Decode as Decode
 import Mouse
-import String exposing (..)
 import Svg exposing (..)
 import Svg.Attributes exposing (class, cx, cy, fill, height, rx, ry, transform, viewBox, width, x, x1, x2, y, y1, y2)
 import Svg.Events
+import Time exposing (Time)
 import Types exposing (..)
 
 
@@ -171,7 +172,9 @@ drawWinModal gameState =
 
 drawNodes : Config -> MouseState -> List Node -> List (Html Msg)
 drawNodes config mouseState nodesList =
-    List.concat (List.map (drawNode config mouseState) nodesList)
+    nodesList
+        |> List.map (drawNode config mouseState)
+        |> List.concat
 
 
 drawNode : Config -> MouseState -> Node -> List (Html Msg)
@@ -413,3 +416,159 @@ difficultyToNarration difficulty =
 
         _ ->
             "I AM ERROR"
+
+
+drawLoadingAnim : Config -> Time -> Int -> List (Html Msg)
+drawLoadingAnim config age numNodes =
+    [ drawLevelSelect numNodes
+    , div [ class "constellation-container" ]
+        [ svg
+            [ class "constellation"
+            , viewBox "0 0 1600 900"
+            ]
+            (List.range 0 (numNodes - 1)
+                |> List.map
+                    (\id ->
+                        getLoadAnimPos age id numNodes
+                            |> posToNode id
+                            |> drawNode config DefaultMouseState
+                    )
+                |> List.concat
+            )
+        ]
+    , drawConfig config
+    ]
+
+
+graphCenterX =
+    800
+
+
+graphCenterY =
+    450
+
+
+graphRadius =
+    300
+
+
+loadAnimDur =
+    900
+
+
+wait =
+    300
+
+
+getLoadAnimPos : Time -> Int -> Int -> Pos
+getLoadAnimPos time id numNodes =
+    let
+        age =
+            if time < wait then
+                0
+            else
+                min loadAnimDur (time - wait)
+
+        rotation =
+            toFloat id / toFloat numNodes
+
+        destX =
+            graphCenterX + cos (2 * pi * rotation) * graphRadius
+
+        destY =
+            graphCenterY + sin (2 * pi * rotation) * graphRadius
+
+        ease =
+            Ease.outElastic (age / loadAnimDur)
+
+        easeInv =
+            1 - ease
+    in
+    Pos (ease * destX + easeInv * graphCenterX)
+        (ease * destY + easeInv * graphCenterY)
+
+
+posToNode : Int -> Pos -> Node
+posToNode id pos =
+    { id = id
+    , dest = pos
+    , pos = pos
+    , vel = Vel 0 0 0 0
+    }
+
+
+
+--type alias Node =
+--    { id : NodeId
+--    , dest : Pos
+--    , pos : Pos
+--    , vel : Vel
+--    }
+--drawNode : Config -> MouseState -> Node -> List (Html Msg)
+--drawNode config mouseState node =
+--    let
+--        realPosition =
+--            node.pos
+--
+--        stretch =
+--            baseStretch * node.vel.r
+--
+--        blur =
+--            getBlur node
+--
+--        rad =
+--            config.radius
+--
+--        realXRad =
+--            rad + stretch
+--
+--        realYRad =
+--            rad * (rad / realXRad)
+--
+--        className =
+--            case mouseState of
+--                DefaultMouseState ->
+--                    ""
+--
+--                HoveringMouseState hoveredId ->
+--                    if node.id == hoveredId then
+--                        "is-hovering"
+--                    else
+--                        ""
+--
+--                DraggingMouseState draggedId pos neighborIds ->
+--                    if node.id == draggedId then
+--                        "is-dragging"
+--                    else if List.member node.id neighborIds then
+--                        "is-neighboring"
+--                    else
+--                        ""
+--
+--                LassoingMouseState startPos curPos nodeIds ->
+--                    if List.member node.id nodeIds then
+--                        "is-lassoing"
+--                    else
+--                        ""
+--
+--                LassoedMouseState nodeIds ->
+--                    if List.member node.id nodeIds then
+--                        "is-lassoed"
+--                    else
+--                        ""
+--
+--                DraggingLassoedMouseState offsetNodeList ->
+--                    if List.member node.id (List.map Tuple.first offsetNodeList) then
+--                        "is-lassoing"
+--                    else
+--                        ""
+--    in
+--    [ ellipse
+--        [ cx (px realPosition.x)
+--        , cy (px realPosition.y)
+--        , rx (toString realXRad)
+--        , ry (toString realYRad)
+--        , transform (getTransform node)
+--        , class ("node " ++ className)
+--        ]
+--        []
+--    ]

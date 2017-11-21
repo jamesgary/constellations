@@ -6,7 +6,7 @@ import AnimationFrame
 import Dict
 import Mouse
 import Navigation
-import Time
+import Time exposing (Time)
 import Types exposing (..)
 
 
@@ -22,7 +22,7 @@ init : Config -> Navigation.Location -> ( Model, Cmd Msg )
 init config location =
     case location.hash of
         "#load" ->
-            ( { appState = LoadingState
+            ( { appState = LoadingState 0 12
               , config = config
               }
             , generateEdges 5
@@ -408,18 +408,21 @@ updateMouseUp model mousePos =
             ( model, Cmd.none )
 
 
-updateAnimation : Model -> Time.Time -> ( Model, Cmd Msg )
+updateAnimation : Model -> Time -> ( Model, Cmd Msg )
 updateAnimation model time =
     case model.appState of
         ActiveState gameState ->
             let
                 newGameState =
-                    animate time gameState
+                    tick time gameState
 
                 newModel =
                     { model | appState = ActiveState newGameState }
             in
             ( newModel, Cmd.none )
+
+        LoadingState age numNodes ->
+            ( { model | appState = LoadingState (age + time) numNodes }, Cmd.none )
 
         _ ->
             ( model, Cmd.none )
@@ -432,7 +435,7 @@ updateGenerateEdges model difficulty =
             case model.appState of
                 ActiveState gameState ->
                     if gameState.isSandbox then
-                        LoadingState
+                        LoadingState 0 24
                     else
                         LoadingCampaignState
 
@@ -536,15 +539,19 @@ makeNode config maxNodes nodeId =
     in
     ( nodeId
     , { id = nodeId
-      , dest = Pos x y
-      , pos = Pos x y
+
+      -- fixme
+      --, dest = Pos x y
+      --, pos = Pos x y
+      , dest = Pos graphCenterX graphCenterY
+      , pos = Pos graphCenterX graphCenterY
       , vel = Vel 0 0 0 0
       }
     )
 
 
-animate : Time.Time -> GameState -> GameState
-animate timeElapsed gameState =
+tick : Time -> GameState -> GameState
+tick timeElapsed gameState =
     let
         nodes =
             gameState.nodes
@@ -557,7 +564,7 @@ animate timeElapsed gameState =
     }
 
 
-animateNode : Time.Time -> NodeId -> Node -> Node
+animateNode : Time -> NodeId -> Node -> Node
 animateNode timeElapsed _ node =
     let
         newNode =
@@ -566,7 +573,7 @@ animateNode timeElapsed _ node =
     newNode
 
 
-moveNodeToDest : Node -> Time.Time -> Node
+moveNodeToDest : Node -> Time -> Node
 moveNodeToDest node timeElapsed =
     let
         newPos =
@@ -596,7 +603,7 @@ isTouching config mousePos node =
     c < config.radius
 
 
-calculatePosition : Node -> Time.Time -> Pos
+calculatePosition : Node -> Time -> Pos
 calculatePosition node timeElapsed =
     let
         dragSpeed =
@@ -623,7 +630,7 @@ calculatePosition node timeElapsed =
     Pos newX newY
 
 
-calculateVel : Node -> Pos -> Time.Time -> Vel
+calculateVel : Node -> Pos -> Time -> Vel
 calculateVel node newPos timeElapsed =
     let
         xDiff =

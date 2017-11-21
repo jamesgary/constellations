@@ -3,13 +3,14 @@ module Types exposing (..)
 import Dict exposing (Dict)
 import Mouse
 import Navigation
-import Time
+import Time exposing (Time)
 
 
 type AppState
     = StartState
     | LoadingCampaignState
-    | LoadingState
+    | LoadingState Time Int
+      --| LoadingStateWithData Time
     | ActiveState GameState
 
 
@@ -104,7 +105,7 @@ type Msg
     | MouseDown MousePos
     | MouseMove MousePos
     | MouseUp MousePos
-    | AnimationMsg Time.Time
+    | AnimationMsg Time
       -- config stuff
       --| ChangeDifficulty String
     | ChangeConfigRadius String
