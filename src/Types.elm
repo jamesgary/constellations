@@ -6,22 +6,6 @@ import Navigation
 import Time exposing (Time)
 
 
-type AppState
-    = StartState
-      --| LoadingCampaignState
-      --| LoadingState Time Int (Maybe GameState)
-    | ActiveState ActiveStateData
-
-
-type MouseState
-    = DefaultMouseState
-    | HoveringMouseState NodeId
-    | DraggingMouseState NodeId Pos (List NodeId)
-    | LassoingMouseState Pos Pos (List NodeId)
-    | LassoedMouseState (List NodeId)
-    | DraggingLassoedMouseState (List ( NodeId, Pos ))
-
-
 type alias Model =
     { appState : AppState
     , config : Config
@@ -31,6 +15,11 @@ type alias Model =
 type alias Config =
     { radius : Float
     }
+
+
+type AppState
+    = StartState
+    | ActiveState ActiveStateData
 
 
 type alias ActiveStateData =
@@ -52,6 +41,15 @@ type alias PlayingModeData =
     { hasWon : Bool
     , isNarrationVisible : Bool
     }
+
+
+type MouseState
+    = DefaultMouseState
+    | HoveringMouseState NodeId
+    | DraggingMouseState NodeId Pos (List NodeId)
+    | LassoingMouseState Pos Pos (List NodeId)
+    | LassoedMouseState (List NodeId)
+    | DraggingLassoedMouseState (List ( NodeId, Pos ))
 
 
 type alias Node =

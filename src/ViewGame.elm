@@ -62,46 +62,51 @@ drawNarration isVisible difficulty =
 
 
 drawConstellation : Config -> ActiveStateData -> Html Msg
-drawConstellation config gameState =
-    let
-        modClass =
-            case gameState.mouseState of
-                HoveringMouseState _ ->
-                    "is-hovering"
+drawConstellation config { mouseState, nodes, edges, mode, difficulty } =
+    case mode of
+        LoadingMode age ->
+            div [] (drawLoadingAnim config age (difficultyToNumNodes difficulty))
 
-                DraggingMouseState _ _ _ ->
-                    "is-dragging"
+        PlayingMode { hasWon, isNarrationVisible } ->
+            let
+                modClass =
+                    case mouseState of
+                        HoveringMouseState _ ->
+                            "is-hovering"
 
-                LassoingMouseState _ _ _ ->
-                    "is-lassoing"
+                        DraggingMouseState _ _ _ ->
+                            "is-dragging"
 
-                _ ->
-                    ""
+                        LassoingMouseState _ _ _ ->
+                            "is-lassoing"
 
-        constellationGlassClass =
-            "constellation-glass " ++ modClass
-    in
-    div [ class "constellation-container" ]
-        [ svg
-            [ class "constellation"
-            , viewBox "0 0 1600 900"
-            ]
-            (List.concat
-                [ drawEdges gameState.nodes gameState.edges
-                , drawNodes config
-                    gameState.mouseState
-                    (List.reverse (Dict.values gameState.nodes))
-                , drawLasso gameState.mouseState
+                        _ ->
+                            ""
+
+                constellationGlassClass =
+                    "constellation-glass " ++ modClass
+            in
+            div [ class "constellation-container" ]
+                [ svg
+                    [ class "constellation"
+                    , viewBox "0 0 1600 900"
+                    ]
+                    (List.concat
+                        [ drawEdges nodes edges
+                        , drawNodes config
+                            mouseState
+                            (List.reverse (Dict.values nodes))
+                        , drawLasso mouseState
+                        ]
+                    )
+                , div
+                    [ class constellationGlassClass
+                    , onMouseMove
+                    , onMouseUp
+                    , onMouseDown
+                    ]
+                    []
                 ]
-            )
-        , div
-            [ class constellationGlassClass
-            , onMouseMove
-            , onMouseUp
-            , onMouseDown
-            ]
-            []
-        ]
 
 
 drawLasso : MouseState -> List (Html Msg)
@@ -456,7 +461,7 @@ getLoadAnimPos time id numNodes =
             Ease.outElastic (age / loadAnimDur)
 
         easeRot =
-            Ease.outQuint (age / loadAnimDur)
+            Ease.outCubic (age / loadAnimDur)
 
         easeInv =
             1 - ease

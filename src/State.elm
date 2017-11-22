@@ -450,30 +450,7 @@ updateGenerateEdges model difficulty =
 
 updateGeneratedEdges : Model -> EdgeData -> Model
 updateGeneratedEdges model edgeData =
-    let
-        newGameState =
-            edgeDataToGameData model.config edgeData
-
-        newAppState =
-            case model.appState of
-                --LoadingCampaignState ->
-                --    ActiveState { newGameState | isSandbox = False }
-                ActiveState gameState ->
-                    ActiveState { newGameState | isSandbox = gameState.isSandbox }
-
-                --LoadingState age numNodes ->
-                --    ActiveState { newGameState | isSandbox = True }
-                _ ->
-                    ActiveState { newGameState | isSandbox = True }
-
-        newModel =
-            { model | appState = newAppState }
-    in
-    newModel
-
-
-
---checkForIntersections ( Dict.values newGameState.nodes, newGameState.edges ) )
+    { model | appState = ActiveState (edgeDataToActiveStateData model.config edgeData) }
 
 
 updateConfigRadius : Model -> String -> ( Model, Cmd Msg )
@@ -496,29 +473,21 @@ updateConfigRadius model radiusString =
     ( newModel, saveConfig newConfig )
 
 
-edgeDataToGameData : Config -> EdgeData -> ActiveStateData
-edgeDataToGameData config edgeData =
+edgeDataToActiveStateData : Config -> EdgeData -> ActiveStateData
+edgeDataToActiveStateData config ( edges, numNodes, difficulty ) =
     let
-        ( edges, numNodes, difficulty ) =
-            edgeData
-
-        nodeIdList =
-            List.range 0 (numNodes - 1)
-
         nodes =
-            List.map (makeNode config numNodes) nodeIdList
+            List.range 0 (numNodes - 1)
+                |> List.map (makeNode config numNodes)
 
         newGameState =
             { nodes = Dict.fromList nodes
             , edges = edges
             , difficulty = difficulty
             , mouseState = DefaultMouseState
-            , isSandbox = True
+            , isSandbox = True -- FIXME
             , mode =
-                PlayingMode
-                    { hasWon = False
-                    , isNarrationVisible = True
-                    }
+                LoadingMode 0
             }
     in
     newGameState
@@ -527,15 +496,6 @@ edgeDataToGameData config edgeData =
 makeNode : Config -> Int -> NodeId -> ( NodeId, Node )
 makeNode config maxNodes nodeId =
     let
-        graphCenterX =
-            800
-
-        graphCenterY =
-            450
-
-        graphRadius =
-            300
-
         rotation =
             toFloat nodeId / toFloat maxNodes
 
@@ -549,26 +509,33 @@ makeNode config maxNodes nodeId =
     , { id = nodeId
 
       -- fixme
-      --, dest = Pos x y
-      --, pos = Pos x y
-      , dest = Pos graphCenterX graphCenterY
-      , pos = Pos graphCenterX graphCenterY
+      , dest = Pos x y
+      , pos = Pos x y
+
+      --, dest = Pos graphCenterX graphCenterY
+      --, pos = Pos graphCenterX graphCenterY
       , vel = Vel 0 0 0 0
       }
     )
 
 
 tick : Time -> ActiveStateData -> ActiveStateData
-tick timeElapsed gameState =
-    let
-        nodes =
-            gameState.nodes
+tick timeElapsed ({ nodes, mode } as activeStateData) =
+    { activeStateData
+        | nodes = Dict.map (animateNode timeElapsed) nodes
+        , mode =
+            case mode of
+                LoadingMode age ->
+                    if age < loadAnimDur then
+                        LoadingMode (age + timeElapsed)
+                    else
+                        PlayingMode
+                            { hasWon = False
+                            , isNarrationVisible = False
+                            }
 
-        newNodes =
-            Dict.map (animateNode timeElapsed) nodes
-    in
-    { gameState
-        | nodes = newNodes
+                _ ->
+                    mode
     }
 
 
