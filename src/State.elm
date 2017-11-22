@@ -22,7 +22,7 @@ init : Config -> Navigation.Location -> ( Model, Cmd Msg )
 init config location =
     case location.hash of
         "#load" ->
-            ( { appState = LoadingState 0 12
+            ( { appState = StartState --LoadingState 0 12
               , config = config
               }
             , generateEdges 5
@@ -70,7 +70,7 @@ update msg model =
 
         -- response from js-land
         GeneratedEdges edgeData ->
-            updateGeneratedEdges model edgeData
+            updateGeneratedEdges model edgeData ! []
 
         ChangeConfigRadius newRadius ->
             updateConfigRadius model newRadius
@@ -79,25 +79,24 @@ update msg model =
             updateGetIntersectionResults model intersectionResultData
 
         StartCampaign ->
-            ( { model | appState = LoadingCampaignState }
-            , generateEdges 1
-              -- TODO load save
-            )
+            ( model, generateEdges 1 )
 
+        --( { model | appState = LoadingCampaignState }
+        --, generateEdges 1
+        --  -- TODO load save
+        --)
         CloseNarration ->
-            case model.appState of
-                ActiveState gameState ->
-                    let
-                        newGameState =
-                            { gameState | isNarrationVisible = False }
-
-                        newModel =
-                            { model | appState = ActiveState newGameState }
-                    in
-                    ( newModel, Cmd.none )
-
-                _ ->
-                    ( model, Cmd.none )
+            --case model.appState of
+            --    ActiveState gameState ->
+            --        let
+            --            newGameState =
+            --                { gameState | isNarrationVisible = False }
+            --            newModel =
+            --                { model | appState = ActiveState newGameState }
+            --        in
+            --        ( newModel, Cmd.none )
+            --    _ ->
+            ( model, Cmd.none )
 
         UrlChange location ->
             ( model, Cmd.none )
@@ -421,34 +420,35 @@ updateAnimation model time =
             in
             ( newModel, Cmd.none )
 
-        LoadingState age numNodes ->
-            ( { model | appState = LoadingState (age + time) numNodes }, Cmd.none )
-
+        --LoadingState age numNodes ->
+        --    ( { model | appState = LoadingState (age + time) numNodes }, Cmd.none )
         _ ->
             ( model, Cmd.none )
 
 
 updateGenerateEdges : Model -> Int -> ( Model, Cmd Msg )
 updateGenerateEdges model difficulty =
-    let
-        newAppState =
-            case model.appState of
-                ActiveState gameState ->
-                    if gameState.isSandbox then
-                        LoadingState 0 24
-                    else
-                        LoadingCampaignState
-
-                _ ->
-                    model.appState
-
-        newModel =
-            { model | appState = newAppState }
-    in
-    ( newModel, generateEdges difficulty )
+    ( model, generateEdges difficulty )
 
 
-updateGeneratedEdges : Model -> EdgeData -> ( Model, Cmd Msg )
+
+--let
+--    newAppState =
+--        case model.appState of
+--            ActiveState gameState ->
+--                if gameState.isSandbox then
+--                    LoadingState 0 24
+--                else
+--                    LoadingCampaignState
+--            _ ->
+--                model.appState
+--    newModel =
+--        { model | appState = newAppState }
+--in
+--( newModel, generateEdges difficulty )
+
+
+updateGeneratedEdges : Model -> EdgeData -> Model
 updateGeneratedEdges model edgeData =
     let
         newGameState =
@@ -456,19 +456,24 @@ updateGeneratedEdges model edgeData =
 
         newAppState =
             case model.appState of
-                LoadingCampaignState ->
-                    ActiveState { newGameState | isSandbox = False }
-
+                --LoadingCampaignState ->
+                --    ActiveState { newGameState | isSandbox = False }
                 ActiveState gameState ->
                     ActiveState { newGameState | isSandbox = gameState.isSandbox }
 
+                --LoadingState age numNodes ->
+                --    ActiveState { newGameState | isSandbox = True }
                 _ ->
                     ActiveState { newGameState | isSandbox = True }
 
         newModel =
             { model | appState = newAppState }
     in
-    ( newModel, checkForIntersections ( Dict.values newGameState.nodes, newGameState.edges ) )
+    newModel
+
+
+
+--checkForIntersections ( Dict.values newGameState.nodes, newGameState.edges ) )
 
 
 updateConfigRadius : Model -> String -> ( Model, Cmd Msg )
@@ -491,7 +496,7 @@ updateConfigRadius model radiusString =
     ( newModel, saveConfig newConfig )
 
 
-edgeDataToGameData : Config -> EdgeData -> GameState
+edgeDataToGameData : Config -> EdgeData -> ActiveStateData
 edgeDataToGameData config edgeData =
     let
         ( edges, numNodes, difficulty ) =
@@ -508,9 +513,12 @@ edgeDataToGameData config edgeData =
             , edges = edges
             , difficulty = difficulty
             , mouseState = DefaultMouseState
-            , hasWon = False
             , isSandbox = True
-            , isNarrationVisible = True
+            , mode =
+                PlayingMode
+                    { hasWon = False
+                    , isNarrationVisible = True
+                    }
             }
     in
     newGameState
@@ -550,7 +558,7 @@ makeNode config maxNodes nodeId =
     )
 
 
-tick : Time -> GameState -> GameState
+tick : Time -> ActiveStateData -> ActiveStateData
 tick timeElapsed gameState =
     let
         nodes =
@@ -604,40 +612,34 @@ isTouching config mousePos node =
 
 
 calculatePosition : Node -> Time -> Pos
-calculatePosition node timeElapsed =
+calculatePosition { dest, pos } timeElapsed =
     let
         dragSpeed =
             1 - (baseWeight / (baseWeight + timeElapsed))
 
-        mouseX =
-            node.dest.x
-
-        mouseY =
-            node.dest.y
-
         distX =
-            mouseX - node.pos.x
+            dest.x - pos.x
 
         distY =
-            mouseY - node.pos.y
+            dest.y - pos.y
 
         newX =
-            node.pos.x + (dragSpeed * distX)
+            pos.x + (dragSpeed * distX)
 
         newY =
-            node.pos.y + (dragSpeed * distY)
+            pos.y + (dragSpeed * distY)
     in
     Pos newX newY
 
 
 calculateVel : Node -> Pos -> Time -> Vel
-calculateVel node newPos timeElapsed =
+calculateVel { pos } newPos timeElapsed =
     let
         xDiff =
-            (newPos.x - node.pos.x) / timeElapsed
+            (newPos.x - pos.x) / timeElapsed
 
         yDiff =
-            (newPos.y - node.pos.y) / timeElapsed
+            (newPos.y - pos.y) / timeElapsed
 
         ( r, a ) =
             toPolar ( xDiff, yDiff )
@@ -646,34 +648,32 @@ calculateVel node newPos timeElapsed =
 
 
 mousePosToPos : MousePos -> Pos
-mousePosToPos mousePos =
-    Pos (1600 * Tuple.first mousePos) (900 * Tuple.second mousePos)
+mousePosToPos ( x, y ) =
+    Pos
+        (1600 * x)
+        (900 * y)
 
 
 updateGetIntersectionResults : Model -> IntersectionResultData -> ( Model, Cmd Msg )
 updateGetIntersectionResults model intersectionResultData =
-    case model.appState of
-        ActiveState gameState ->
-            let
-                isIntersecting =
-                    Tuple.first intersectionResultData
-
-                newEdges =
-                    Tuple.second intersectionResultData
-
-                newGameState =
-                    { gameState
-                        | edges = newEdges
-                        , hasWon = not isIntersecting
-                    }
-
-                newModel =
-                    { model | appState = ActiveState newGameState }
-            in
-            ( newModel, Cmd.none )
-
-        _ ->
-            ( model, Cmd.none )
+    --case model.appState of
+    --    ActiveState gameState ->
+    --        let
+    --            isIntersecting =
+    --                Tuple.first intersectionResultData
+    --            newEdges =
+    --                Tuple.second intersectionResultData
+    --            newGameState =
+    --                { gameState
+    --                    | edges = newEdges
+    --                    , hasWon = not isIntersecting
+    --                }
+    --            newModel =
+    --                { model | appState = ActiveState newGameState }
+    --        in
+    --        ( newModel, Cmd.none )
+    --    _ ->
+    ( model, Cmd.none )
 
 
 

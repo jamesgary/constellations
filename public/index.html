@@ -13,8 +13,7 @@
 
       app.ports.generateEdges.subscribe(function(difficulty) {
         console.log("Generating difficulty of " + difficulty + "...");
-        console.log("AND STOPPING!");
-        //tantaloWorker.postMessage(difficulty);
+        tantaloWorker.postMessage(difficulty);
       });
 
       tantaloWorker.onmessage = function(event) {

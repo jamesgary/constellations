@@ -8,10 +8,9 @@ import Time exposing (Time)
 
 type AppState
     = StartState
-    | LoadingCampaignState
-    | LoadingState Time Int
-      --| LoadingStateWithData Time
-    | ActiveState GameState
+      --| LoadingCampaignState
+      --| LoadingState Time Int (Maybe GameState)
+    | ActiveState ActiveStateData
 
 
 type MouseState
@@ -34,13 +33,23 @@ type alias Config =
     }
 
 
-type alias GameState =
+type alias ActiveStateData =
     { nodes : Dict NodeId Node
     , edges : List Edge
     , difficulty : Int
     , mouseState : MouseState
-    , hasWon : Bool
     , isSandbox : Bool
+    , mode : GameMode
+    }
+
+
+type GameMode
+    = LoadingMode Time
+    | PlayingMode PlayingModeData
+
+
+type alias PlayingModeData =
+    { hasWon : Bool
     , isNarrationVisible : Bool
     }
 
@@ -132,3 +141,38 @@ getNode nodes nodeId =
             , pos = Pos 42 42
             , vel = Vel 0 0 0 0
             }
+
+
+difficultyToNumNodes : Int -> Int
+difficultyToNumNodes diff =
+    -- 1 -> 6 -- 6
+    -- 2 -> 10 -- +4
+    -- 3 -> 15 -- +5
+    -- 4 -> 21 -- +6
+    -- 5 -> 28 -- +7
+    case diff of
+        1 ->
+            6
+
+        _ ->
+            (diff + 2) + difficultyToNumNodes (diff - 1)
+
+
+loadAnimDur =
+    1800
+
+
+graphCenterX =
+    800
+
+
+graphCenterY =
+    450
+
+
+graphRadius =
+    300
+
+
+wait =
+    300

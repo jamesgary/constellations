@@ -24,8 +24,7 @@ angleConvert =
 view : Model -> Html Msg
 view model =
     div
-        [ class "appState-container"
-        ]
+        [ class "appState-container" ]
         (case model.appState of
             StartState ->
                 [ main_ [ Html.Attributes.id "start" ]
@@ -69,12 +68,10 @@ view model =
                     ]
                 ]
 
-            LoadingState age numNodes ->
-                ViewGame.drawLoadingAnim model.config age numNodes
-
-            LoadingCampaignState ->
-                []
-
+            --LoadingState age numNodes ->
+            --    ViewGame.drawLoadingAnim model.config age numNodes
+            --LoadingCampaignState ->
+            --    []
             ActiveState gameState ->
                 ViewGame.drawGameState model.config gameState
         )

@@ -28,7 +28,7 @@ angleConvert =
     180 / pi
 
 
-drawGameState : Config -> GameState -> List (Html Msg)
+drawGameState : Config -> ActiveStateData -> List (Html Msg)
 drawGameState config gameState =
     if gameState.isSandbox then
         [ drawWinModal gameState
@@ -38,7 +38,9 @@ drawGameState config gameState =
         ]
     else
         [ drawWinModal gameState
-        , drawNarration gameState.isNarrationVisible gameState.difficulty
+
+        --, drawNarration gameState.isNarrationVisible gameState.difficulty
+        , drawNarration False gameState.difficulty
         , drawConstellation config gameState
         ]
 
@@ -59,7 +61,7 @@ drawNarration isVisible difficulty =
         ]
 
 
-drawConstellation : Config -> GameState -> Html Msg
+drawConstellation : Config -> ActiveStateData -> Html Msg
 drawConstellation config gameState =
     let
         modClass =
@@ -139,15 +141,16 @@ drawLasso mouseState =
             []
 
 
-drawWinModal : GameState -> Html Msg
+drawWinModal : ActiveStateData -> Html Msg
 drawWinModal gameState =
     let
         isHidden =
-            if gameState.hasWon then
-                False
-            else
-                True
+            True
 
+        --if gameState.hasWon then
+        --    False
+        --else
+        --    True
         className =
             if isHidden then
                 "win-modal hidden"
@@ -440,26 +443,6 @@ drawLoadingAnim config age numNodes =
     ]
 
 
-graphCenterX =
-    800
-
-
-graphCenterY =
-    450
-
-
-graphRadius =
-    300
-
-
-loadAnimDur =
-    900
-
-
-wait =
-    300
-
-
 getLoadAnimPos : Time -> Int -> Int -> Pos
 getLoadAnimPos time id numNodes =
     let
@@ -469,20 +452,23 @@ getLoadAnimPos time id numNodes =
             else
                 min loadAnimDur (time - wait)
 
+        ease =
+            Ease.outElastic (age / loadAnimDur)
+
+        easeRot =
+            Ease.outQuint (age / loadAnimDur)
+
+        easeInv =
+            1 - ease
+
         rotation =
-            toFloat id / toFloat numNodes
+            (toFloat id / toFloat numNodes) + (easeRot * 0.1)
 
         destX =
             graphCenterX + cos (2 * pi * rotation) * graphRadius
 
         destY =
             graphCenterY + sin (2 * pi * rotation) * graphRadius
-
-        ease =
-            Ease.outElastic (age / loadAnimDur)
-
-        easeInv =
-            1 - ease
     in
     Pos (ease * destX + easeInv * graphCenterX)
         (ease * destY + easeInv * graphCenterY)
