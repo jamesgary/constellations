@@ -4,6 +4,7 @@ port module State exposing (init, subscriptions, update)
 
 import AnimationFrame
 import Dict
+import Ease
 import Mouse
 import Navigation
 import Time exposing (Time)
@@ -509,11 +510,10 @@ makeNode config maxNodes nodeId =
     , { id = nodeId
 
       -- fixme
-      , dest = Pos x y
-      , pos = Pos x y
-
-      --, dest = Pos graphCenterX graphCenterY
-      --, pos = Pos graphCenterX graphCenterY
+      --, dest = Pos x y
+      --, pos = Pos x y
+      , dest = Pos graphCenterX graphCenterY
+      , pos = Pos graphCenterX graphCenterY
       , vel = Vel 0 0 0 0
       }
     )
@@ -521,11 +521,14 @@ makeNode config maxNodes nodeId =
 
 tick : Time -> ActiveStateData -> ActiveStateData
 tick timeElapsed ({ nodes, mode } as activeStateData) =
-    { activeStateData
-        | nodes = Dict.map (animateNode timeElapsed) nodes
-        , mode =
-            case mode of
-                LoadingMode age ->
+    case mode of
+        LoadingMode age ->
+            { activeStateData
+                | nodes =
+                    nodes
+                        |> Dict.map (moveNodeForLoadAnim age (Dict.size nodes))
+                        |> Dict.map (animateNode timeElapsed)
+                , mode =
                     if age < loadAnimDur then
                         LoadingMode (age + timeElapsed)
                     else
@@ -533,10 +536,84 @@ tick timeElapsed ({ nodes, mode } as activeStateData) =
                             { hasWon = False
                             , isNarrationVisible = False
                             }
+            }
 
-                _ ->
-                    mode
+        PlayingMode _ ->
+            { activeStateData
+                | nodes =
+                    nodes
+                        |> Dict.map (animateNode timeElapsed)
+            }
+
+
+moveNodeForLoadAnim : Time -> Int -> NodeId -> Node -> Node
+moveNodeForLoadAnim time numNodes id node =
+    let
+        age =
+            if time < wait then
+                0
+            else
+                min loadAnimDur (time - wait)
+
+        ease =
+            Ease.outElastic (age / loadAnimDur)
+
+        easeRot =
+            Ease.outCubic (age / loadAnimDur)
+
+        easeInv =
+            1 - ease
+
+        rotation =
+            (toFloat id / toFloat numNodes) + (easeRot * 0.1)
+
+        destX =
+            graphCenterX + cos (2 * pi * rotation) * graphRadius
+
+        destY =
+            graphCenterY + sin (2 * pi * rotation) * graphRadius
+    in
+    { node
+        | dest =
+            Pos (ease * destX + easeInv * graphCenterX)
+                (ease * destY + easeInv * graphCenterY)
     }
+
+
+
+--getLoadAnimPos : Time -> Int -> Int -> Pos
+--getLoadAnimPos time id numNodes =
+--    let
+--
+--        ease =
+--            Ease.outElastic (age / loadAnimDur)
+--
+--        easeRot =
+--            Ease.outCubic (age / loadAnimDur)
+--
+--        easeInv =
+--            1 - ease
+--
+--        rotation =
+--            (toFloat id / toFloat numNodes) + (easeRot * 0.1)
+--
+--        destX =
+--            graphCenterX + cos (2 * pi * rotation) * graphRadius
+--
+--        destY =
+--            graphCenterY + sin (2 * pi * rotation) * graphRadius
+--    in
+--    Pos (ease * destX + easeInv * graphCenterX)
+--        (ease * destY + easeInv * graphCenterY)
+--
+--
+--posToNode : Int -> Pos -> Node
+--posToNode id pos =
+--    { id = id
+--    , dest = pos
+--    , pos = pos
+--    , vel = Vel 0 0 0 0
+--    }
 
 
 animateNode : Time -> NodeId -> Node -> Node

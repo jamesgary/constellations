@@ -143,11 +143,11 @@ getNode nodes nodeId =
 
 difficultyToNumNodes : Int -> Int
 difficultyToNumNodes diff =
-    -- 1 -> 6 -- 6
-    -- 2 -> 10 -- +4
-    -- 3 -> 15 -- +5
-    -- 4 -> 21 -- +6
-    -- 5 -> 28 -- +7
+    -- 1 ->  6
+    -- 2 -> 10
+    -- 3 -> 15
+    -- 4 -> 21
+    -- 5 -> 28
     case diff of
         1 ->
             6

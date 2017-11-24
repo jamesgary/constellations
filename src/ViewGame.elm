@@ -63,50 +63,52 @@ drawNarration isVisible difficulty =
 
 drawConstellation : Config -> ActiveStateData -> Html Msg
 drawConstellation config { mouseState, nodes, edges, mode, difficulty } =
-    case mode of
-        LoadingMode age ->
-            div [] (drawLoadingAnim config age (difficultyToNumNodes difficulty))
+    let
+        modClass =
+            case mouseState of
+                HoveringMouseState _ ->
+                    "is-hovering"
 
-        PlayingMode { hasWon, isNarrationVisible } ->
-            let
-                modClass =
-                    case mouseState of
-                        HoveringMouseState _ ->
-                            "is-hovering"
+                DraggingMouseState _ _ _ ->
+                    "is-dragging"
 
-                        DraggingMouseState _ _ _ ->
-                            "is-dragging"
+                LassoingMouseState _ _ _ ->
+                    "is-lassoing"
 
-                        LassoingMouseState _ _ _ ->
-                            "is-lassoing"
+                _ ->
+                    ""
 
-                        _ ->
-                            ""
-
-                constellationGlassClass =
-                    "constellation-glass " ++ modClass
-            in
-            div [ class "constellation-container" ]
-                [ svg
-                    [ class "constellation"
-                    , viewBox "0 0 1600 900"
-                    ]
-                    (List.concat
-                        [ drawEdges nodes edges
-                        , drawNodes config
-                            mouseState
-                            (List.reverse (Dict.values nodes))
-                        , drawLasso mouseState
-                        ]
-                    )
-                , div
-                    [ class constellationGlassClass
-                    , onMouseMove
-                    , onMouseUp
-                    , onMouseDown
-                    ]
-                    []
+        constellationGlassClass =
+            "constellation-glass " ++ modClass
+    in
+    div [ class "constellation-container" ]
+        [ svg
+            [ class "constellation"
+            , viewBox "0 0 1600 900"
+            ]
+            (List.concat
+                [ drawEdges nodes edges
+                , drawNodes config
+                    mouseState
+                    (List.reverse (Dict.values nodes))
+                , drawLasso mouseState
                 ]
+            )
+        , div
+            [ class constellationGlassClass
+            , onMouseMove
+            , onMouseUp
+            , onMouseDown
+            ]
+            []
+        ]
+
+
+
+--case mode of
+--    LoadingMode age ->
+--        div [] (drawLoadingAnim config age (difficultyToNumNodes difficulty))
+--    PlayingMode { hasWon, isNarrationVisible } ->
 
 
 drawLasso : MouseState -> List (Html Msg)
