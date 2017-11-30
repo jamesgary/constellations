@@ -486,7 +486,7 @@ edgeDataToActiveStateData config ( edges, numNodes, difficulty ) =
             , edges = edges
             , difficulty = difficulty
             , mouseState = DefaultMouseState
-            , isSandbox = True -- FIXME
+            , isSandbox = False --True -- FIXME
             , mode =
                 LoadingMode 0
             }

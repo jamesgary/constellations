@@ -39,6 +39,7 @@
       function loadConfig() {
         var config = {
           radius: parseFloat(localStorage.getItem("config:radius")) || 25,
+          showStella: false, // DEBUGGING
         };
         console.log("Loading config:", config);
         return config;

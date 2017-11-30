@@ -1,0 +1,38 @@
+.stella {
+}
+
+.stella .face {
+  fill: #fdd;
+  stroke: #d66;
+
+  //cx: 150px;
+  //cy: 150px;
+
+  //rx: 100px;
+  //ry: 100px;
+  stroke-width: 2px;
+}
+
+.stella .eye {
+  fill: #000;
+}
+
+.stella .eye1 {
+  cx: 129px;
+  cy: 127px;
+
+  rx: 6px;
+  ry: 11px;
+}
+
+.stella .eye2 {
+  cx: 189px;
+  cy: 126px;
+
+  rx: 5px;
+  ry: 10px;
+}
+
+.mouth {
+  fill: #400;
+}

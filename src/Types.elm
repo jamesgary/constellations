@@ -14,6 +14,7 @@ type alias Model =
 
 type alias Config =
     { radius : Float
+    , showStella : Bool
     }
 
 
@@ -174,3 +175,8 @@ graphRadius =
 
 wait =
     300
+
+
+px : Float -> String
+px number =
+    toString number ++ "px"

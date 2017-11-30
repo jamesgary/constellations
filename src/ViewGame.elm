@@ -40,16 +40,17 @@ drawGameState config gameState =
         [ drawWinModal gameState
 
         --, drawNarration gameState.isNarrationVisible gameState.difficulty
-        , drawNarration False gameState.difficulty
+        , drawNarration gameState.difficulty
         , drawConstellation config gameState
         ]
 
 
-drawNarration : Bool -> Int -> Html Msg
-drawNarration isVisible difficulty =
+drawNarration : Int -> Html Msg
+drawNarration difficulty =
     let
         className =
-            if isVisible then
+            if True then
+                --isVisible then
                 "narration"
             else
                 "narration is-hidden"
@@ -152,12 +153,13 @@ drawWinModal : ActiveStateData -> Html Msg
 drawWinModal gameState =
     let
         isHidden =
-            True
+            case gameState.mode of
+                LoadingMode _ ->
+                    True
 
-        --if gameState.hasWon then
-        --    False
-        --else
-        --    True
+                PlayingMode { hasWon } ->
+                    not hasWon
+
         className =
             if isHidden then
                 "win-modal hidden"
@@ -371,11 +373,6 @@ getBlur node =
 aToDegs : Float -> Float
 aToDegs a =
     angleConvert * a
-
-
-px : Float -> String
-px number =
-    toString number ++ "px"
 
 
 onMouseMove : Attribute Msg
