@@ -12,8 +12,15 @@
       var app = Elm.Main.fullscreen(loadConfig());
 
       app.ports.generateEdges.subscribe(function(difficulty) {
-        console.log("Generating difficulty of " + difficulty + "...");
-        tantaloWorker.postMessage(difficulty);
+        if (difficulty === 1) {
+          // sometimes we can randomly generate a presolved level,
+          // so just hardcode the first one
+          console.log("Sending hardcoded edge data for difficulty 1:", firstLevel);
+          app.ports.generatedEdges.send(firstLevel);
+        } else {
+          console.log("Generating difficulty of " + difficulty + "...");
+          tantaloWorker.postMessage(difficulty);
+        }
       });
 
       tantaloWorker.onmessage = function(event) {
@@ -102,6 +109,18 @@
 
         return (s >= 0 && s <= 1 && t >= 0 && t <= 1);
       }
+
+      var firstLevel = [[
+          {"id":0,"pair":[3,4],"overlappingEdges":[]},
+          {"id":1,"pair":[4,2],"overlappingEdges":[]},
+          {"id":2,"pair":[3,1],"overlappingEdges":[]},
+          {"id":3,"pair":[1,5],"overlappingEdges":[]},
+          {"id":4,"pair":[4,1],"overlappingEdges":[]},
+          {"id":5,"pair":[1,0],"overlappingEdges":[]},
+          {"id":6,"pair":[2,5],"overlappingEdges":[]},
+          {"id":7,"pair":[5,0],"overlappingEdges":[]},
+        ], 6, 1,
+      ];
     </script>
   </body>
 </html>
