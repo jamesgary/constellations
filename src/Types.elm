@@ -174,7 +174,7 @@ graphRadius =
 
 
 wait =
-    300
+    500
 
 
 px : Float -> String

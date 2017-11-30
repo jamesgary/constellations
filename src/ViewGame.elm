@@ -30,9 +30,18 @@ angleConvert =
 
 drawGameState : Config -> ActiveStateData -> List (Html Msg)
 drawGameState config gameState =
-    [ drawWinModal gameState
+    [ drawInstructions gameState
+    , drawWinModal gameState
     , drawConstellation config gameState
     ]
+
+
+drawInstructions : ActiveStateData -> Html Msg
+drawInstructions { difficulty } =
+    if difficulty == 1 then
+        p [ class "instructions" ] [ text "Please drag the stars so no edges overlap!" ]
+    else
+        text ""
 
 
 
