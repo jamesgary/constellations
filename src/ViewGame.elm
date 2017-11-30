@@ -10,7 +10,7 @@ import Html.Events exposing (on)
 import Json.Decode as Decode
 import Mouse
 import Svg exposing (..)
-import Svg.Attributes exposing (class, cx, cy, fill, height, rx, ry, transform, viewBox, width, x, x1, x2, y, y1, y2)
+import Svg.Attributes exposing (class, cx, cy, dx, dy, fill, height, rx, ry, stdDeviation, transform, viewBox, width, x, x1, x2, y, y1, y2)
 import Svg.Events
 import Time exposing (Time)
 import Types exposing (..)
@@ -30,19 +30,24 @@ angleConvert =
 
 drawGameState : Config -> ActiveStateData -> List (Html Msg)
 drawGameState config gameState =
-    if gameState.isSandbox then
-        [ drawWinModal gameState
-        , drawConstellation config gameState
-        , drawLevelSelect gameState.difficulty
-        , drawConfig config
-        ]
-    else
-        [ drawWinModal gameState
+    [ drawWinModal gameState
+    , drawConstellation config gameState
+    ]
 
-        --, drawNarration gameState.isNarrationVisible gameState.difficulty
-        , drawNarration gameState.difficulty
-        , drawConstellation config gameState
-        ]
+
+
+--if gameState.isSandbox then
+--    [ drawWinModal gameState
+--    , drawConstellation config gameState
+--    , drawLevelSelect gameState.difficulty
+--    , drawConfig config
+--    ]
+--else
+--    [ drawWinModal gameState
+--    --, drawNarration gameState.isNarrationVisible gameState.difficulty
+--    , drawNarration gameState.difficulty
+--    , drawConstellation config gameState
+--    ]
 
 
 drawNarration : Int -> Html Msg
@@ -88,7 +93,8 @@ drawConstellation config { mouseState, nodes, edges, mode, difficulty } =
             , viewBox "0 0 1600 900"
             ]
             (List.concat
-                [ drawEdges nodes edges
+                [ --drawDefs
+                  drawEdges nodes edges
                 , drawNodes config
                     mouseState
                     (List.reverse (Dict.values nodes))
@@ -103,6 +109,16 @@ drawConstellation config { mouseState, nodes, edges, mode, difficulty } =
             ]
             []
         ]
+
+
+drawDefs : List (Html Msg)
+drawDefs =
+    [ defs []
+        [ filter [ Svg.Attributes.id "shadow" ]
+            [ feDropShadow [ dx "4", dy "8", stdDeviation "4" ] []
+            ]
+        ]
+    ]
 
 
 
@@ -562,3 +578,8 @@ posToNode id pos =
 --        ]
 --        []
 --    ]
+
+
+feDropShadow : List (Svg.Attribute Msg) -> List (Svg Msg) -> Svg Msg
+feDropShadow attributes children =
+    Svg.node "feDropShadow" attributes children

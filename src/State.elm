@@ -486,9 +486,7 @@ edgeDataToActiveStateData config ( edges, numNodes, difficulty ) =
             , edges = edges
             , difficulty = difficulty
             , mouseState = DefaultMouseState
-            , isSandbox = False --True -- FIXME
-            , mode =
-                LoadingMode 0
+            , mode = LoadingMode 0
             }
     in
     newGameState
@@ -532,10 +530,7 @@ tick timeElapsed ({ nodes, mode } as activeStateData) =
                     if age < loadAnimDur then
                         LoadingMode (age + timeElapsed)
                     else
-                        PlayingMode
-                            { hasWon = False
-                            , isNarrationVisible = False
-                            }
+                        PlayingMode { hasWon = False }
             }
 
         PlayingMode _ ->
@@ -700,24 +695,28 @@ mousePosToPos ( x, y ) =
 
 updateGetIntersectionResults : Model -> IntersectionResultData -> ( Model, Cmd Msg )
 updateGetIntersectionResults model intersectionResultData =
-    --case model.appState of
-    --    ActiveState gameState ->
-    --        let
-    --            isIntersecting =
-    --                Tuple.first intersectionResultData
-    --            newEdges =
-    --                Tuple.second intersectionResultData
-    --            newGameState =
-    --                { gameState
-    --                    | edges = newEdges
-    --                    , hasWon = not isIntersecting
-    --                }
-    --            newModel =
-    --                { model | appState = ActiveState newGameState }
-    --        in
-    --        ( newModel, Cmd.none )
-    --    _ ->
-    ( model, Cmd.none )
+    case model.appState of
+        ActiveState gameState ->
+            let
+                isIntersecting =
+                    Tuple.first intersectionResultData
+
+                newEdges =
+                    Tuple.second intersectionResultData
+
+                newGameState =
+                    { gameState
+                        | edges = newEdges
+                        , mode = PlayingMode { hasWon = not isIntersecting }
+                    }
+
+                newModel =
+                    { model | appState = ActiveState newGameState }
+            in
+            ( newModel, Cmd.none )
+
+        _ ->
+            ( model, Cmd.none )
 
 
 

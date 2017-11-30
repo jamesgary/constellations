@@ -28,7 +28,6 @@ type alias ActiveStateData =
     , edges : List Edge
     , difficulty : Int
     , mouseState : MouseState
-    , isSandbox : Bool
     , mode : GameMode
     }
 
@@ -40,7 +39,8 @@ type GameMode
 
 type alias PlayingModeData =
     { hasWon : Bool
-    , isNarrationVisible : Bool
+
+    --, isNarrationVisible : Bool
     }
 
 

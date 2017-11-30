@@ -1,4 +1,4 @@
-$background: hsl(213, 55%, 7%);
+$background: hsl(213, 55%, 0%);
 
 * {
   -webkit-touch-callout: none; /* iOS Safari */
@@ -26,7 +26,7 @@ html, body {
   padding: 0;
   overflow: hidden;
   font-family: 'Comfortaa', cursive;
-  background: black;
+  background: #001;
 }
 
 button {
@@ -38,8 +38,8 @@ button {
 
 .appState-container {
   @include centered;
-  background: $background;
-  border: 2px solid lighten($background, 20%);
+  background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
+  border: 2px solid #004854; //2px solid lighten($background, 20%);
 
   // maintain a 16:9 ratio, 90% the max screen size
   // From http://stackoverflow.com/a/20593342

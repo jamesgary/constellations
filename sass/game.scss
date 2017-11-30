@@ -1,13 +1,13 @@
-$nodeFill: hsl(49, 89%, 76%);
-$hoveringNodeFill: hsl(176, 52%, 52%);
-$draggingNodeFill: hsl(176, 42%, 47%);
-$neighborNodeFill: hsl(309, 89%, 70%);
+$nodeFill: hsl(49, 100%, 95%);
+$hoveringNodeFill: hsl(309, 100%, 80%);
+$draggingNodeFill: hsl(309, 80%, 70%);
+$neighborNodeFill: hsl(62, 100%, 70%);
 $lassoingNodeFill: hsl(100, 89%, 70%);
 $lassoedNodeFill: hsl(90, 89%, 70%);
 $lassoedNodeStroke: hsl(90, 100%, 90%);
 
-$edgeFillOpacity: 0.3;
-$edgeFill: hsl(51, 100%, 77%);
+$edgeFillOpacity: 0.4;
+$edgeFill: hsl(51, 100%, 90%);
 
 // Gets us an opaque version of edge fill
 $nodeStroke: mix($edgeFill, $background, (100 * $edgeFillOpacity));
@@ -66,8 +66,8 @@ $edgeWidth: 3px;
 /* Lasso */
 
 .lasso {
-  fill: transparentize($hoveringNodeFill, 0.9);
-  stroke: $hoveringNodeFill;
+  fill: transparentize($lassoingNodeFill, 0.9);
+  stroke: $lassoingNodeFill;
   stroke-width: $edgeWidth;
   stroke-dasharray: 8 8;
 }
