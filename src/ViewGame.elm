@@ -38,10 +38,15 @@ drawGameState config gameState =
 
 drawInstructions : ActiveStateData -> Html Msg
 drawInstructions { difficulty } =
-    if difficulty == 1 then
-        p [ class "instructions" ] [ text "Please drag the stars so no edges overlap!" ]
-    else
-        text ""
+    case difficulty of
+        1 ->
+            p [ class "instructions" ] [ text "Please drag the stars so that no edges overlap!" ]
+
+        2 ->
+            p [ class "instructions" ] [ text "Thank you very much!" ]
+
+        _ ->
+            text ""
 
 
 
