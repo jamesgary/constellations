@@ -82,23 +82,6 @@ update msg model =
         StartCampaign ->
             ( model, generateEdges 1 )
 
-        --( { model | appState = LoadingCampaignState }
-        --, generateEdges 1
-        --  -- TODO load save
-        --)
-        CloseNarration ->
-            --case model.appState of
-            --    ActiveState gameState ->
-            --        let
-            --            newGameState =
-            --                { gameState | isNarrationVisible = False }
-            --            newModel =
-            --                { model | appState = ActiveState newGameState }
-            --        in
-            --        ( newModel, Cmd.none )
-            --    _ ->
-            ( model, Cmd.none )
-
         UrlChange location ->
             ( model, Cmd.none )
 
@@ -106,17 +89,17 @@ update msg model =
 updateMouseMove : Model -> MousePos -> ( Model, Cmd Msg )
 updateMouseMove model newMousePos =
     case model.appState of
-        ActiveState gameState ->
+        ActiveState ({ mouseState, nodes } as gameState) ->
             let
                 newPos =
                     mousePosToPos newMousePos
 
                 newGameState =
-                    case gameState.mouseState of
+                    case mouseState of
                         DefaultMouseState ->
                             let
                                 topTouchingNodeId =
-                                    getTopTouchingNodeId model.config newPos gameState.nodes
+                                    getTopTouchingNodeId model.config newPos nodes
 
                                 newMouseState =
                                     case topTouchingNodeId of
@@ -131,7 +114,7 @@ updateMouseMove model newMousePos =
                         HoveringMouseState _ ->
                             let
                                 topTouchingNodeId =
-                                    getTopTouchingNodeId model.config newPos gameState.nodes
+                                    getTopTouchingNodeId model.config newPos nodes
 
                                 newMouseState =
                                     case topTouchingNodeId of
@@ -146,7 +129,7 @@ updateMouseMove model newMousePos =
                         DraggingMouseState nodeId offset neighboringNodeIds ->
                             let
                                 draggedNode =
-                                    getNode gameState.nodes nodeId
+                                    getNode nodes nodeId
 
                                 destX =
                                     newPos.x + offset.x
@@ -161,14 +144,14 @@ updateMouseMove model newMousePos =
                                     { draggedNode | dest = newDest }
 
                                 newNodes =
-                                    Dict.insert nodeId newDraggedNode gameState.nodes
+                                    Dict.insert nodeId newDraggedNode nodes
                             in
                             { gameState | nodes = newNodes }
 
                         LassoingMouseState startPos _ nodeIds ->
                             let
                                 lassoedNodes =
-                                    List.filterMap (nodeInBoxFilterMap startPos newPos) (Dict.values gameState.nodes)
+                                    List.filterMap (nodeInBoxFilterMap startPos newPos) (Dict.values nodes)
 
                                 newMouseState =
                                     LassoingMouseState startPos newPos lassoedNodes
@@ -181,7 +164,7 @@ updateMouseMove model newMousePos =
                         DraggingLassoedMouseState nodeOffsetList ->
                             let
                                 newNodes =
-                                    List.foldr (moveNodeOffset newPos) gameState.nodes nodeOffsetList
+                                    List.foldr (moveNodeOffset newPos) nodes nodeOffsetList
                             in
                             { gameState | nodes = newNodes }
 
@@ -221,6 +204,7 @@ moveNodeOffset mousePos ( nodeId, offset ) nodes =
     Dict.insert nodeId newNode nodes
 
 
+nodeInBoxFilterMap : Pos -> Pos -> Node -> Maybe NodeId
 nodeInBoxFilterMap pos1 pos2 node =
     let
         nodeX =
@@ -421,8 +405,6 @@ updateAnimation model time =
             in
             ( newModel, Cmd.none )
 
-        --LoadingState age numNodes ->
-        --    ( { model | appState = LoadingState (age + time) numNodes }, Cmd.none )
         _ ->
             ( model, Cmd.none )
 
@@ -430,23 +412,6 @@ updateAnimation model time =
 updateGenerateEdges : Model -> Int -> ( Model, Cmd Msg )
 updateGenerateEdges model difficulty =
     ( model, generateEdges difficulty )
-
-
-
---let
---    newAppState =
---        case model.appState of
---            ActiveState gameState ->
---                if gameState.isSandbox then
---                    LoadingState 0 24
---                else
---                    LoadingCampaignState
---            _ ->
---                model.appState
---    newModel =
---        { model | appState = newAppState }
---in
---( newModel, generateEdges difficulty )
 
 
 updateGeneratedEdges : Model -> EdgeData -> Model
@@ -506,10 +471,6 @@ makeNode config maxNodes nodeId =
     in
     ( nodeId
     , { id = nodeId
-
-      -- fixme
-      --, dest = Pos x y
-      --, pos = Pos x y
       , dest = Pos graphCenterX graphCenterY
       , pos = Pos graphCenterX graphCenterY
       , vel = Vel 0 0 0 0
@@ -573,42 +534,6 @@ moveNodeForLoadAnim time numNodes id node =
             Pos (ease * destX + easeInv * graphCenterX)
                 (ease * destY + easeInv * graphCenterY)
     }
-
-
-
---getLoadAnimPos : Time -> Int -> Int -> Pos
---getLoadAnimPos time id numNodes =
---    let
---
---        ease =
---            Ease.outElastic (age / loadAnimDur)
---
---        easeRot =
---            Ease.outCubic (age / loadAnimDur)
---
---        easeInv =
---            1 - ease
---
---        rotation =
---            (toFloat id / toFloat numNodes) + (easeRot * 0.1)
---
---        destX =
---            graphCenterX + cos (2 * pi * rotation) * graphRadius
---
---        destY =
---            graphCenterY + sin (2 * pi * rotation) * graphRadius
---    in
---    Pos (ease * destX + easeInv * graphCenterX)
---        (ease * destY + easeInv * graphCenterY)
---
---
---posToNode : Int -> Pos -> Node
---posToNode id pos =
---    { id = id
---    , dest = pos
---    , pos = pos
---    , vel = Vel 0 0 0 0
---    }
 
 
 animateNode : Time -> NodeId -> Node -> Node

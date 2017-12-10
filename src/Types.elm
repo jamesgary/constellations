@@ -39,8 +39,6 @@ type GameMode
 
 type alias PlayingModeData =
     { hasWon : Bool
-
-    --, isNarrationVisible : Bool
     }
 
 
@@ -95,11 +93,8 @@ type alias EdgeId =
 
 
 type alias EdgeData =
+    -- edges, numNodes, difficulty
     ( List Edge, Int, Int )
-
-
-
--- edges, numNodes, difficulty
 
 
 type alias IntersectionResultData =
@@ -107,19 +102,15 @@ type alias IntersectionResultData =
 
 
 type Msg
-    = GenerateEdges Int
-      -- numNodes
+    = GenerateEdges Int -- numNodes
     | GeneratedEdges EdgeData
     | MouseDown MousePos
     | MouseMove MousePos
     | MouseUp MousePos
     | AnimationMsg Time
-      -- config stuff
-      --| ChangeDifficulty String
     | ChangeConfigRadius String
     | GetIntersectionResults IntersectionResultData
     | StartCampaign
-    | CloseNarration
     | UrlChange Navigation.Location
 
 

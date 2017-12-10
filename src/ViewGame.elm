@@ -1,7 +1,5 @@
 module ViewGame exposing (drawGameState, drawLoadingAnim)
 
--- mine
-
 import Dict exposing (Dict)
 import Ease
 import Html exposing (Html, br, button, div, h1, h2, main_, p, span)
@@ -49,38 +47,6 @@ drawInstructions { difficulty } =
             text ""
 
 
-
---if gameState.isSandbox then
---    [ drawWinModal gameState
---    , drawConstellation config gameState
---    , drawLevelSelect gameState.difficulty
---    , drawConfig config
---    ]
---else
---    [ drawWinModal gameState
---    --, drawNarration gameState.isNarrationVisible gameState.difficulty
---    , drawNarration gameState.difficulty
---    , drawConstellation config gameState
---    ]
-
-
-drawNarration : Int -> Html Msg
-drawNarration difficulty =
-    let
-        className =
-            if True then
-                --isVisible then
-                "narration"
-            else
-                "narration is-hidden"
-    in
-    div
-        [ class className ]
-        [ p [] [ text (difficultyToNarration difficulty) ]
-        , button [ class "btn", Html.Events.onClick CloseNarration ] [ text "OK" ]
-        ]
-
-
 drawConstellation : Config -> ActiveStateData -> Html Msg
 drawConstellation config { mouseState, nodes, edges, mode, difficulty } =
     let
@@ -107,8 +73,7 @@ drawConstellation config { mouseState, nodes, edges, mode, difficulty } =
             , viewBox "0 0 1600 900"
             ]
             (List.concat
-                [ --drawDefs
-                  drawEdges nodes edges
+                [ drawEdges nodes edges
                 , drawNodes config
                     mouseState
                     (List.reverse (Dict.values nodes))
@@ -123,23 +88,6 @@ drawConstellation config { mouseState, nodes, edges, mode, difficulty } =
             ]
             []
         ]
-
-
-drawDefs : List (Html Msg)
-drawDefs =
-    [ defs []
-        [ filter [ Svg.Attributes.id "shadow" ]
-            [ feDropShadow [ dx "4", dy "8", stdDeviation "4" ] []
-            ]
-        ]
-    ]
-
-
-
---case mode of
---    LoadingMode age ->
---        div [] (drawLoadingAnim config age (difficultyToNumNodes difficulty))
---    PlayingMode { hasWon, isNarrationVisible } ->
 
 
 drawLasso : MouseState -> List (Html Msg)
@@ -433,28 +381,6 @@ decodeClickLocation =
         )
 
 
-difficultyToNarration : Int -> String
-difficultyToNarration difficulty =
-    case difficulty of
-        1 ->
-            "Untangle the stars so that no edges overlap."
-
-        2 ->
-            "Great job! Can you solve this one, too?"
-
-        3 ->
-            "Huzzah! There's three more constellations to untangle. Can you solve them all?"
-
-        4 ->
-            "You're over halfway there! Take my hand, we'll make it, I swear."
-
-        5 ->
-            "It's the final level! Get ready!"
-
-        _ ->
-            "I AM ERROR"
-
-
 drawLoadingAnim : Config -> Time -> Int -> List (Html Msg)
 drawLoadingAnim config age numNodes =
     [ drawLevelSelect numNodes
@@ -515,85 +441,3 @@ posToNode id pos =
     , pos = pos
     , vel = Vel 0 0 0 0
     }
-
-
-
---type alias Node =
---    { id : NodeId
---    , dest : Pos
---    , pos : Pos
---    , vel : Vel
---    }
---drawNode : Config -> MouseState -> Node -> List (Html Msg)
---drawNode config mouseState node =
---    let
---        realPosition =
---            node.pos
---
---        stretch =
---            baseStretch * node.vel.r
---
---        blur =
---            getBlur node
---
---        rad =
---            config.radius
---
---        realXRad =
---            rad + stretch
---
---        realYRad =
---            rad * (rad / realXRad)
---
---        className =
---            case mouseState of
---                DefaultMouseState ->
---                    ""
---
---                HoveringMouseState hoveredId ->
---                    if node.id == hoveredId then
---                        "is-hovering"
---                    else
---                        ""
---
---                DraggingMouseState draggedId pos neighborIds ->
---                    if node.id == draggedId then
---                        "is-dragging"
---                    else if List.member node.id neighborIds then
---                        "is-neighboring"
---                    else
---                        ""
---
---                LassoingMouseState startPos curPos nodeIds ->
---                    if List.member node.id nodeIds then
---                        "is-lassoing"
---                    else
---                        ""
---
---                LassoedMouseState nodeIds ->
---                    if List.member node.id nodeIds then
---                        "is-lassoed"
---                    else
---                        ""
---
---                DraggingLassoedMouseState offsetNodeList ->
---                    if List.member node.id (List.map Tuple.first offsetNodeList) then
---                        "is-lassoing"
---                    else
---                        ""
---    in
---    [ ellipse
---        [ cx (px realPosition.x)
---        , cy (px realPosition.y)
---        , rx (toString realXRad)
---        , ry (toString realYRad)
---        , transform (getTransform node)
---        , class ("node " ++ className)
---        ]
---        []
---    ]
-
-
-feDropShadow : List (Svg.Attribute Msg) -> List (Svg Msg) -> Svg Msg
-feDropShadow attributes children =
-    Svg.node "feDropShadow" attributes children
