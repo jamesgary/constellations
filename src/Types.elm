@@ -1,5 +1,6 @@
 module Types exposing (..)
 
+import Color exposing (Color)
 import Dict exposing (Dict)
 import Mouse
 import Navigation
@@ -15,6 +16,12 @@ type alias Model =
 type alias Config =
     { radius : Float
     , showStella : Bool
+    }
+
+
+type alias Shape =
+    { pts : List Pos
+    , color : String --Color
     }
 
 
@@ -34,12 +41,8 @@ type alias ActiveStateData =
 
 type GameMode
     = LoadingMode Time
-    | PlayingMode PlayingModeData
-
-
-type alias PlayingModeData =
-    { hasWon : Bool
-    }
+    | PlayingMode
+    | WonMode Time (List Shape)
 
 
 type MouseState
@@ -126,11 +129,17 @@ getNode nodes nodeId =
 
         Nothing ->
             -- should never happen
-            { id = -1
-            , dest = Pos 42 42
-            , pos = Pos 42 42
-            , vel = Vel 0 0 0 0
-            }
+            nothingNode
+
+
+nothingNode : Node
+nothingNode =
+    -- should never happen
+    { id = -1
+    , dest = Pos 42 42
+    , pos = Pos 42 42
+    , vel = Vel 0 0 0 0
+    }
 
 
 difficultyToNumNodes : Int -> Int

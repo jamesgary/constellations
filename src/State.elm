@@ -3,8 +3,10 @@ port module State exposing (init, subscriptions, update)
 -- mine
 
 import AnimationFrame
-import Dict
+import Color
+import Dict exposing (Dict)
 import Ease
+import List.Extra
 import Mouse
 import Navigation
 import Time exposing (Time)
@@ -177,7 +179,7 @@ updateMouseMove model newMousePos =
             ( model, Cmd.none )
 
 
-moveNodeOffset : Pos -> ( NodeId, Pos ) -> Dict.Dict NodeId Node -> Dict.Dict NodeId Node
+moveNodeOffset : Pos -> ( NodeId, Pos ) -> Dict NodeId Node -> Dict NodeId Node
 moveNodeOffset mousePos ( nodeId, offset ) nodes =
     let
         buffer =
@@ -231,7 +233,7 @@ nodeInBoxFilterMap pos1 pos2 node =
         Nothing
 
 
-getTopTouchingNodeId : Config -> Pos -> Dict.Dict NodeId Node -> Maybe NodeId
+getTopTouchingNodeId : Config -> Pos -> Dict NodeId Node -> Maybe NodeId
 getTopTouchingNodeId config mousePos nodes =
     let
         nodeList =
@@ -351,7 +353,7 @@ updateMouseDown model newMousePos =
             ( model, Cmd.none )
 
 
-nodeIdToNodeOffset : Pos -> Dict.Dict NodeId Node -> NodeId -> ( NodeId, Pos )
+nodeIdToNodeOffset : Pos -> Dict NodeId Node -> NodeId -> ( NodeId, Pos )
 nodeIdToNodeOffset mousePos nodes nodeId =
     let
         node =
@@ -491,14 +493,22 @@ tick timeElapsed ({ nodes, mode } as activeStateData) =
                     if age < loadAnimDur then
                         LoadingMode (age + timeElapsed)
                     else
-                        PlayingMode { hasWon = False }
+                        PlayingMode
             }
 
-        PlayingMode _ ->
+        PlayingMode ->
             { activeStateData
                 | nodes =
                     nodes
                         |> Dict.map (animateNode timeElapsed)
+            }
+
+        WonMode time shapes ->
+            { activeStateData
+                | nodes = nodes |> Dict.map (animateNode timeElapsed)
+                , mode =
+                    --TODO maybe shimmer here?
+                    WonMode (time + timeElapsed) shapes
             }
 
 
@@ -619,8 +629,8 @@ mousePosToPos ( x, y ) =
 
 
 updateGetIntersectionResults : Model -> IntersectionResultData -> ( Model, Cmd Msg )
-updateGetIntersectionResults model intersectionResultData =
-    case model.appState of
+updateGetIntersectionResults ({ appState } as model) intersectionResultData =
+    case appState of
         ActiveState gameState ->
             let
                 isIntersecting =
@@ -632,7 +642,11 @@ updateGetIntersectionResults model intersectionResultData =
                 newGameState =
                     { gameState
                         | edges = newEdges
-                        , mode = PlayingMode { hasWon = not isIntersecting }
+                        , mode =
+                            if isIntersecting then
+                                PlayingMode
+                            else
+                                WonMode 0 (getShapes gameState.nodes newEdges)
                     }
 
                 newModel =
@@ -642,6 +656,205 @@ updateGetIntersectionResults model intersectionResultData =
 
         _ ->
             ( model, Cmd.none )
+
+
+getShapes : Dict NodeId Node -> List Edge -> List Shape
+getShapes nodes edges =
+    edges
+        |> List.map
+            (\{ pair } ->
+                let
+                    ( id1, id2 ) =
+                        pair
+
+                    node1 =
+                        getNode nodes id1
+
+                    node2 =
+                        getNode nodes id2
+                in
+                [ getShapeNodeIdsForRay nodes edges ( node1, node2 )
+                , getShapeNodeIdsForRay nodes edges ( node2, node1 )
+                ]
+            )
+        |> List.concat
+        -- reduce shapes to unique-ify
+        |> List.Extra.uniqueBy
+            (\nodeIds ->
+                List.sort nodeIds
+            )
+        |> Debug.log "uniqued"
+        |> List.map
+            (\nodeIds ->
+                { pts =
+                    nodeIds
+                        |> List.map (getNode nodes)
+                        |> List.map (\{ pos } -> pos)
+                , color = "lightblue"
+                }
+            )
+        |> (\shapes ->
+                Debug.log ("getShapes " ++ toString (List.length shapes)) shapes
+           )
+
+
+getShapeNodeIdsForRay : Dict NodeId Node -> List Edge -> ( Node, Node ) -> List NodeId
+getShapeNodeIdsForRay nodes edges (( node1, node2 ) as ray) =
+    getShapeForRayHelper nodes edges node1 [ node2, node1 ] ray
+        |> List.map .id
+
+
+getShapeForRayHelper : Dict NodeId Node -> List Edge -> Node -> List Node -> ( Node, Node ) -> List Node
+getShapeForRayHelper nodes edges genesisNode shapeNodes ( node1, node2 ) =
+    -- get neighbors of node2 (but not node1)
+    getNeighborsOfNode nodes edges node2.id
+        |> List.filter (\n -> n /= node1)
+        -- then find the ccw-most node of node2
+        |> List.Extra.minimumBy (\n -> angleFor3Pts node1.pos node2.pos n.pos)
+        |> Maybe.withDefault nothingNode
+        |> (\nextNode ->
+                if nextNode == genesisNode then
+                    shapeNodes
+                else
+                    getShapeForRayHelper nodes edges genesisNode (nextNode :: shapeNodes) ( node2, nextNode )
+           )
+
+
+getNeighborsOfNode : Dict NodeId Node -> List Edge -> NodeId -> List Node
+getNeighborsOfNode nodes edges nodeId =
+    edges
+        |> List.filterMap
+            (\{ pair } ->
+                let
+                    ( node1, node2 ) =
+                        pair
+                in
+                if node1 == nodeId then
+                    Just (getNode nodes node2)
+                else if node2 == nodeId then
+                    Just (getNode nodes node1)
+                else
+                    Nothing
+            )
+
+
+getShapeFromNode : NodeId -> Dict NodeId Node -> List Edge -> NodeId -> Shape
+getShapeFromNode genesisNodeId nodes edges nextNodeId =
+    let
+        genesisNode =
+            getNode nodes genesisNodeId
+
+        nextNode =
+            getNode nodes nextNodeId
+
+        thirdPt =
+            edges
+                |> List.filterMap
+                    (\{ pair } ->
+                        let
+                            ( nodeId1, nodeId2 ) =
+                                pair
+                        in
+                        if nodeId1 /= genesisNodeId && nodeId2 /= genesisNodeId then
+                            if nodeId1 == nextNodeId then
+                                Just nodeId2
+                            else if nodeId2 == nextNodeId then
+                                Just nodeId1
+                            else
+                                Nothing
+                        else
+                            Nothing
+                    )
+                |> List.map (getNode nodes)
+                -- all neighboring nodes of nextNodeId except genesisNodeId
+                |> List.Extra.minimumBy
+                    (\n ->
+                        angleFor3Pts genesisNode.pos nextNode.pos n.pos
+                    )
+                |> Maybe.withDefault nothingNode
+
+        _ =
+            Debug.log "GenesisNode, nextPoint, 3rd point" ( genesisNode.id, nextNode.id, thirdPt.id )
+
+        pts =
+            [ getNode nodes genesisNodeId |> .pos
+            , getNode nodes nextNodeId |> .pos
+            ]
+                ++ closingShapePoints genesisNode nextNode nodes edges thirdPt.id
+    in
+    { pts = pts
+    , color = ""
+    }
+
+
+closingShapePoints : Node -> Node -> Dict NodeId Node -> List Edge -> NodeId -> List Pos
+closingShapePoints genesisNode prevNode nodes edges curNodeId =
+    let
+        nextNode =
+            getCcwNode genesisNode prevNode curNodeId nodes edges
+
+        --|> Debug.log "nextNode"
+        --_ =
+        --    Debug.log "genesisNode, prevNode, curNodeId" ( genesisNode.id, prevNode.id, curNodeId )
+    in
+    if nextNode.id == genesisNode.id then
+        [ nextNode.pos ]
+    else
+        nextNode.pos :: closingShapePoints prevNode genesisNode nodes edges nextNode.id
+
+
+getCcwNode : Node -> Node -> NodeId -> Dict NodeId Node -> List Edge -> Node
+getCcwNode genesisNode prevNode nodeId nodes edges =
+    let
+        node =
+            getNode nodes nodeId
+    in
+    edges
+        |> List.filterMap
+            (\{ pair } ->
+                let
+                    ( nodeId1, nodeId2 ) =
+                        pair
+                in
+                if nodeId1 == nodeId then
+                    Just nodeId2
+                else if nodeId2 == nodeId then
+                    Just nodeId1
+                else
+                    Nothing
+            )
+        |> List.map (getNode nodes)
+        |> List.Extra.minimumBy
+            (\n ->
+                angleFor3Pts prevNode.pos node.pos n.pos
+            )
+        |> Maybe.withDefault nothingNode
+
+
+angleFor3Pts : Pos -> Pos -> Pos -> Float
+angleFor3Pts pos1 pos2 pos3 =
+    -- https://www.gamedev.net/forums/topic/487576-angle-between-two-lines-clockwise/?tab=comments#comment-4184664
+    -- and https://stackoverflow.com/a/21484228
+    let
+        v1x =
+            pos1.x - pos2.x
+
+        v1y =
+            pos1.y - pos2.y
+
+        v2x =
+            pos3.x - pos2.x
+
+        v2y =
+            pos3.y - pos2.y
+
+        angleVal =
+            atan2 v2y v2x - atan2 v1y v1x
+    in
+    if angleVal < 0 then
+        angleVal + 2 * pi
+    else
+        angleVal
 
 
 

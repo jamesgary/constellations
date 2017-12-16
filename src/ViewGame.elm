@@ -30,8 +30,41 @@ drawGameState : Config -> ActiveStateData -> List (Html Msg)
 drawGameState config gameState =
     [ drawInstructions gameState
     , drawWinModal gameState
+    , drawShapesContainer config gameState
     , drawConstellation config gameState
     ]
+
+
+drawShapesContainer : Config -> ActiveStateData -> Html Msg
+drawShapesContainer config { mode } =
+    case mode of
+        WonMode time shapes ->
+            div [ class "shapes-container" ]
+                [ svg
+                    [ class "shapes"
+                    , viewBox "0 0 1600 900"
+                    ]
+                    (List.map drawShape shapes)
+                ]
+
+        _ ->
+            text ""
+
+
+drawShape : Shape -> Html Msg
+drawShape { pts } =
+    let
+        points =
+            pts
+                |> List.map (\{ x, y } -> toString x ++ "," ++ toString y)
+                |> List.intersperse " "
+                |> String.concat
+    in
+    polygon
+        [ Svg.Attributes.points points --"60,20 100,40 100,80 60,100 20,80 20,40"
+        , fill "rgba(255, 100, 100, 0.02)"
+        ]
+        []
 
 
 drawInstructions : ActiveStateData -> Html Msg
@@ -135,8 +168,12 @@ drawWinModal gameState =
                 LoadingMode _ ->
                     True
 
-                PlayingMode { hasWon } ->
-                    not hasWon
+                PlayingMode ->
+                    True
+
+                WonMode time shapes ->
+                    -- TODO
+                    time > 3000
 
         className =
             if isHidden then
@@ -234,6 +271,13 @@ drawNode config mouseState node =
         , class ("node " ++ className)
         ]
         []
+    , Svg.text_
+        [ Svg.Attributes.color "red"
+        , Svg.Attributes.x (toString realPosition.x)
+        , Svg.Attributes.y (toString realPosition.y)
+        , Svg.Attributes.fontSize "20"
+        ]
+        [ Svg.text (node.id |> toString) ]
     ]
 
 
