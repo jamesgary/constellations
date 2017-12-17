@@ -726,10 +726,10 @@ getShapes nodes edges =
                 , color = getRandomColor (i * 1)
                 , dimmerAnimationDurationMs =
                     Random.step
-                        (Random.int 0 300)
-                        (Random.initialSeed (8 * i))
+                        (Random.int 0 800)
+                        (Random.initialSeed (i * 1))
                         |> Tuple.first
-                        |> (\n -> n + 1000)
+                        |> (\n -> n + 2000)
                 , shimmerAnimationDelayMs = 70 * i
                 }
             )

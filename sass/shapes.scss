@@ -14,6 +14,11 @@
   //display: none !important;
 }
 
+.shape-container {
+  opacity: 0;
+  animation: 0.1s 1 normal forwards shimmerExpose;
+}
+
 .shape {
   animation-name: dimmer;
   animation-iteration-count: infinite;
@@ -22,28 +27,33 @@
 
 .shimmer {
   fill: white;
-  fill-opacity: 0;
+  opacity: 0;
   animation: shimmer 5s infinite;
 }
 
+@keyframes shimmerExpose {
+  0%    { opacity: 0; }
+  100%  { opacity: 1; }
+}
+
 @keyframes dimmer {
-  0%    { fill-opacity: 0.6; }
-  100%  { fill-opacity: 0.8; }
+  0%    { opacity: 0.65; }
+  100%  { opacity: 0.85; }
 }
 
 @keyframes shimmer {
-  0%   { fill-opacity: 0; }
-  1%   { fill-opacity: 0.1; }
-  2%   { fill-opacity: 0.2; }
-  3%   { fill-opacity: 0.4; }
-  4%   { fill-opacity: 0.4; }
-  5%   { fill-opacity: 0.3; }
-  6%   { fill-opacity: 0.3; }
-  7%   { fill-opacity: 0.2; }
-  8%   { fill-opacity: 0.2; }
-  9%   { fill-opacity: 0.1; }
-  10%  { fill-opacity: 0.1; }
-  100% { fill-opacity: 0; }
+  0%   { opacity: 0; }
+  1%   { opacity: 0.1; }
+  2%   { opacity: 0.2; }
+  3%   { opacity: 0.4; }
+  4%   { opacity: 0.4; }
+  5%   { opacity: 0.3; }
+  6%   { opacity: 0.3; }
+  7%   { opacity: 0.2; }
+  8%   { opacity: 0.2; }
+  9%   { opacity: 0.1; }
+  10%  { opacity: 0.1; }
+  100% { opacity: 0; }
 }
 
 //start at opacity 0

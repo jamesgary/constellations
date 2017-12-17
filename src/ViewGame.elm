@@ -45,14 +45,14 @@ drawShapesContainer config { mode } =
                     [ class "shapes"
                     , viewBox "0 0 1600 900"
                     ]
-                    (List.map drawShape shapes |> List.concat)
+                    (List.map drawShape shapes)
                 ]
 
         _ ->
             text ""
 
 
-drawShape : Shape -> List (Html Msg)
+drawShape : Shape -> Html Msg
 drawShape { dimmerAnimationDurationMs, shimmerAnimationDelayMs, pts, color } =
     let
         points =
@@ -61,20 +61,24 @@ drawShape { dimmerAnimationDurationMs, shimmerAnimationDelayMs, pts, color } =
                 |> List.intersperse " "
                 |> String.concat
     in
-    [ polygon
-        [ Svg.Attributes.points points
-        , fill color
-        , Svg.Attributes.class "shape"
-        , Svg.Attributes.style ("animation-duration:" ++ toString dimmerAnimationDurationMs ++ "ms")
-        ]
-        []
-    , polygon
-        [ Svg.Attributes.points points
-        , Svg.Attributes.class "shimmer"
+    Svg.g
+        [ Svg.Attributes.class "shape-container"
         , Svg.Attributes.style ("animation-delay:" ++ toString shimmerAnimationDelayMs ++ "ms")
         ]
-        []
-    ]
+        [ polygon
+            [ Svg.Attributes.points points
+            , fill color
+            , Svg.Attributes.class "shape"
+            , Svg.Attributes.style ("animation-duration:" ++ toString dimmerAnimationDurationMs ++ "ms")
+            ]
+            []
+        , polygon
+            [ Svg.Attributes.points points
+            , Svg.Attributes.class "shimmer"
+            , Svg.Attributes.style ("animation-delay:" ++ toString shimmerAnimationDelayMs ++ "ms")
+            ]
+            []
+        ]
 
 
 drawInstructions : ActiveStateData -> Html Msg
