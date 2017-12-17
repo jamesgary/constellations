@@ -1,9 +1,10 @@
-port module State exposing (init, subscriptions, update)
+port module State exposing (generateEdges, init, subscriptions, update)
 
 -- mine
 
 import AnimationFrame
 import Color
+import Colors
 import Dict exposing (Dict)
 import Ease
 import List.Extra
@@ -653,6 +654,12 @@ updateGetIntersectionResults ({ appState } as model) intersectionResultData =
 
                 newModel =
                     { model | appState = ActiveState newGameState }
+
+                _ =
+                    if isIntersecting then
+                        newModel
+                    else
+                        Debug.log "model" newModel
             in
             ( newModel, Cmd.none )
 
@@ -693,32 +700,45 @@ getShapes nodes edges =
                 in
                 List.Extra.remove perimeterShape nodeIdsList
            )
+        -- sort topright to bottomleft for shimmer
+        |> List.sortBy
+            (\nodeIds ->
+                nodeIds
+                    |> List.Extra.maximumBy
+                        (\nodeId ->
+                            getNode nodes nodeId
+                                |> (\{ pos } ->
+                                        pos.y - pos.x
+                                   )
+                        )
+                    |> Maybe.withDefault -1
+                    |> getNode nodes
+                    |> (\{ pos } ->
+                            pos.y - pos.x
+                       )
+            )
         |> List.indexedMap
             (\i nodeIds ->
                 { pts =
                     nodeIds
                         |> List.map (getNode nodes)
                         |> List.map (\{ dest } -> dest)
-                , color = getRandomColor i
+                , color = getRandomColor (i * 1)
+                , dimmerAnimationDurationMs =
+                    Random.step
+                        (Random.int 0 300)
+                        (Random.initialSeed (8 * i))
+                        |> Tuple.first
+                        |> (\n -> n + 1000)
+                , shimmerAnimationDelayMs = 70 * i
                 }
             )
 
 
 getRandomColor : Int -> String
 getRandomColor seed =
-    Random.step colorGenerator (Random.initialSeed seed)
+    Random.step Colors.starryNightColorGen (Random.initialSeed seed)
         |> Tuple.first
-
-
-colorGenerator : Random.Generator String
-colorGenerator =
-    Random.map3
-        (\r g b ->
-            "rgba(" ++ toString r ++ "," ++ toString g ++ "," ++ toString b ++ ", 0.5)"
-        )
-        (Random.int 100 255)
-        (Random.int 0 255)
-        (Random.int 100 255)
 
 
 getShapeNodeIdsForRay : Dict NodeId Node -> List Edge -> ( Node, Node ) -> List NodeId
@@ -759,55 +779,6 @@ getNeighborsOfNode nodes edges nodeId =
                 else
                     Nothing
             )
-
-
-getShapeFromNode : NodeId -> Dict NodeId Node -> List Edge -> NodeId -> Shape
-getShapeFromNode genesisNodeId nodes edges nextNodeId =
-    let
-        genesisNode =
-            getNode nodes genesisNodeId
-
-        nextNode =
-            getNode nodes nextNodeId
-
-        thirdPt =
-            edges
-                |> List.filterMap
-                    (\{ pair } ->
-                        let
-                            ( nodeId1, nodeId2 ) =
-                                pair
-                        in
-                        if nodeId1 /= genesisNodeId && nodeId2 /= genesisNodeId then
-                            if nodeId1 == nextNodeId then
-                                Just nodeId2
-                            else if nodeId2 == nextNodeId then
-                                Just nodeId1
-                            else
-                                Nothing
-                        else
-                            Nothing
-                    )
-                |> List.map (getNode nodes)
-                -- all neighboring nodes of nextNodeId except genesisNodeId
-                |> List.Extra.minimumBy
-                    (\n ->
-                        angleFor3Pts genesisNode.pos nextNode.pos n.pos
-                    )
-                |> Maybe.withDefault nothingNode
-
-        _ =
-            Debug.log "GenesisNode, nextPoint, 3rd point" ( genesisNode.id, nextNode.id, thirdPt.id )
-
-        pts =
-            [ getNode nodes genesisNodeId |> .pos
-            , getNode nodes nextNodeId |> .pos
-            ]
-                ++ closingShapePoints genesisNode nextNode nodes edges thirdPt.id
-    in
-    { pts = pts
-    , color = ""
-    }
 
 
 closingShapePoints : Node -> Node -> Dict NodeId Node -> List Edge -> NodeId -> List Pos

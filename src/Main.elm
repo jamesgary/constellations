@@ -3,8 +3,9 @@ module Main exposing (..)
 -- mine
 
 import Html
+import Init exposing (init)
 import Navigation
-import State exposing (init, subscriptions, update)
+import State exposing (subscriptions, update)
 import Types exposing (..)
 import View exposing (view)
 

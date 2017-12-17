@@ -9,18 +9,41 @@
   height: 100%;
 }
 
-.shape {
-  animation: dimmer 2s infinite;
+// FIXME
+.win-modal {
+  //display: none !important;
 }
 
-.shape-shimmer {
-  animation: shimmer 2s infinite;
+.shape {
+  animation-name: dimmer;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+}
+
+.shimmer {
+  fill: white;
+  fill-opacity: 0;
+  animation: shimmer 5s infinite;
+}
+
+@keyframes dimmer {
+  0%    { fill-opacity: 0.6; }
+  100%  { fill-opacity: 0.8; }
 }
 
 @keyframes shimmer {
   0%   { fill-opacity: 0; }
-  20% { fill-opacity: 1; }
-  40% { fill-opacity: 0; }
+  1%   { fill-opacity: 0.1; }
+  2%   { fill-opacity: 0.2; }
+  3%   { fill-opacity: 0.4; }
+  4%   { fill-opacity: 0.4; }
+  5%   { fill-opacity: 0.3; }
+  6%   { fill-opacity: 0.3; }
+  7%   { fill-opacity: 0.2; }
+  8%   { fill-opacity: 0.2; }
+  9%   { fill-opacity: 0.1; }
+  10%  { fill-opacity: 0.1; }
+  100% { fill-opacity: 0; }
 }
 
 //start at opacity 0

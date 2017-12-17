@@ -5,6 +5,7 @@ import Ease
 import Html exposing (Html, br, button, div, h1, h2, main_, p, span)
 import Html.Attributes exposing (href, target)
 import Html.Events exposing (on)
+import Html.Lazy
 import Json.Decode as Decode
 import Mouse
 import Svg exposing (..)
@@ -30,7 +31,7 @@ drawGameState : Config -> ActiveStateData -> List (Html Msg)
 drawGameState config gameState =
     [ drawInstructions gameState
     , drawWinModal gameState
-    , drawShapesContainer config gameState
+    , Html.Lazy.lazy2 drawShapesContainer config gameState
     , drawConstellation config gameState
     ]
 
@@ -44,15 +45,15 @@ drawShapesContainer config { mode } =
                     [ class "shapes"
                     , viewBox "0 0 1600 900"
                     ]
-                    (List.map drawShape shapes)
+                    (List.map drawShape shapes |> List.concat)
                 ]
 
         _ ->
             text ""
 
 
-drawShape : Shape -> Html Msg
-drawShape { pts, color } =
+drawShape : Shape -> List (Html Msg)
+drawShape { dimmerAnimationDurationMs, shimmerAnimationDelayMs, pts, color } =
     let
         points =
             pts
@@ -60,12 +61,20 @@ drawShape { pts, color } =
                 |> List.intersperse " "
                 |> String.concat
     in
-    polygon
-        [ Svg.Attributes.points points --"60,20 100,40 100,80 60,100 20,80 20,40"
-        , fill color --"rgba(255, 100, 100, 0.02)"
+    [ polygon
+        [ Svg.Attributes.points points
+        , fill color
         , Svg.Attributes.class "shape"
+        , Svg.Attributes.style ("animation-duration:" ++ toString dimmerAnimationDurationMs ++ "ms")
         ]
         []
+    , polygon
+        [ Svg.Attributes.points points
+        , Svg.Attributes.class "shimmer"
+        , Svg.Attributes.style ("animation-delay:" ++ toString shimmerAnimationDelayMs ++ "ms")
+        ]
+        []
+    ]
 
 
 drawInstructions : ActiveStateData -> Html Msg

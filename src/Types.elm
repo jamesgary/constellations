@@ -21,7 +21,9 @@ type alias Config =
 
 type alias Shape =
     { pts : List Pos
-    , color : String --Color
+    , color : String --maybe Color?
+    , dimmerAnimationDurationMs : Int
+    , shimmerAnimationDelayMs : Int
     }
 
 
