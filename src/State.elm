@@ -9,6 +9,8 @@ import Ease
 import List.Extra
 import Mouse
 import Navigation
+import Random
+import Random.Extra
 import Time exposing (Time)
 import Types exposing (..)
 
@@ -28,7 +30,7 @@ init config location =
             ( { appState = StartState --LoadingState 0 12
               , config = config
               }
-            , generateEdges 5
+            , generateEdges 1
             )
 
         _ ->
@@ -683,19 +685,40 @@ getShapes nodes edges =
             (\nodeIds ->
                 List.sort nodeIds
             )
-        |> Debug.log "uniqued"
-        |> List.map
-            (\nodeIds ->
+        |> (\nodeIdsList ->
+                let
+                    perimeterShape =
+                        List.Extra.maximumBy List.length nodeIdsList
+                            |> Maybe.withDefault []
+                in
+                List.Extra.remove perimeterShape nodeIdsList
+           )
+        |> List.indexedMap
+            (\i nodeIds ->
                 { pts =
                     nodeIds
                         |> List.map (getNode nodes)
-                        |> List.map (\{ pos } -> pos)
-                , color = "lightblue"
+                        |> List.map (\{ dest } -> dest)
+                , color = getRandomColor i
                 }
             )
-        |> (\shapes ->
-                Debug.log ("getShapes " ++ toString (List.length shapes)) shapes
-           )
+
+
+getRandomColor : Int -> String
+getRandomColor seed =
+    Random.step colorGenerator (Random.initialSeed seed)
+        |> Tuple.first
+
+
+colorGenerator : Random.Generator String
+colorGenerator =
+    Random.map3
+        (\r g b ->
+            "rgba(" ++ toString r ++ "," ++ toString g ++ "," ++ toString b ++ ", 0.5)"
+        )
+        (Random.int 100 255)
+        (Random.int 0 255)
+        (Random.int 100 255)
 
 
 getShapeNodeIdsForRay : Dict NodeId Node -> List Edge -> ( Node, Node ) -> List NodeId

@@ -52,7 +52,7 @@ drawShapesContainer config { mode } =
 
 
 drawShape : Shape -> Html Msg
-drawShape { pts } =
+drawShape { pts, color } =
     let
         points =
             pts
@@ -62,7 +62,8 @@ drawShape { pts } =
     in
     polygon
         [ Svg.Attributes.points points --"60,20 100,40 100,80 60,100 20,80 20,40"
-        , fill "rgba(255, 100, 100, 0.02)"
+        , fill color --"rgba(255, 100, 100, 0.02)"
+        , Svg.Attributes.class "shape"
         ]
         []
 
@@ -271,13 +272,14 @@ drawNode config mouseState node =
         , class ("node " ++ className)
         ]
         []
-    , Svg.text_
-        [ Svg.Attributes.color "red"
-        , Svg.Attributes.x (toString realPosition.x)
-        , Svg.Attributes.y (toString realPosition.y)
-        , Svg.Attributes.fontSize "20"
-        ]
-        [ Svg.text (node.id |> toString) ]
+
+    --, Svg.text_
+    --    [ Svg.Attributes.color "red"
+    --    , Svg.Attributes.x (toString realPosition.x)
+    --    , Svg.Attributes.y (toString realPosition.y)
+    --    , Svg.Attributes.fontSize "20"
+    --    ]
+    --    [ Svg.text (node.id |> toString) ]
     ]
 
 

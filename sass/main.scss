@@ -76,6 +76,20 @@ button {
   z-index: 50;
 }
 
+.constellation-container {
+  z-index: 5;
+  height: 100%;
+  width: 100%;
+  position: absolute;
+}
+
+.shapes-container {
+  z-index: 4;
+  height: 100%;
+  width: 100%;
+  position: absolute;
+}
+
 @import 'game';
 @import 'menus';
 @import 'narration';
