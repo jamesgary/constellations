@@ -1,0 +1,38 @@
+.star-bg-container {
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.star-bg {
+  position: absolute;
+  animation: rotatoPotato 1200s linear infinite;
+  background: repeat center url("/images/Carina_Nebula.jpg");
+  background-size: 100%;
+
+  width: 300%;
+  height: 300%;
+  top: -50%;
+  left: -100%;
+}
+
+.star-bg-screen {
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  overflow: hidden;
+
+  $color: rgba(0,0,0,0.6);
+  $dotSize: 1px;
+  $spaceSize: 2px;
+
+  background-image: radial-gradient(circle, $color, $color $dotSize, transparent $dotSize, transparent);
+  background-size: $spaceSize $spaceSize;
+}
+
+@keyframes rotatoPotato {
+  0%   { transform: rotate(0turn); }
+  100% { transform: rotate(1turn); }
+}

@@ -31,6 +31,10 @@ drawGameState : Config -> ActiveStateData -> List (Html Msg)
 drawGameState config gameState =
     [ drawInstructions gameState
     , drawWinModal gameState
+    , div [ class "star-bg-container" ]
+        [ div [ class "star-bg" ] []
+        , div [ class "star-bg-screen" ] []
+        ]
     , Html.Lazy.lazy2 drawShapesContainer config gameState
     , drawConstellation config gameState
     ]

@@ -64,6 +64,16 @@ viewStartScreen =
                 ]
                 [ text "github.com/jamesgary/constellations" ]
             ]
+        , h3
+            [ class "source" ]
+            [ text "Images courtesy of "
+            , Html.a
+                [ class "link"
+                , href "https://commons.wikimedia.org/wiki/File:Carina_Nebula.jpg"
+                , target "_blank"
+                ]
+                [ text "European Southern Observatory (ESO)" ]
+            ]
         , button
             [ class "btn start-btn campaign-btn"
             , Html.Events.onClick StartCampaign
