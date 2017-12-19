@@ -90,6 +90,9 @@ update msg model =
         UrlChange location ->
             ( model, Cmd.none )
 
+        GoToLevel difficulty ->
+            ( model, generateEdges difficulty )
+
 
 updateMouseMove : Model -> MousePos -> ( Model, Cmd Msg )
 updateMouseMove model newMousePos =

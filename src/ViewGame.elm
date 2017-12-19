@@ -3,10 +3,11 @@ module ViewGame exposing (drawGameState, drawLoadingAnim)
 import Dict exposing (Dict)
 import Ease
 import Html exposing (Html, br, button, div, h1, h2, main_, p, span)
-import Html.Attributes exposing (href, target)
-import Html.Events exposing (on)
+import Html.Attributes exposing (href, property, target)
+import Html.Events exposing (on, onClick)
 import Html.Lazy
 import Json.Decode as Decode
+import Json.Encode
 import Mouse
 import Svg exposing (..)
 import Svg.Attributes exposing (class, cx, cy, dx, dy, fill, height, rx, ry, stdDeviation, transform, viewBox, width, x, x1, x2, y, y1, y2)
@@ -37,7 +38,27 @@ drawGameState config gameState =
         ]
     , Html.Lazy.lazy2 drawShapesContainer config gameState
     , drawConstellation config gameState
+    , drawLevelSelect config gameState
     ]
+
+
+drawLevelSelect : Config -> ActiveStateData -> Html Msg
+drawLevelSelect config { difficulty } =
+    div [ class "level-select-container" ]
+        [ span
+            [ property "innerHTML" (Json.Encode.string "&#9664;")
+            , class "level-select-picker level-select-prev"
+            , onClick (GoToLevel (difficulty - 1))
+            ]
+            []
+        , span [ class "level-select-level" ] [ text ("Level " ++ toString difficulty) ]
+        , span
+            [ property "innerHTML" (Json.Encode.string "&#9654;")
+            , class "level-select-picker level-select-next"
+            , onClick (GoToLevel (difficulty + 1))
+            ]
+            []
+        ]
 
 
 drawShapesContainer : Config -> ActiveStateData -> Html Msg
@@ -331,11 +352,12 @@ drawEdge nodes edge =
     ]
 
 
-drawLevelSelect : Int -> Html Msg
-drawLevelSelect currentDifficulty =
-    div
-        [ class "levelSelect-container" ]
-        (List.map (drawLevelSelector currentDifficulty) (List.range 1 50))
+
+--drawLevelSelect : Int -> Html Msg
+--drawLevelSelect currentDifficulty =
+--    div
+--        [ class "levelSelect-container" ]
+--        (List.map (drawLevelSelector currentDifficulty) (List.range 1 50))
 
 
 drawLevelSelector : Int -> Int -> Html Msg
@@ -446,8 +468,8 @@ decodeClickLocation =
 
 drawLoadingAnim : Config -> Time -> Int -> List (Html Msg)
 drawLoadingAnim config age numNodes =
-    [ drawLevelSelect numNodes
-    , div [ class "constellation-container" ]
+    [ --drawLevelSelect numNodes
+      div [ class "constellation-container" ]
         [ svg
             [ class "constellation"
             , viewBox "0 0 1600 900"

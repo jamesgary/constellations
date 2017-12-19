@@ -83,3 +83,28 @@ $edgeWidth: 3px;
   top: 20px;
   left: 20px;
 }
+
+/* Level select */
+
+.level-select-container {
+  position: relative;
+  z-index: 50;
+  font-size: 24px;
+  color: white;
+  text-align: center;
+}
+
+.level-select-level {
+  margin: 0 7px 0 6px;
+}
+
+.level-select-picker {
+  -webkit-text-stroke: 1px rgba(0,0,0,0.8);
+}
+
+.level-select-picker:hover {
+  color: pink;
+  cursor: pointer;
+  text-shadow: 0px 0px 6px #fcc;
+  -webkit-text-stroke: 1px #a00;
+}

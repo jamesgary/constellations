@@ -117,6 +117,7 @@ type Msg
     | GetIntersectionResults IntersectionResultData
     | StartCampaign
     | UrlChange Navigation.Location
+    | GoToLevel Int
 
 
 
