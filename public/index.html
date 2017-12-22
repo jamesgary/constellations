@@ -9,9 +9,17 @@
     <script src="./js/main.js"></script>
     <script>
       var tantaloWorker = new Worker("./js/tantalo.js");
-      var app = Elm.Main.fullscreen(loadConfig());
+      var app = Elm.Main.fullscreen(loadFlags());
+
+      tantaloWorker.onmessage = function(event) {
+        var edgeData = event.data;
+        console.log("Sending edge data:", edgeData);
+        app.ports.generatedEdges.send(edgeData);
+      };
 
       app.ports.generateEdges.subscribe(function(difficulty) {
+        window.difficulty = difficulty;
+
         if (difficulty === 1) {
           // sometimes we can randomly generate a presolved level,
           // so just hardcode the first one
@@ -22,12 +30,6 @@
           tantaloWorker.postMessage(difficulty);
         }
       });
-
-      tantaloWorker.onmessage = function(event) {
-        var edgeData = event.data;
-        console.log("Sending edge data:", edgeData);
-        app.ports.generatedEdges.send(edgeData);
-      };
 
       app.ports.saveConfig.subscribe(function(config) {
         console.log("Saving config:", config);
@@ -40,16 +42,33 @@
         console.log("Checking for intersections...");
 
         var intersectionResults = getIntersectionResults(nodes, edgeData);
+        localStorage.setItem("currentLevelProgress", JSON.stringify({
+          nodes: nodes,
+          edges: edgeData,
+        }));
         app.ports.intersectionResults.send(intersectionResults);
       });
 
-      function loadConfig() {
-        var config = {
+      function loadFlags() {
+        var currentLevelProgress = null;
+        if (localStorage.getItem("currentLevelProgress")) {
+          try {
+            currentLevelProgress =
+              JSON.parse(localStorage.getItem("currentLevelProgress"));
+          } catch (e) {
+            console.error("Couldn't parse current level progress");
+          }
+        }
+
+        var flags = {
           radius: parseFloat(localStorage.getItem("config:radius")) || 25,
           showStella: false, // DEBUGGING
+          levelsCleared: parseFloat(localStorage.getItem("levelsCleared")) || 0,
+          currentLevelProgress: currentLevelProgress,
         };
-        console.log("Loading config:", config);
-        return config;
+
+        console.log("Loading flags:", flags);
+        return flags;
       }
 
       function getIntersectionResults(nodes, edgeData) {
@@ -83,6 +102,12 @@
             }
           }
         }
+
+        if (!hasIntersections) {
+          console.log("Cleared level " + window.difficulty + "! Saved.");
+          localStorage.setItem("levelsCleared", window.difficulty);
+        }
+
         return [hasIntersections, edgeData];
       }
 

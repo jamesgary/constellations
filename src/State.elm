@@ -1,8 +1,9 @@
-port module State exposing (generateEdges, init, subscriptions, update)
+port module State exposing (generateEdges, subscriptions, update)
 
 -- mine
 
 import AnimationFrame
+import Array
 import Color
 import Colors
 import Dict exposing (Dict)
@@ -22,24 +23,6 @@ baseDifficulty =
 
 baseWeight =
     50
-
-
-init : Config -> Navigation.Location -> ( Model, Cmd Msg )
-init config location =
-    case location.hash of
-        "#load" ->
-            ( { appState = StartState --LoadingState 0 12
-              , config = config
-              }
-            , generateEdges 1
-            )
-
-        _ ->
-            ( { appState = StartState
-              , config = config
-              }
-            , Cmd.none
-            )
 
 
 
@@ -92,6 +75,32 @@ update msg model =
 
         GoToLevel difficulty ->
             ( model, generateEdges difficulty )
+
+        ResumeLastLevel ->
+            resumeLastLevel model ! []
+
+
+resumeLastLevel : Model -> Model
+resumeLastLevel ({ config, levelsCleared, appState, lastLevelProgress } as model) =
+    case lastLevelProgress of
+        Nothing ->
+            Debug.crash "Shoulda had lastLevelProgress!"
+
+        Just { nodes, edges } ->
+            { model
+                | appState =
+                    ActiveState
+                        { nodes =
+                            nodes
+                                |> Array.toList
+                                |> List.map (\n -> ( n.id, { n | pos = n.dest } ))
+                                |> Dict.fromList
+                        , edges = edges
+                        , difficulty = levelsCleared + 1
+                        , mouseState = DefaultMouseState
+                        , mode = PlayingMode
+                        }
+            }
 
 
 updateMouseMove : Model -> MousePos -> ( Model, Cmd Msg )
@@ -656,7 +665,14 @@ updateGetIntersectionResults ({ appState } as model) intersectionResultData =
                     }
 
                 newModel =
-                    { model | appState = ActiveState newGameState }
+                    { model
+                        | appState = ActiveState newGameState
+                        , levelsCleared =
+                            if isIntersecting then
+                                model.levelsCleared
+                            else
+                                max model.levelsCleared gameState.difficulty
+                    }
 
                 _ =
                     if isIntersecting then

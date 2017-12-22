@@ -1,5 +1,6 @@
 module Types exposing (..)
 
+import Array exposing (Array)
 import Color exposing (Color)
 import Dict exposing (Dict)
 import Mouse
@@ -9,7 +10,25 @@ import Time exposing (Time)
 
 type alias Model =
     { appState : AppState
+    , levelsCleared : Int
+    , lastLevelProgress :
+        Maybe
+            { nodes : Array Node
+            , edges : List Edge
+            }
     , config : Config
+    }
+
+
+type alias Flags =
+    { radius : Float
+    , showStella : Bool
+    , levelsCleared : Int
+    , currentLevelProgress :
+        Maybe
+            { nodes : Array Node
+            , edges : List Edge
+            }
     }
 
 
@@ -118,6 +137,7 @@ type Msg
     | StartCampaign
     | UrlChange Navigation.Location
     | GoToLevel Int
+    | ResumeLastLevel
 
 
 

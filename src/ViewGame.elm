@@ -28,8 +28,8 @@ angleConvert =
     180 / pi
 
 
-drawGameState : Config -> ActiveStateData -> List (Html Msg)
-drawGameState config gameState =
+drawGameState : Config -> Int -> ActiveStateData -> List (Html Msg)
+drawGameState config levelsCleared gameState =
     [ drawInstructions gameState
     , drawWinModal gameState
     , div [ class "star-bg-container" ]
@@ -38,12 +38,12 @@ drawGameState config gameState =
         ]
     , Html.Lazy.lazy2 drawShapesContainer config gameState
     , drawConstellation config gameState
-    , drawLevelSelect config gameState
+    , drawLevelSelect config levelsCleared gameState
     ]
 
 
-drawLevelSelect : Config -> ActiveStateData -> Html Msg
-drawLevelSelect config { difficulty } =
+drawLevelSelect : Config -> Int -> ActiveStateData -> Html Msg
+drawLevelSelect config levelsCleared { difficulty } =
     div [ class "level-select-container" ]
         [ span
             [ property "innerHTML" (Json.Encode.string "&#9664;")
@@ -52,12 +52,15 @@ drawLevelSelect config { difficulty } =
             ]
             []
         , span [ class "level-select-level" ] [ text ("Level " ++ toString difficulty) ]
-        , span
-            [ property "innerHTML" (Json.Encode.string "&#9654;")
-            , class "level-select-picker level-select-next"
-            , onClick (GoToLevel (difficulty + 1))
-            ]
-            []
+        , if levelsCleared >= difficulty then
+            span
+                [ property "innerHTML" (Json.Encode.string "&#9654;")
+                , class "level-select-picker level-select-next"
+                , onClick (GoToLevel (difficulty + 1))
+                ]
+                []
+          else
+            text ""
         ]
 
 
