@@ -18,8 +18,6 @@
       };
 
       app.ports.generateEdges.subscribe(function(difficulty) {
-        window.difficulty = difficulty;
-
         if (difficulty === 1) {
           // sometimes we can randomly generate a presolved level,
           // so just hardcode the first one
@@ -33,45 +31,48 @@
 
       app.ports.saveConfig.subscribe(function(config) {
         console.log("Saving config:", config);
-        localStorage.setItem("config:radius", config.radius);
+        localStorage.setItem("c:config:radius", config.radius);
       });
 
-      app.ports.checkForIntersections.subscribe(function(nodesAndEdgeData) {
-        var nodes = nodesAndEdgeData[0];
-        var edgeData = nodesAndEdgeData[1];
-        console.log("Checking for intersections...");
+      app.ports.checkForIntersections.subscribe(function(nodesAndEdgeDataAndDiff) {
+        var nodes = nodesAndEdgeDataAndDiff[0];
+        var edgeData = nodesAndEdgeDataAndDiff[1];
+        var difficulty = nodesAndEdgeDataAndDiff[2];
 
-        var intersectionResults = getIntersectionResults(nodes, edgeData);
-        localStorage.setItem("currentLevelProgress", JSON.stringify({
+        localStorage.setItem("c:levelProgress:" + difficulty, JSON.stringify({
           nodes: nodes,
           edges: edgeData,
         }));
+
+        console.log("Checking for intersections...");
+
+        var intersectionResults = getIntersectionResults(nodes, edgeData, difficulty);
         app.ports.intersectionResults.send(intersectionResults);
       });
 
       function loadFlags() {
-        var currentLevelProgress = null;
-        if (localStorage.getItem("currentLevelProgress")) {
-          try {
-            currentLevelProgress =
-              JSON.parse(localStorage.getItem("currentLevelProgress"));
-          } catch (e) {
-            console.error("Couldn't parse current level progress");
-          }
-        }
+        //var levelProgress = null;
+        //if (localStorage.getItem("c:levelProgress")) {
+        //  try {
+        //    levelProgress =
+        //      JSON.parse(localStorage.getItem("c:levelProgress"));
+        //  } catch (e) {
+        //    console.error("Couldn't parse current level progress");
+        //  }
+        //}
 
         var flags = {
-          radius: parseFloat(localStorage.getItem("config:radius")) || 25,
+          radius: parseFloat(localStorage.getItem("c:config:radius")) || 25,
           showStella: false, // DEBUGGING
-          levelsCleared: parseFloat(localStorage.getItem("levelsCleared")) || 0,
-          currentLevelProgress: currentLevelProgress,
+          levelsCleared: parseFloat(localStorage.getItem("c:levelsCleared")) || 0,
+          //levelProgress: levelProgress,
         };
 
         console.log("Loading flags:", flags);
         return flags;
       }
 
-      function getIntersectionResults(nodes, edgeData) {
+      function getIntersectionResults(nodes, edgeData, difficulty) {
         // clear all the edges
         var hasIntersections = false;
         for (var i = 0; i < edgeData.length; i++) {
@@ -104,8 +105,11 @@
         }
 
         if (!hasIntersections) {
-          console.log("Cleared level " + window.difficulty + "! Saved.");
-          localStorage.setItem("levelsCleared", window.difficulty);
+          console.log("Cleared level " + difficulty + "! Saved.");
+          var prevDiff = localStorage.getItem("c:levelsCleared");
+          if (!prevDiff || prevDiff < difficulty) {
+            localStorage.setItem("c:levelsCleared", difficulty);
+          }
         }
 
         return [hasIntersections, edgeData];

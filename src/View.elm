@@ -6,6 +6,7 @@ import Array exposing (Array)
 import Html exposing (Html, br, button, div, h1, h2, h3, main_, span, text)
 import Html.Attributes exposing (class, href, target)
 import Html.Events
+import Html.Lazy
 import Types exposing (..)
 import ViewGame
 import ViewStella
@@ -24,8 +25,9 @@ angleConvert =
 
 
 view : Model -> Html Msg
-view { config, levelsCleared, appState, lastLevelProgress } =
-    div
+view { config, levelsCleared, appState } =
+    Html.Lazy.lazy2
+        div
         [ class "appState-container" ]
         (case config.showStella of
             True ->
@@ -34,15 +36,15 @@ view { config, levelsCleared, appState, lastLevelProgress } =
             False ->
                 case appState of
                     StartState ->
-                        viewStartScreen levelsCleared lastLevelProgress
+                        viewStartScreen levelsCleared
 
                     ActiveState gameState ->
                         ViewGame.drawGameState config levelsCleared gameState
         )
 
 
-viewStartScreen : Int -> Maybe { nodes : Array Node, edges : List Edge } -> List (Html Msg)
-viewStartScreen levelsCleared lastLevelProgress =
+viewStartScreen : Int -> List (Html Msg)
+viewStartScreen levelsCleared =
     [ main_ [ Html.Attributes.id "start" ]
         [ h1 [ class "title" ] [ text "Constellations" ]
         , h2
@@ -75,27 +77,18 @@ viewStartScreen levelsCleared lastLevelProgress =
                 ]
                 [ text "European Southern Observatory (ESO)" ]
             ]
-        , case lastLevelProgress of
-            Nothing ->
-                if levelsCleared > 1 then
-                    button
-                        [ class "btn start-btn campaign-btn"
-                        , Html.Events.onClick (GenerateEdges (levelsCleared + 1))
-                        ]
-                        [ text ("Resume Level " ++ toString (levelsCleared + 1)) ]
-                else
-                    button
-                        [ class "btn start-btn campaign-btn"
-                        , Html.Events.onClick StartCampaign
-                        ]
-                        [ text "Play Campaign" ]
-
-            Just { nodes, edges } ->
-                button
-                    [ class "btn start-btn campaign-btn"
-                    , Html.Events.onClick ResumeLastLevel
-                    ]
-                    [ text ("Resume Level " ++ toString (levelsCleared + 1)) ]
+        , if levelsCleared > 1 then
+            button
+                [ class "btn start-btn campaign-btn"
+                , Html.Events.onClick (GenerateEdges (levelsCleared + 1))
+                ]
+                [ text ("Resume Level " ++ toString (levelsCleared + 1)) ]
+          else
+            button
+                [ class "btn start-btn campaign-btn"
+                , Html.Events.onClick StartCampaign
+                ]
+                [ text "Play Campaign" ]
         , br [] []
         , button
             [ class "btn start-btn sandbox-btn"

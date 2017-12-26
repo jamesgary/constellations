@@ -11,11 +11,12 @@ import Time exposing (Time)
 type alias Model =
     { appState : AppState
     , levelsCleared : Int
-    , lastLevelProgress :
-        Maybe
-            { nodes : Array Node
-            , edges : List Edge
-            }
+
+    --, lastLevelProgress :
+    --    Maybe
+    --        { nodes : Array Node
+    --        , edges : List Edge
+    --        }
     , config : Config
     }
 
@@ -24,11 +25,12 @@ type alias Flags =
     { radius : Float
     , showStella : Bool
     , levelsCleared : Int
-    , currentLevelProgress :
-        Maybe
-            { nodes : Array Node
-            , edges : List Edge
-            }
+
+    --, lastLevelProgress :
+    --    Maybe
+    --        { nodes : Array Node
+    --        , edges : List Edge
+    --        }
     }
 
 
@@ -137,10 +139,10 @@ type Msg
     | StartCampaign
     | UrlChange Navigation.Location
     | GoToLevel Int
-    | ResumeLastLevel
 
 
 
+--| ResumeLastLevel
 -- Handy functions
 
 

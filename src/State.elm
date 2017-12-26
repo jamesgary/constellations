@@ -35,7 +35,7 @@ port generateEdges : Int -> Cmd msg
 port saveConfig : Config -> Cmd msg
 
 
-port checkForIntersections : ( List Node, List Edge ) -> Cmd msg
+port checkForIntersections : ( List Node, List Edge, Int ) -> Cmd msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -54,8 +54,8 @@ update msg model =
             updateAnimation model time
 
         -- request to js-land
-        GenerateEdges newDifficulty ->
-            updateGenerateEdges model newDifficulty
+        GenerateEdges diff ->
+            ( model, generateEdges diff )
 
         -- response from js-land
         GeneratedEdges edgeData ->
@@ -76,31 +76,31 @@ update msg model =
         GoToLevel difficulty ->
             ( model, generateEdges difficulty )
 
-        ResumeLastLevel ->
-            resumeLastLevel model ! []
 
 
-resumeLastLevel : Model -> Model
-resumeLastLevel ({ config, levelsCleared, appState, lastLevelProgress } as model) =
-    case lastLevelProgress of
-        Nothing ->
-            Debug.crash "Shoulda had lastLevelProgress!"
-
-        Just { nodes, edges } ->
-            { model
-                | appState =
-                    ActiveState
-                        { nodes =
-                            nodes
-                                |> Array.toList
-                                |> List.map (\n -> ( n.id, { n | pos = n.dest } ))
-                                |> Dict.fromList
-                        , edges = edges
-                        , difficulty = levelsCleared + 1
-                        , mouseState = DefaultMouseState
-                        , mode = PlayingMode
-                        }
-            }
+--ResumeLastLevel ->
+--    resumeLastLevel model ! []
+--resumeLastLevel : Model -> Model
+--resumeLastLevel ({ config, levelsCleared, appState, } as model) =
+--    case lastLevelProgress of
+--        Nothing ->
+--            Debug.crash "Shoulda had lastLevelProgress!"
+--
+--        Just { nodes, edges } ->
+--            { model
+--                | appState =
+--                    ActiveState
+--                        { nodes =
+--                            nodes
+--                                |> Array.toList
+--                                |> List.map (\n -> ( n.id, { n | pos = n.dest } ))
+--                                |> Dict.fromList
+--                        , edges = edges
+--                        , difficulty = levelsCleared + 1
+--                        , mouseState = DefaultMouseState
+--                        , mode = PlayingMode
+--                        }
+--            }
 
 
 updateMouseMove : Model -> MousePos -> ( Model, Cmd Msg )
@@ -403,7 +403,10 @@ updateMouseUp model mousePos =
                 ( newNewModel, _ ) =
                     updateMouseMove newModel mousePos
             in
-            ( newNewModel, checkForIntersections ( Dict.values newGameState.nodes, newGameState.edges ) )
+            ( newNewModel
+            , checkForIntersections
+                ( Dict.values newGameState.nodes, newGameState.edges, gameState.difficulty )
+            )
 
         _ ->
             ( model, Cmd.none )
@@ -424,11 +427,6 @@ updateAnimation model time =
 
         _ ->
             ( model, Cmd.none )
-
-
-updateGenerateEdges : Model -> Int -> ( Model, Cmd Msg )
-updateGenerateEdges model difficulty =
-    ( model, generateEdges difficulty )
 
 
 updateGeneratedEdges : Model -> EdgeData -> Model

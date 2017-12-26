@@ -5,7 +5,6 @@ import Ease
 import Html exposing (Html, br, button, div, h1, h2, main_, p, span)
 import Html.Attributes exposing (href, property, target)
 import Html.Events exposing (on, onClick)
-import Html.Lazy
 import Json.Decode as Decode
 import Json.Encode
 import Mouse
@@ -36,7 +35,7 @@ drawGameState config levelsCleared gameState =
         [ div [ class "star-bg" ] []
         , div [ class "star-bg-screen" ] []
         ]
-    , Html.Lazy.lazy2 drawShapesContainer config gameState
+    , drawShapesContainer config gameState
     , drawConstellation config gameState
     , drawLevelSelect config levelsCleared gameState
     ]

@@ -19,12 +19,13 @@ import Types exposing (..)
 
 
 init : Flags -> Navigation.Location -> ( Model, Cmd Msg )
-init { radius, showStella, levelsCleared, currentLevelProgress } location =
+init { radius, showStella, levelsCleared } location =
     case location.hash of
         "#won" ->
             ( { appState = wonAppState
               , levelsCleared = levelsCleared
-              , lastLevelProgress = currentLevelProgress
+
+              --, lastLevelProgress = lastLevelProgress
               , config =
                     { radius = radius
                     , showStella = showStella
@@ -36,7 +37,8 @@ init { radius, showStella, levelsCleared, currentLevelProgress } location =
         _ ->
             ( { appState = StartState
               , levelsCleared = levelsCleared
-              , lastLevelProgress = currentLevelProgress
+
+              --, lastLevelProgress = lastLevelProgress
               , config =
                     { radius = radius
                     , showStella = showStella
