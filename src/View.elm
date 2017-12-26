@@ -80,7 +80,7 @@ viewStartScreen levelsCleared =
         , if levelsCleared > 1 then
             button
                 [ class "btn start-btn campaign-btn"
-                , Html.Events.onClick (GenerateEdges (levelsCleared + 1))
+                , Html.Events.onClick (LoadLevel (levelsCleared + 1))
                 ]
                 [ text ("Resume Level " ++ toString (levelsCleared + 1)) ]
           else
@@ -92,7 +92,7 @@ viewStartScreen levelsCleared =
         , br [] []
         , button
             [ class "btn start-btn sandbox-btn"
-            , Html.Events.onClick (GenerateEdges 1)
+            , Html.Events.onClick (LoadLevel 1)
             ]
             [ text "Sandbox" ]
         , div [ class "stars-bg" ]

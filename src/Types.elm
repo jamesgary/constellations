@@ -128,8 +128,9 @@ type alias IntersectionResultData =
 
 
 type Msg
-    = GenerateEdges Int -- numNodes
-    | GeneratedEdges EdgeData
+    = LoadLevel Int -- numNodes
+    | LoadedLevelFresh EdgeData
+    | LoadedLevelInProgress ( { nodes : Array Node, edges : List Edge }, Int )
     | MouseDown MousePos
     | MouseMove MousePos
     | MouseUp MousePos

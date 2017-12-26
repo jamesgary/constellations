@@ -232,7 +232,7 @@ drawWinModal gameState =
             [ text "You did it!" ]
         , div
             [ class "win-modal-button"
-            , Html.Events.onClick (GenerateEdges nextDifficulty)
+            , Html.Events.onClick (LoadLevel nextDifficulty)
             ]
             [ text "Next Level" ]
         ]
@@ -371,13 +371,13 @@ drawLevelSelector currentDifficulty difficulty =
     if isMatching then
         div
             [ class "levelSelect-selector levelSelect-selector-isCurrent"
-            , Html.Events.onClick (GenerateEdges difficulty)
+            , Html.Events.onClick (LoadLevel difficulty)
             ]
             [ text ("[[" ++ toString difficulty ++ "]]") ]
     else
         div
             [ class "levelSelect-selector"
-            , Html.Events.onClick (GenerateEdges difficulty)
+            , Html.Events.onClick (LoadLevel difficulty)
             ]
             [ text (toString difficulty) ]
 

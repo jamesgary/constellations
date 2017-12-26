@@ -14,18 +14,29 @@
       tantaloWorker.onmessage = function(event) {
         var edgeData = event.data;
         console.log("Sending edge data:", edgeData);
-        app.ports.generatedEdges.send(edgeData);
+        app.ports.loadedLevelFresh.send(edgeData);
       };
 
-      app.ports.generateEdges.subscribe(function(difficulty) {
-        if (difficulty === 1) {
-          // sometimes we can randomly generate a presolved level,
-          // so just hardcode the first one
-          console.log("Sending hardcoded edge data for difficulty 1:", firstLevel);
-          app.ports.generatedEdges.send(firstLevel);
+      app.ports.loadLevel.subscribe(function(difficulty) {
+        var savedLevelProgress = localStorage.getItem("c:levelProgress:" + difficulty);
+        if (savedLevelProgress) {
+          try {
+            levelProgress = JSON.parse(savedLevelProgress)
+            app.ports.loadedLevelInProgress.send([levelProgress, difficulty]);
+          } catch (e) {
+            console.error("Couldn't parse current level progress", e);
+            tantaloWorker.postMessage(difficulty);
+          }
         } else {
-          console.log("Generating difficulty of " + difficulty + "...");
-          tantaloWorker.postMessage(difficulty);
+          if (difficulty === 1) {
+            // sometimes we can randomly generate a presolved level,
+            // so just hardcode the first one
+            console.log("Sending hardcoded edge data for difficulty 1:", firstLevel);
+            app.ports.loadedLevelFresh.send(firstLevel);
+          } else {
+            console.log("Generating difficulty of " + difficulty + "...");
+            tantaloWorker.postMessage(difficulty);
+          }
         }
       });
 

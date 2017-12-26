@@ -1,4 +1,4 @@
-port module State exposing (generateEdges, subscriptions, update)
+module State exposing (subscriptions, update)
 
 -- mine
 
@@ -11,6 +11,15 @@ import Ease
 import List.Extra
 import Mouse
 import Navigation
+import Ports
+    exposing
+        ( checkForIntersections
+        , intersectionResults
+        , loadLevel
+        , loadedLevelFresh
+        , loadedLevelInProgress
+        , saveConfig
+        )
 import Random
 import Random.Extra
 import Time exposing (Time)
@@ -29,15 +38,6 @@ baseWeight =
 -- UPDATE
 
 
-port generateEdges : Int -> Cmd msg
-
-
-port saveConfig : Config -> Cmd msg
-
-
-port checkForIntersections : ( List Node, List Edge, Int ) -> Cmd msg
-
-
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -54,12 +54,29 @@ update msg model =
             updateAnimation model time
 
         -- request to js-land
-        GenerateEdges diff ->
-            ( model, generateEdges diff )
+        LoadLevel diff ->
+            ( model, loadLevel diff )
 
         -- response from js-land
-        GeneratedEdges edgeData ->
+        LoadedLevelFresh edgeData ->
             updateGeneratedEdges model edgeData ! []
+
+        LoadedLevelInProgress ( { nodes, edges }, difficulty ) ->
+            { model
+                | appState =
+                    ActiveState
+                        { nodes =
+                            nodes
+                                |> Array.toList
+                                |> List.map (\n -> ( n.id, { n | pos = n.dest } ))
+                                |> Dict.fromList
+                        , edges = edges
+                        , difficulty = difficulty
+                        , mouseState = DefaultMouseState
+                        , mode = PlayingMode
+                        }
+            }
+                ! []
 
         ChangeConfigRadius newRadius ->
             updateConfigRadius model newRadius
@@ -68,13 +85,13 @@ update msg model =
             updateGetIntersectionResults model intersectionResultData
 
         StartCampaign ->
-            ( model, generateEdges 1 )
+            ( model, loadLevel 1 )
 
         UrlChange location ->
             ( model, Cmd.none )
 
         GoToLevel difficulty ->
-            ( model, generateEdges difficulty )
+            ( model, loadLevel difficulty )
 
 
 
@@ -872,16 +889,11 @@ angleFor3Pts pos1 pos2 pos3 =
 -- SUBSCRIPTIONS
 
 
-port generatedEdges : (EdgeData -> msg) -> Sub msg
-
-
-port intersectionResults : (( Bool, List Edge ) -> msg) -> Sub msg
-
-
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ generatedEdges GeneratedEdges
+        [ loadedLevelFresh LoadedLevelFresh
+        , loadedLevelInProgress LoadedLevelInProgress
         , intersectionResults GetIntersectionResults
         , AnimationFrame.diffs AnimationMsg
         ]

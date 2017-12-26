@@ -1,21 +1,8 @@
-port module Init exposing (init)
+module Init exposing (init)
 
 import Dict
 import Navigation
-import State exposing (generateEdges)
 import Types exposing (..)
-
-
---type alias Flags =
---    { radius : Float
---    , showStella : Bool
---    , levelsCleared : Int
---    , currentLevel :
---        Maybe
---            { nodes : Dict NodeId Node
---            , edges : List Edge
---            }
---    }
 
 
 init : Flags -> Navigation.Location -> ( Model, Cmd Msg )
