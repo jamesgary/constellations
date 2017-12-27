@@ -23,7 +23,9 @@ port checkForIntersections : ( List Node, List Edge, Int ) -> Cmd msg
 port loadedLevelFresh : (EdgeData -> msg) -> Sub msg
 
 
-port loadedLevelInProgress : (( { nodes : Array Node, edges : List Edge }, Int ) -> msg) -> Sub msg
+port loadedLevelInProgress :
+    (( { nodes : Array Node, edges : List Edge }, Int ) -> msg)
+    -> Sub msg
 
 
 port intersectionResults : (( Bool, List Edge ) -> msg) -> Sub msg

@@ -96,9 +96,13 @@ $edgeWidth: 3px;
 
 .level-select-level {
   margin: 0 7px 0 6px;
+  width: 120px;
+  display: inline-block;
 }
 
 .level-select-picker {
+  width: 50px;
+  display: inline-block;
   -webkit-text-stroke: 1px rgba(0,0,0,0.8);
 }
 
@@ -107,4 +111,13 @@ $edgeWidth: 3px;
   cursor: pointer;
   text-shadow: 0px 0px 6px #fcc;
   -webkit-text-stroke: 1px #a00;
+}
+
+/* OMG https://stackoverflow.com/q/17995873 */
+.level-select-prev {
+  transform: rotate(-90deg);
+}
+
+.level-select-next {
+  transform: rotate(90deg);
 }

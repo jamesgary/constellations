@@ -44,22 +44,33 @@ drawGameState config levelsCleared gameState =
 drawLevelSelect : Config -> Int -> ActiveStateData -> Html Msg
 drawLevelSelect config levelsCleared { difficulty } =
     div [ class "level-select-container" ]
-        [ span
-            [ property "innerHTML" (Json.Encode.string "&#9664;")
-            , class "level-select-picker level-select-prev"
-            , onClick (GoToLevel (difficulty - 1))
-            ]
-            []
+        [ if difficulty > 1 then
+            span
+                [ property "innerHTML" (Json.Encode.string "&#9650;")
+                , class "level-select-picker level-select-prev"
+                , onClick (GoToLevel (difficulty - 1))
+                ]
+                []
+          else
+            span
+                [ property "innerHTML" (Json.Encode.string "&nbsp;")
+                , class "level-select-picker level-select-prev"
+                ]
+                []
         , span [ class "level-select-level" ] [ text ("Level " ++ toString difficulty) ]
         , if levelsCleared >= difficulty then
             span
-                [ property "innerHTML" (Json.Encode.string "&#9654;")
+                [ property "innerHTML" (Json.Encode.string "&#9650;")
                 , class "level-select-picker level-select-next"
                 , onClick (GoToLevel (difficulty + 1))
                 ]
                 []
           else
-            text ""
+            span
+                [ property "innerHTML" (Json.Encode.string "&nbsp;")
+                , class "level-select-picker level-select-next"
+                ]
+                []
         ]
 
 
