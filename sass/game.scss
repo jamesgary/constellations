@@ -6,18 +6,18 @@ $lassoingNodeFill: hsl(100, 89%, 70%);
 $lassoedNodeFill: hsl(90, 89%, 70%);
 $lassoedNodeStroke: hsl(90, 100%, 90%);
 
-$edgeFillOpacity: 0.8;
+$edgeFillOpacity: 0.9;
 $edgeFill: hsl(51, 100%, 90%);
 
 // Gets us an opaque version of edge fill
 $nodeStroke: mix($edgeFill, $background, (100 * $edgeFillOpacity));
 
-$edgeWidth: 3px;
+$edgeWidth: 2px;
 
 /* Nodes */
 
 .node {
-  fill: $nodeFill;
+  fill: url(#radGrad);
   stroke: $nodeStroke;
   stroke-width: $edgeWidth;
   transition: fill 2s cubic-bezier(0.0, 1.0, 0.0, 1.0); // slow, leaves a stain

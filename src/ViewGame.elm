@@ -9,7 +9,7 @@ import Json.Decode as Decode
 import Json.Encode
 import Mouse
 import Svg exposing (..)
-import Svg.Attributes exposing (class, cx, cy, dx, dy, fill, height, rx, ry, stdDeviation, transform, viewBox, width, x, x1, x2, y, y1, y2)
+import Svg.Attributes exposing (class, cx, cy, dx, dy, fill, height, id, offset, r, rx, ry, spreadMethod, stdDeviation, stopColor, transform, viewBox, width, x, x1, x2, y, y1, y2)
 import Svg.Events
 import Time exposing (Time)
 import Types exposing (..)
@@ -158,7 +158,8 @@ drawConstellation config { mouseState, nodes, edges, mode, difficulty } =
             , viewBox "0 0 1600 900"
             ]
             (List.concat
-                [ drawEdges nodes edges
+                [ drawDefs
+                , drawEdges nodes edges
                 , drawNodes config
                     mouseState
                     (List.reverse (Dict.values nodes))
@@ -173,6 +174,21 @@ drawConstellation config { mouseState, nodes, edges, mode, difficulty } =
             ]
             []
         ]
+
+
+drawDefs : List (Html Msg)
+drawDefs =
+    [ Svg.defs []
+        [ Svg.radialGradient
+            [ cx "50%", cy "50%", r "100%", spreadMethod "pad", id "radGrad" ]
+            [ Svg.stop [ offset "0%", stopColor "rgb(255,255,255)" ] []
+            , Svg.stop [ offset "30%", stopColor "rgb(255,255,250)" ] []
+            , Svg.stop [ offset "66%", stopColor "rgb(255,255,94)" ] []
+            , Svg.stop [ offset "76%", stopColor "rgb(255,243,13)" ] []
+            , Svg.stop [ offset "100%", stopColor "rgb(255,243,13)" ] []
+            ]
+        ]
+    ]
 
 
 drawLasso : MouseState -> List (Html Msg)
