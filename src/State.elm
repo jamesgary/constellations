@@ -22,6 +22,7 @@ import Ports
         )
 import Random
 import Random.Extra
+import Random.List
 import Time exposing (Time)
 import Types exposing (..)
 
@@ -58,8 +59,16 @@ update msg model =
             ( model, loadLevel diff )
 
         -- response from js-land
-        LoadedLevelFresh edgeData ->
-            updateGeneratedEdges model edgeData ! []
+        LoadedLevelFresh ( edges, numNodes, difficulty ) ->
+            let
+                _ =
+                    numNodes |> Debug.log "orig numNodes"
+
+                ( edges, numNodes ) =
+                    makeGraphEdges difficulty
+            in
+            --updateGeneratedEdges model edgeData ! []
+            updateGeneratedEdges model ( edges, numNodes, difficulty ) ! []
 
         LoadedLevelInProgress ( { nodes, edges }, difficulty ) ->
             { model
@@ -92,6 +101,123 @@ update msg model =
 
         GoToLevel difficulty ->
             ( model, loadLevel difficulty )
+
+
+makeGraphEdges : Int -> ( List Edge, Int )
+makeGraphEdges difficulty =
+    {-
+        1 2x2
+        2 2x3
+        3 3x3
+        4 3x4
+        5 4x4
+        6 4x5
+        7 5x5
+        8 5x6
+        9 6x6
+       10 6x7
+       11 7x7
+       12 7x8
+       13 8x8
+       14 8x9
+       15 9x9
+    -}
+    let
+        ( h, w ) =
+            ( ((difficulty - 1) // 2) + 2, (difficulty // 2) + 2 )
+
+        numNodes =
+            h * w
+
+        seed =
+            Random.initialSeed (numNodes * 1234567)
+
+        randomMap =
+            List.range 0 (numNodes - 1)
+                |> Random.List.shuffle
+                |> (\g -> Random.step g seed)
+                |> Tuple.first
+                |> List.indexedMap (\i n -> ( i, n ))
+                |> Dict.fromList
+    in
+    ( List.range 0 (numNodes - 1)
+        |> List.foldl
+            (\i ( e, s ) ->
+                let
+                    ( x, y ) =
+                        ( i % w, i // w )
+
+                    ( randBool, seed ) =
+                        Random.step Random.bool s
+                in
+                e
+                    |> (\edges ->
+                            -- up
+                            if y > 0 then
+                                ( i, i - w ) :: edges
+                            else
+                                edges
+                       )
+                    |> (\edges ->
+                            -- right
+                            if x < (w - 1) then
+                                ( i, i + 1 ) :: edges
+                            else
+                                edges
+                       )
+                    |> (\edges ->
+                            -- down
+                            if y < (h - 1) then
+                                ( i, i + w ) :: edges
+                            else
+                                edges
+                       )
+                    |> (\edges ->
+                            -- left
+                            if x > 0 then
+                                ( i, i - 1 ) :: edges
+                            else
+                                edges
+                       )
+                    |> (\edges ->
+                            -- diagonal
+                            if x < (w - 1) && y < (h - 1) then
+                                if randBool then
+                                    let
+                                        _ =
+                                            Debug.log "DR" ""
+                                    in
+                                    -- down-right from node
+                                    ( i, i + w + 1 ) :: edges
+                                else
+                                    let
+                                        _ =
+                                            Debug.log "DL" ""
+                                    in
+                                    -- down-left from right node
+                                    ( i + 1, i + w ) :: edges
+                            else
+                                edges
+                       )
+                    |> (\edges -> ( edges, seed ))
+            )
+            ( [], seed )
+        |> Tuple.first
+        |> List.map
+            (\( a, b ) ->
+                ( Dict.get a randomMap |> Maybe.withDefault -1
+                , Dict.get b randomMap |> Maybe.withDefault -1
+                )
+            )
+        |> List.indexedMap
+            (\i e ->
+                { id = i
+                , pair = e
+                , overlappingEdges = []
+                }
+            )
+    , numNodes
+    )
 
 
 
@@ -476,7 +602,11 @@ edgeDataToActiveStateData config ( edges, numNodes, difficulty ) =
     let
         nodes =
             List.range 0 (numNodes - 1)
-                |> List.map (makeNode config numNodes)
+                --|> Random.List.shuffle
+                --|> (\g -> Random.step g (Random.initialSeed numNodes))
+                --|> Tuple.first
+                --|> Debug.log "n"
+                |> List.indexedMap (makeNode config numNodes)
 
         newGameState =
             { nodes = Dict.fromList nodes
@@ -489,18 +619,16 @@ edgeDataToActiveStateData config ( edges, numNodes, difficulty ) =
     newGameState
 
 
-makeNode : Config -> Int -> NodeId -> ( NodeId, Node )
-makeNode config maxNodes nodeId =
-    let
-        rotation =
-            toFloat nodeId / toFloat maxNodes
-
-        x =
-            graphCenterX + cos (2 * pi * rotation) * graphRadius
-
-        y =
-            graphCenterY + sin (2 * pi * rotation) * graphRadius
-    in
+makeNode : Config -> Int -> Int -> NodeId -> ( NodeId, Node )
+makeNode config maxNodes i nodeId =
+    --let
+    --rotation =
+    --    toFloat i / toFloat maxNodes
+    --x =
+    --    graphCenterX + cos (2 * pi * rotation) * graphRadius
+    --y =
+    --    graphCenterY + sin (2 * pi * rotation) * graphRadius
+    --in
     ( nodeId
     , { id = nodeId
       , dest = Pos graphCenterX graphCenterY
