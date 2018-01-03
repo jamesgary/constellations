@@ -2,15 +2,17 @@ module Init exposing (init)
 
 import Dict
 import Navigation
+import Random
 import Types exposing (..)
 
 
 init : Flags -> Navigation.Location -> ( Model, Cmd Msg )
-init { radius, showStella, levelsCleared } location =
+init { radius, showStella, levelsCleared, timestamp } location =
     case location.hash of
         "#won" ->
             ( { appState = wonAppState
               , levelsCleared = levelsCleared
+              , seed = Random.initialSeed timestamp
 
               --, lastLevelProgress = lastLevelProgress
               , config =
@@ -24,6 +26,7 @@ init { radius, showStella, levelsCleared } location =
         _ ->
             ( { appState = StartState
               , levelsCleared = levelsCleared
+              , seed = Random.initialSeed timestamp
 
               --, lastLevelProgress = lastLevelProgress
               , config =

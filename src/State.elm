@@ -59,16 +59,26 @@ update msg model =
             ( model, loadLevel diff )
 
         -- response from js-land
-        LoadedLevelFresh ( edges, numNodes, difficulty ) ->
+        LoadedLevelFresh ( edges_, numNodes_, difficulty ) ->
             let
-                _ =
-                    numNodes |> Debug.log "orig numNodes"
-
-                ( edges, numNodes ) =
-                    makeGraphEdges difficulty
+                ( edges, numNodes, newSeed ) =
+                    makeGraphEdges difficulty model.seed
             in
-            --updateGeneratedEdges model edgeData ! []
-            updateGeneratedEdges model ( edges, numNodes, difficulty ) ! []
+            { model
+                | appState =
+                    ActiveState
+                        { nodes =
+                            List.range 0 (numNodes - 1)
+                                |> List.indexedMap (makeNode model.config numNodes)
+                                |> Dict.fromList
+                        , edges = edges
+                        , difficulty = difficulty
+                        , mouseState = DefaultMouseState
+                        , mode = LoadingMode 0
+                        }
+                , seed = newSeed
+            }
+                ! []
 
         LoadedLevelInProgress ( { nodes, edges }, difficulty ) ->
             { model
@@ -103,8 +113,8 @@ update msg model =
             ( model, loadLevel difficulty )
 
 
-makeGraphEdges : Int -> ( List Edge, Int )
-makeGraphEdges difficulty =
+makeGraphEdges : Int -> Random.Seed -> ( List Edge, Int, Random.Seed )
+makeGraphEdges difficulty seed =
     {-
         1 2x2
         2 2x3
@@ -129,28 +139,30 @@ makeGraphEdges difficulty =
         numNodes =
             h * w
 
-        seed =
-            Random.initialSeed (numNodes * 1234567)
+        maxNumNodes =
+            round <| 0.9 * toFloat numNodes
 
-        randomMap =
+        ( shuffledList, newSeed ) =
             List.range 0 (numNodes - 1)
                 |> Random.List.shuffle
                 |> (\g -> Random.step g seed)
-                |> Tuple.first
+
+        randomMap =
+            shuffledList
                 |> List.indexedMap (\i n -> ( i, n ))
                 |> Dict.fromList
     in
-    ( List.range 0 (numNodes - 1)
+    List.range 0 (numNodes - 1)
         |> List.foldl
-            (\i ( e, s ) ->
+            (\i ( edges, seed ) ->
                 let
                     ( x, y ) =
                         ( i % w, i // w )
 
-                    ( randBool, seed ) =
-                        Random.step Random.bool s
+                    ( randBool, newSeed ) =
+                        Random.step Random.bool seed
                 in
-                e
+                edges
                     |> (\edges ->
                             -- up
                             if y > 0 then
@@ -183,41 +195,40 @@ makeGraphEdges difficulty =
                             -- diagonal
                             if x < (w - 1) && y < (h - 1) then
                                 if randBool then
-                                    let
-                                        _ =
-                                            Debug.log "DR" ""
-                                    in
                                     -- down-right from node
                                     ( i, i + w + 1 ) :: edges
                                 else
-                                    let
-                                        _ =
-                                            Debug.log "DL" ""
-                                    in
                                     -- down-left from right node
                                     ( i + 1, i + w ) :: edges
                             else
                                 edges
                        )
-                    |> (\edges -> ( edges, seed ))
+                    |> (\edges -> ( edges, newSeed ))
             )
-            ( [], seed )
-        |> Tuple.first
-        |> List.map
-            (\( a, b ) ->
-                ( Dict.get a randomMap |> Maybe.withDefault -1
-                , Dict.get b randomMap |> Maybe.withDefault -1
+            ( [], newSeed )
+        |> (\( edges, seed ) ->
+                ( edges
+                    |> List.map
+                        (\( a, b ) ->
+                            ( Dict.get a randomMap |> Maybe.withDefault -1
+                            , Dict.get b randomMap |> Maybe.withDefault -1
+                            )
+                        )
+                    |> List.filter
+                        (\( a, b ) ->
+                            a < maxNumNodes && b < maxNumNodes
+                        )
+                    |> List.indexedMap
+                        (\i e ->
+                            { id = i
+                            , pair = e
+                            , overlappingEdges = []
+                            }
+                        )
+                , maxNumNodes
+                , seed
                 )
-            )
-        |> List.indexedMap
-            (\i e ->
-                { id = i
-                , pair = e
-                , overlappingEdges = []
-                }
-            )
-    , numNodes
-    )
+           )
 
 
 
@@ -572,11 +583,6 @@ updateAnimation model time =
             ( model, Cmd.none )
 
 
-updateGeneratedEdges : Model -> EdgeData -> Model
-updateGeneratedEdges model edgeData =
-    { model | appState = ActiveState (edgeDataToActiveStateData model.config edgeData) }
-
-
 updateConfigRadius : Model -> String -> ( Model, Cmd Msg )
 updateConfigRadius model radiusString =
     let
@@ -595,28 +601,6 @@ updateConfigRadius model radiusString =
             { model | config = newConfig }
     in
     ( newModel, saveConfig newConfig )
-
-
-edgeDataToActiveStateData : Config -> EdgeData -> ActiveStateData
-edgeDataToActiveStateData config ( edges, numNodes, difficulty ) =
-    let
-        nodes =
-            List.range 0 (numNodes - 1)
-                --|> Random.List.shuffle
-                --|> (\g -> Random.step g (Random.initialSeed numNodes))
-                --|> Tuple.first
-                --|> Debug.log "n"
-                |> List.indexedMap (makeNode config numNodes)
-
-        newGameState =
-            { nodes = Dict.fromList nodes
-            , edges = edges
-            , difficulty = difficulty
-            , mouseState = DefaultMouseState
-            , mode = LoadingMode 0
-            }
-    in
-    newGameState
 
 
 makeNode : Config -> Int -> Int -> NodeId -> ( NodeId, Node )

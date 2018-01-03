@@ -5,12 +5,14 @@ import Color exposing (Color)
 import Dict exposing (Dict)
 import Mouse
 import Navigation
+import Random
 import Time exposing (Time)
 
 
 type alias Model =
     { appState : AppState
     , levelsCleared : Int
+    , seed : Random.Seed
 
     --, lastLevelProgress :
     --    Maybe
@@ -25,6 +27,7 @@ type alias Flags =
     { radius : Float
     , showStella : Bool
     , levelsCleared : Int
+    , timestamp : Int
 
     --, lastLevelProgress :
     --    Maybe
