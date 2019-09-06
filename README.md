@@ -1,6 +1,6 @@
 # Constellations
 
-Playable at [constellationsgame.com](http://constellationsgame.com)!
+Playable at [http://constellationsgame.com.s3-website-us-east-1.amazonaws.com/](http://constellationsgame.com.s3-website-us-east-1.amazonaws.com/)!
 
 ## To Run
 
