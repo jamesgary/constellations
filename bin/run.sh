@@ -1,2 +1,2 @@
 #!/bin/bash
-elm-live src/Main.elm --output=public/js/main.js --dir=public/
+elm-live src/Main.elm --dir=public/ -- --output=public/js/main.js

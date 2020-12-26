@@ -1,12 +1,9 @@
-module Types exposing (..)
+module Types exposing (ActiveStateData, AppState(..), Config, Edge, EdgeData, EdgeId, Flags, GameMode(..), IntersectionResultData, Model, MousePos, MouseState(..), Msg(..), Node, NodeId, Pos, Shape, Time, Vel, difficultyToNumNodes, getNode, graphCenterX, graphCenterY, graphRadius, loadAnimDur, nothingNode, px, wait)
 
 import Array exposing (Array)
 import Color exposing (Color)
 import Dict exposing (Dict)
-import Mouse
-import Navigation
 import Random
-import Time exposing (Time)
 
 
 type alias Model =
@@ -63,6 +60,10 @@ type alias ActiveStateData =
     , mouseState : MouseState
     , mode : GameMode
     }
+
+
+type alias Time =
+    Float
 
 
 type GameMode
@@ -141,7 +142,6 @@ type Msg
     | ChangeConfigRadius String
     | GetIntersectionResults IntersectionResultData
     | StartCampaign
-    | UrlChange Navigation.Location
     | GoToLevel Int
 
 
@@ -208,4 +208,4 @@ wait =
 
 px : Float -> String
 px number =
-    toString number ++ "px"
+    String.fromFloat number ++ "px"

@@ -1,7 +1,8 @@
-port module Ports exposing (..)
+port module Ports exposing (checkForIntersections, intersectionResults, loadLevel, loadedLevelFresh, loadedLevelInProgress, saveConfig)
 
 import Array exposing (Array)
 import Types exposing (..)
+
 
 
 -- outgoing

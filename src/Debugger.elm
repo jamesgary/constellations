@@ -10,17 +10,15 @@ import Types exposing (..)
 debugger : Model -> Html Msg
 debugger { nodes, mouse, now } =
     div
-        [ Html.Attributes.style
-            [ ( "width", "500px" )
-            , ( "height", "100%" )
-            , ( "background", "gray" )
-            , ( "position", "absolute" )
-            , ( "right", "0" )
-            , ( "bottom", "0" )
-            , ( "font-family", "Consolas, monospace" )
-            , ( "user-select", "none" )
-            , ( "-webkit-user-select", "none" )
-            ]
+        [ Html.Attributes.style "width" "500px"
+        , Html.Attributes.style "height" "100%"
+        , Html.Attributes.style "background" "gray"
+        , Html.Attributes.style "position" "absolute"
+        , Html.Attributes.style "right" "0"
+        , Html.Attributes.style "bottom" "0"
+        , Html.Attributes.style "font-family" "Consolas, monospace"
+        , Html.Attributes.style "user-select" "none"
+        , Html.Attributes.style "-webkit-user-select" "none"
         ]
         [ table []
             [ {--debugRow "node.rad" node.rad
@@ -42,6 +40,6 @@ debugger { nodes, mouse, now } =
 debugRow : String -> a -> Html Msg
 debugRow label val =
     tr []
-        [ td [ style [ ( "font-weight", "bold" ) ] ] [ Html.text label ]
+        [ td [ style "font-weight" "bold" ] [ Html.text label ]
         , td [] [ Html.text (toString val) ]
         ]

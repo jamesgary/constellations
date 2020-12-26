@@ -1,17 +1,17 @@
-module Main exposing (..)
+module Main exposing (main)
 
 -- mine
 
+import Browser
 import Html
 import Init exposing (init)
-import Navigation
 import State exposing (subscriptions, update)
 import Types exposing (..)
 import View exposing (view)
 
 
 main =
-    Navigation.programWithFlags UrlChange
+    Browser.element
         { init = init
         , view = view
         , update = update

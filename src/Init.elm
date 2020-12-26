@@ -1,14 +1,17 @@
 module Init exposing (init)
 
 import Dict
-import Navigation
 import Random
 import Types exposing (..)
 
 
-init : Flags -> Navigation.Location -> ( Model, Cmd Msg )
-init { radius, showStella, levelsCleared, timestamp } location =
-    case location.hash of
+init : Flags -> ( Model, Cmd Msg )
+init { radius, showStella, levelsCleared, timestamp } =
+    let
+        hash =
+            "foo"
+    in
+    case hash of
         "#won" ->
             ( { appState = wonAppState
               , levelsCleared = levelsCleared

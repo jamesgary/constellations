@@ -82,7 +82,8 @@ viewStartScreen levelsCleared =
                 [ class "btn start-btn campaign-btn"
                 , Html.Events.onClick (LoadLevel (levelsCleared + 1))
                 ]
-                [ text ("Resume Level " ++ toString (levelsCleared + 1)) ]
+                [ text ("Resume Level " ++ String.fromInt (levelsCleared + 1)) ]
+
           else
             button
                 [ class "btn start-btn campaign-btn"

@@ -7,11 +7,9 @@ import Html.Attributes exposing (href, property, target)
 import Html.Events exposing (on, onClick)
 import Json.Decode as Decode
 import Json.Encode
-import Mouse
 import Svg exposing (..)
 import Svg.Attributes exposing (class, cx, cy, dx, dy, fill, height, id, offset, r, rx, ry, spreadMethod, stdDeviation, stopColor, transform, viewBox, width, x, x1, x2, y, y1, y2)
 import Svg.Events
-import Time exposing (Time)
 import Types exposing (..)
 
 
@@ -46,31 +44,30 @@ drawLevelSelect config levelsCleared { difficulty } =
     div [ class "level-select-container" ]
         [ if difficulty > 1 then
             span
-                [ property "innerHTML" (Json.Encode.string "&#9650;")
-                , class "level-select-picker level-select-prev"
+                [ class "level-select-picker level-select-prev"
                 , onClick (GoToLevel (difficulty - 1))
                 ]
-                []
+                [ Html.text " <<< " ]
+
           else
             span
                 [ property "innerHTML" (Json.Encode.string "&nbsp;")
                 , class "level-select-picker level-select-prev"
                 ]
                 []
-        , span [ class "level-select-level" ] [ text ("Level " ++ toString difficulty) ]
+        , span [ class "level-select-level" ] [ text ("Level " ++ String.fromInt difficulty) ]
         , if levelsCleared >= difficulty then
             span
-                [ property "innerHTML" (Json.Encode.string "&#9650;")
-                , class "level-select-picker level-select-next"
+                [ class "level-select-picker level-select-next"
                 , onClick (GoToLevel (difficulty + 1))
                 ]
-                []
+                [ Html.text " >>> " ]
+
           else
             span
-                [ property "innerHTML" (Json.Encode.string "&nbsp;")
-                , class "level-select-picker level-select-next"
+                [ class "level-select-picker level-select-next"
                 ]
-                []
+                [ Html.text " ???" ]
         ]
 
 
@@ -95,25 +92,25 @@ drawShape { dimmerAnimationDurationMs, shimmerAnimationDelayMs, pts, color } =
     let
         points =
             pts
-                |> List.map (\{ x, y } -> toString x ++ "," ++ toString y)
+                |> List.map (\{ x, y } -> String.fromFloat x ++ "," ++ String.fromFloat y)
                 |> List.intersperse " "
                 |> String.concat
     in
     Svg.g
         [ Svg.Attributes.class "shape-container"
-        , Svg.Attributes.style ("animation-delay:" ++ toString shimmerAnimationDelayMs ++ "ms")
+        , Svg.Attributes.style ("animation-delay:" ++ String.fromInt shimmerAnimationDelayMs ++ "ms")
         ]
         [ polygon
             [ Svg.Attributes.points points
             , fill color
             , Svg.Attributes.class "shape"
-            , Svg.Attributes.style ("animation-duration:" ++ toString dimmerAnimationDurationMs ++ "ms")
+            , Svg.Attributes.style ("animation-duration:" ++ String.fromInt dimmerAnimationDurationMs ++ "ms")
             ]
             []
         , polygon
             [ Svg.Attributes.points points
             , Svg.Attributes.class "shimmer"
-            , Svg.Attributes.style ("animation-delay:" ++ toString shimmerAnimationDelayMs ++ "ms")
+            , Svg.Attributes.style ("animation-delay:" ++ String.fromInt shimmerAnimationDelayMs ++ "ms")
             ]
             []
         ]
@@ -246,6 +243,7 @@ drawWinModal gameState =
         className =
             if isHidden then
                 "win-modal hidden"
+
             else
                 "win-modal"
 
@@ -301,40 +299,46 @@ drawNode config mouseState node =
                 HoveringMouseState hoveredId ->
                     if node.id == hoveredId then
                         "is-hovering"
+
                     else
                         ""
 
                 DraggingMouseState draggedId pos neighborIds ->
                     if node.id == draggedId then
                         "is-dragging"
+
                     else if List.member node.id neighborIds then
                         "is-neighboring"
+
                     else
                         ""
 
                 LassoingMouseState startPos curPos nodeIds ->
                     if List.member node.id nodeIds then
                         "is-lassoing"
+
                     else
                         ""
 
                 LassoedMouseState nodeIds ->
                     if List.member node.id nodeIds then
                         "is-lassoed"
+
                     else
                         ""
 
                 DraggingLassoedMouseState offsetNodeList ->
                     if List.member node.id (List.map Tuple.first offsetNodeList) then
                         "is-lassoing"
+
                     else
                         ""
     in
     [ ellipse
         [ cx (px realPosition.x)
         , cy (px realPosition.y)
-        , rx (toString realXRad)
-        , ry (toString realYRad)
+        , rx (String.fromFloat realXRad)
+        , ry (String.fromFloat realYRad)
         , transform (getTransform node)
         , class ("node " ++ className)
         ]
@@ -342,11 +346,11 @@ drawNode config mouseState node =
 
     --, Svg.text_
     --    [ Svg.Attributes.color "red"
-    --    , Svg.Attributes.x (toString realPosition.x)
-    --    , Svg.Attributes.y (toString realPosition.y)
+    --    , Svg.Attributes.x (String.fromFloat realPosition.x)
+    --    , Svg.Attributes.y (String.fromFloat realPosition.y)
     --    , Svg.Attributes.fontSize "20"
     --    ]
-    --    [ Svg.text (node.id |> toString) ]
+    --    [ Svg.text (node.id |> String.fromFloat) ]
     ]
 
 
@@ -367,14 +371,15 @@ drawEdge nodes edge =
         className =
             if List.isEmpty edge.overlappingEdges then
                 "is-overlapping"
+
             else
                 ""
     in
     [ line
-        [ x1 (toString node1.pos.x)
-        , y1 (toString node1.pos.y)
-        , x2 (toString node2.pos.x)
-        , y2 (toString node2.pos.y)
+        [ x1 (String.fromFloat node1.pos.x)
+        , y1 (String.fromFloat node1.pos.y)
+        , x2 (String.fromFloat node2.pos.x)
+        , y2 (String.fromFloat node2.pos.y)
         , class ("edge " ++ className)
         ]
         []
@@ -400,13 +405,14 @@ drawLevelSelector currentDifficulty difficulty =
             [ class "levelSelect-selector levelSelect-selector-isCurrent"
             , Html.Events.onClick (LoadLevel difficulty)
             ]
-            [ text ("[[" ++ toString difficulty ++ "]]") ]
+            [ text ("[[" ++ String.fromInt difficulty ++ "]]") ]
+
     else
         div
             [ class "levelSelect-selector"
             , Html.Events.onClick (LoadLevel difficulty)
             ]
-            [ text (toString difficulty) ]
+            [ text (String.fromInt difficulty) ]
 
 
 drawConfig : Config -> Html Msg
@@ -424,13 +430,13 @@ drawConfig config =
                 , Html.Attributes.type_ "range"
                 , Html.Attributes.min "1"
                 , Html.Attributes.max "100"
-                , Html.Attributes.defaultValue (toString config.radius)
+                , Html.Attributes.value (String.fromFloat config.radius)
                 ]
                 []
             , Html.span
                 [ class "config-val"
                 ]
-                [ text (toString config.radius) ]
+                [ text (String.fromFloat config.radius) ]
             ]
         ]
 
@@ -439,13 +445,13 @@ getTransform : Node -> String
 getTransform node =
     let
         angleStr =
-            toString (aToDegs node.vel.a)
+            String.fromFloat (aToDegs node.vel.a)
 
         xStr =
-            toString node.pos.x
+            String.fromFloat node.pos.x
 
         yStr =
-            toString node.pos.y
+            String.fromFloat node.pos.y
     in
     "rotate (" ++ angleStr ++ " " ++ xStr ++ " " ++ yStr ++ ")"
 
@@ -454,10 +460,10 @@ getBlur : Node -> String
 getBlur node =
     let
         xStr =
-            toString (baseBlur * node.vel.x)
+            String.fromFloat (baseBlur * node.vel.x)
 
         yStr =
-            toString (baseBlur * node.vel.y)
+            String.fromFloat (baseBlur * node.vel.y)
     in
     xStr ++ "," ++ yStr
 
@@ -484,7 +490,7 @@ onMouseUp =
 
 decodeClickLocation : Decode.Decoder ( Float, Float )
 decodeClickLocation =
-    Decode.map2 (,)
+    Decode.map2 (\a b -> ( a, b ))
         (Decode.map2 (/)
             (Decode.at [ "offsetX" ] Decode.float)
             (Decode.at [ "target", "clientWidth" ] Decode.float)
@@ -523,6 +529,7 @@ getLoadAnimPos time id numNodes =
         age =
             if time < wait then
                 0
+
             else
                 min loadAnimDur (time - wait)
 
