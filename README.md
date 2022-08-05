@@ -7,30 +7,34 @@ Playable at [http://constellationsgame.com.s3-website-us-east-1.amazonaws.com/](
 For compiling elm to js:
 
 ```
-# Requires https://github.com/tomekwi/elm-live
+# Uses https://github.com/tomekwi/elm-live
 # Runs on http://localhost:8000
 
 ./bin/run
 
 # which does:
 
-elm-live main.elm --output=public/js/main.js --dir=public/
+npx elm-live main.elm --output=public/js/main.js --dir=public/
 ```
 
 For compiling sass to css:
 
 ```
-./bin/sass
+./bin/sass.sh
 
 # which does:
 
-sass --watch sass/main.scss:public/css/main.css
+npx sass --watch sass/main.scss:public/css/main.css
 ```
 
 ## Just To Make
 
 ```
-elm-make main.elm --output=public/js/main.js && sass sass/main.scss:public/css/main.css
+./bin/make.sh
+
+# which does:
+
+npx elm-make main.elm --output=public/js/main.js && npx sass sass/main.scss:public/css/main.css
 ```
 
 ## To Deploy to S3

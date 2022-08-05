@@ -22,11 +22,11 @@ starryNightColorGen =
                 |> Maybe.withDefault ( 0, 0, 0 )
                 |> (\( r, g, b ) ->
                         "rgb("
-                            ++ toString (r * rRand |> round)
+                            ++ String.fromInt (r * rRand |> round)
                             ++ ","
-                            ++ toString (g * gRand |> round)
+                            ++ String.fromInt (g * gRand |> round)
                             ++ ","
-                            ++ toString (b * bRand |> round)
+                            ++ String.fromInt (b * bRand |> round)
                             ++ ")"
                    )
         )

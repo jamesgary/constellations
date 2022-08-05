@@ -2,15 +2,14 @@ module State exposing (subscriptions, update)
 
 -- mine
 
-import AnimationFrame
 import Array
+import Browser
+import Browser.Events
 import Color
 import Colors
 import Dict exposing (Dict)
 import Ease
 import List.Extra
-import Mouse
-import Navigation
 import Ports
     exposing
         ( checkForIntersections
@@ -23,7 +22,6 @@ import Ports
 import Random
 import Random.Extra
 import Random.List
-import Time exposing (Time)
 import Types exposing (..)
 
 
@@ -64,7 +62,7 @@ update msg model =
                 ( edges, numNodes, newSeed ) =
                     makeGraphEdges difficulty model.seed
             in
-            { model
+            ( { model
                 | appState =
                     ActiveState
                         { nodes =
@@ -77,11 +75,12 @@ update msg model =
                         , mode = LoadingMode 0
                         }
                 , seed = newSeed
-            }
-                ! []
+              }
+            , Cmd.none
+            )
 
         LoadedLevelInProgress ( { nodes, edges }, difficulty ) ->
-            { model
+            ( { model
                 | appState =
                     ActiveState
                         { nodes =
@@ -94,8 +93,9 @@ update msg model =
                         , mouseState = DefaultMouseState
                         , mode = PlayingMode
                         }
-            }
-                ! []
+              }
+            , Cmd.none
+            )
 
         ChangeConfigRadius newRadius ->
             updateConfigRadius model newRadius
@@ -105,9 +105,6 @@ update msg model =
 
         StartCampaign ->
             ( model, loadLevel 1 )
-
-        UrlChange location ->
-            ( model, Cmd.none )
 
         GoToLevel difficulty ->
             ( model, loadLevel difficulty )
@@ -154,59 +151,65 @@ makeGraphEdges difficulty seed =
     in
     List.range 0 (numNodes - 1)
         |> List.foldl
-            (\i ( edges, seed ) ->
+            (\i ( edges, seed_ ) ->
                 let
                     ( x, y ) =
-                        ( i % w, i // w )
+                        ( modBy w i, i // w )
 
-                    ( randBool, newSeed ) =
-                        Random.step Random.bool seed
+                    ( randBool, newSeed_ ) =
+                        Random.step (Random.uniform True [ False ]) seed_
                 in
                 edges
-                    |> (\edges ->
+                    |> (\edges_ ->
                             -- up
                             if y > 0 then
-                                ( i, i - w ) :: edges
+                                ( i, i - w ) :: edges_
+
                             else
-                                edges
+                                edges_
                        )
-                    |> (\edges ->
+                    |> (\edges_ ->
                             -- right
                             if x < (w - 1) then
-                                ( i, i + 1 ) :: edges
+                                ( i, i + 1 ) :: edges_
+
                             else
-                                edges
+                                edges_
                        )
-                    |> (\edges ->
+                    |> (\edges_ ->
                             -- down
                             if y < (h - 1) then
-                                ( i, i + w ) :: edges
+                                ( i, i + w ) :: edges_
+
                             else
-                                edges
+                                edges_
                        )
-                    |> (\edges ->
+                    |> (\edges_ ->
                             -- left
                             if x > 0 then
-                                ( i, i - 1 ) :: edges
+                                ( i, i - 1 ) :: edges_
+
                             else
-                                edges
+                                edges_
                        )
-                    |> (\edges ->
+                    |> (\edges_ ->
                             -- diagonal
                             if x < (w - 1) && y < (h - 1) then
                                 if randBool then
                                     -- down-right from node
-                                    ( i, i + w + 1 ) :: edges
+                                    ( i, i + w + 1 ) :: edges_
+
                                 else
                                     -- down-left from right node
-                                    ( i + 1, i + w ) :: edges
+                                    ( i + 1, i + w ) :: edges_
+
                             else
-                                edges
+                                edges_
                        )
-                    |> (\edges -> ( edges, newSeed ))
+                    |> (\edges_ -> ( edges_, newSeed_ ))
             )
             ( [], newSeed )
-        |> (\( edges, seed ) ->
+        |> (\( edges, seed_ ) ->
                 ( edges
                     |> List.map
                         (\( a, b ) ->
@@ -226,7 +229,7 @@ makeGraphEdges difficulty seed =
                             }
                         )
                 , maxNumNodes
-                , seed
+                , seed_
                 )
            )
 
@@ -398,6 +401,7 @@ nodeInBoxFilterMap pos1 pos2 node =
     in
     if (boxX1 <= nodeX) && (nodeX <= boxX2) && (boxY1 <= nodeY) && (nodeY <= boxY2) then
         Just node.id
+
     else
         Nothing
 
@@ -423,6 +427,7 @@ getTopTouchingNodeId_ config mousePos nodes foundId =
                 Just node ->
                     if isTouching config mousePos node then
                         Just node.id
+
                     else
                         case List.tail nodes of
                             Just restOfNodes ->
@@ -457,6 +462,7 @@ updateMouseDown model newMousePos =
                                                 List.map (nodeIdToNodeOffset newPos gameState.nodes) nodeIds
                                         in
                                         DraggingLassoedMouseState nodeOffsetList
+
                                     else
                                         let
                                             draggedNode =
@@ -472,8 +478,10 @@ updateMouseDown model newMousePos =
                                                 in
                                                 if node1 == nodeId then
                                                     Just node2
+
                                                 else if node2 == nodeId then
                                                     Just node1
+
                                                 else
                                                     Nothing
 
@@ -497,8 +505,10 @@ updateMouseDown model newMousePos =
                                             in
                                             if node1 == nodeId then
                                                 Just node2
+
                                             else if node2 == nodeId then
                                                 Just node1
+
                                             else
                                                 Nothing
 
@@ -590,9 +600,8 @@ updateConfigRadius model radiusString =
             model.config
 
         radiusFloat =
-            Result.withDefault
-                config.radius
-                (String.toFloat radiusString)
+            String.toFloat radiusString
+                |> Maybe.withDefault config.radius
 
         newConfig =
             { config | radius = radiusFloat }
@@ -634,6 +643,7 @@ tick timeElapsed ({ nodes, mode } as activeStateData) =
                 , mode =
                     if age < loadAnimDur then
                         LoadingMode (age + timeElapsed)
+
                     else
                         PlayingMode
             }
@@ -660,6 +670,7 @@ moveNodeForLoadAnim time numNodes id node =
         age =
             if time < wait then
                 0
+
             else
                 min loadAnimDur (time - wait)
 
@@ -787,6 +798,7 @@ updateGetIntersectionResults ({ appState } as model) intersectionResultData =
                         , mode =
                             if isIntersecting then
                                 PlayingMode
+
                             else
                                 WonMode 0 (getShapes gameState.nodes newEdges)
                     }
@@ -797,6 +809,7 @@ updateGetIntersectionResults ({ appState } as model) intersectionResultData =
                         , levelsCleared =
                             if isIntersecting then
                                 model.levelsCleared
+
                             else
                                 max model.levelsCleared gameState.difficulty
                     }
@@ -804,6 +817,7 @@ updateGetIntersectionResults ({ appState } as model) intersectionResultData =
                 _ =
                     if isIntersecting then
                         newModel
+
                     else
                         Debug.log "model" newModel
             in
@@ -904,6 +918,7 @@ getShapeForRayHelper nodes edges genesisNode shapeNodes ( node1, node2 ) =
         |> (\nextNode ->
                 if nextNode == genesisNode then
                     shapeNodes
+
                 else
                     getShapeForRayHelper nodes edges genesisNode (nextNode :: shapeNodes) ( node2, nextNode )
            )
@@ -920,8 +935,10 @@ getNeighborsOfNode nodes edges nodeId =
                 in
                 if node1 == nodeId then
                     Just (getNode nodes node2)
+
                 else if node2 == nodeId then
                     Just (getNode nodes node1)
+
                 else
                     Nothing
             )
@@ -939,6 +956,7 @@ closingShapePoints genesisNode prevNode nodes edges curNodeId =
     in
     if nextNode.id == genesisNode.id then
         [ nextNode.pos ]
+
     else
         nextNode.pos :: closingShapePoints prevNode genesisNode nodes edges nextNode.id
 
@@ -958,8 +976,10 @@ getCcwNode genesisNode prevNode nodeId nodes edges =
                 in
                 if nodeId1 == nodeId then
                     Just nodeId2
+
                 else if nodeId2 == nodeId then
                     Just nodeId1
+
                 else
                     Nothing
             )
@@ -993,6 +1013,7 @@ angleFor3Pts pos1 pos2 pos3 =
     in
     if angleVal < 0 then
         angleVal + 2 * pi
+
     else
         angleVal
 
@@ -1007,5 +1028,5 @@ subscriptions model =
         [ loadedLevelFresh LoadedLevelFresh
         , loadedLevelInProgress LoadedLevelInProgress
         , intersectionResults GetIntersectionResults
-        , AnimationFrame.diffs AnimationMsg
+        , Browser.Events.onAnimationFrameDelta AnimationMsg
         ]
