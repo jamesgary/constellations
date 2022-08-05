@@ -1,7 +1,11 @@
 port module Ports exposing (checkForIntersections, intersectionResults, loadLevel, loadedLevelFresh, loadedLevelInProgress, saveConfig)
 
 import Array exposing (Array)
-import Types exposing (..)
+import Config exposing (Config)
+import Edge exposing (Edge)
+import EdgeData exposing (EdgeData)
+import Node exposing (Node)
+import Pos exposing (Pos)
 
 
 

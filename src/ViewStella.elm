@@ -1,9 +1,9 @@
 module ViewStella exposing (viewStella)
 
 import Html exposing (Html)
+import Msg exposing (Msg)
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
-import Types exposing (..)
 
 
 viewStella : Html Msg

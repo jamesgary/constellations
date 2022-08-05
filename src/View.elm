@@ -2,12 +2,14 @@ module View exposing (view)
 
 -- mine
 
+import AppState exposing (AppState)
 import Array exposing (Array)
 import Html exposing (Html, br, button, div, h1, h2, h3, main_, span, text)
 import Html.Attributes exposing (class, href, target)
 import Html.Events
 import Html.Lazy
-import Types exposing (..)
+import Model exposing (Model)
+import Msg exposing (Msg(..))
 import ViewGame
 import ViewStella
 
@@ -35,10 +37,10 @@ view { config, levelsCleared, appState } =
 
             False ->
                 case appState of
-                    StartState ->
+                    AppState.Start ->
                         viewStartScreen levelsCleared
 
-                    ActiveState gameState ->
+                    AppState.Active gameState ->
                         ViewGame.drawGameState config levelsCleared gameState
         )
 

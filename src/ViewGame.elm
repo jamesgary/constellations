@@ -1,16 +1,28 @@
 module ViewGame exposing (drawGameState, drawLoadingAnim)
 
+import AppState exposing (ActiveStateData, AppState)
+import Cfg
+import Config exposing (Config)
 import Dict exposing (Dict)
 import Ease
+import Edge exposing (Edge)
+import GameMode exposing (GameMode)
 import Html exposing (Html, br, button, div, h1, h2, main_, p, span)
 import Html.Attributes exposing (href, property, target)
 import Html.Events exposing (on, onClick)
 import Json.Decode as Decode
 import Json.Encode
+import MouseState exposing (MouseState)
+import Msg exposing (Msg(..))
+import Node exposing (Node)
+import Pos exposing (Pos)
+import Shape exposing (Shape)
+import State
 import Svg exposing (..)
 import Svg.Attributes exposing (class, cx, cy, dx, dy, fill, height, id, offset, r, rx, ry, spreadMethod, stdDeviation, stopColor, transform, viewBox, width, x, x1, x2, y, y1, y2)
 import Svg.Events
-import Types exposing (..)
+import Vel exposing (Vel)
+import ViewHelpers exposing (..)
 
 
 baseStretch =
@@ -74,7 +86,7 @@ drawLevelSelect config levelsCleared { difficulty } =
 drawShapesContainer : Config -> ActiveStateData -> Html Msg
 drawShapesContainer config { mode } =
     case mode of
-        WonMode time shapes ->
+        GameMode.Won time shapes ->
             div [ class "shapes-container" ]
                 [ svg
                     [ class "shapes"
@@ -134,13 +146,13 @@ drawConstellation config { mouseState, nodes, edges, mode, difficulty } =
     let
         modClass =
             case mouseState of
-                HoveringMouseState _ ->
+                MouseState.Hovering _ ->
                     "is-hovering"
 
-                DraggingMouseState _ _ _ ->
+                MouseState.Dragging _ _ _ ->
                     "is-dragging"
 
-                LassoingMouseState _ _ _ ->
+                MouseState.Lassoing _ _ _ ->
                     "is-lassoing"
 
                 _ ->
@@ -191,7 +203,7 @@ drawDefs =
 drawLasso : MouseState -> List (Html Msg)
 drawLasso mouseState =
     case mouseState of
-        LassoingMouseState startPos curPos nodeIds ->
+        MouseState.Lassoing startPos curPos nodeIds ->
             let
                 minX =
                     min startPos.x curPos.x
@@ -230,13 +242,13 @@ drawWinModal gameState =
     let
         isHidden =
             case gameState.mode of
-                LoadingMode _ ->
+                GameMode.Loading _ ->
                     True
 
-                PlayingMode ->
+                GameMode.Playing ->
                     True
 
-                WonMode time shapes ->
+                GameMode.Won time shapes ->
                     -- TODO
                     time > 3000
 
@@ -293,17 +305,17 @@ drawNode config mouseState node =
 
         className =
             case mouseState of
-                DefaultMouseState ->
+                MouseState.Default ->
                     ""
 
-                HoveringMouseState hoveredId ->
+                MouseState.Hovering hoveredId ->
                     if node.id == hoveredId then
                         "is-hovering"
 
                     else
                         ""
 
-                DraggingMouseState draggedId pos neighborIds ->
+                MouseState.Dragging draggedId pos neighborIds ->
                     if node.id == draggedId then
                         "is-dragging"
 
@@ -313,21 +325,21 @@ drawNode config mouseState node =
                     else
                         ""
 
-                LassoingMouseState startPos curPos nodeIds ->
+                MouseState.Lassoing startPos curPos nodeIds ->
                     if List.member node.id nodeIds then
                         "is-lassoing"
 
                     else
                         ""
 
-                LassoedMouseState nodeIds ->
+                MouseState.Lassoed nodeIds ->
                     if List.member node.id nodeIds then
                         "is-lassoed"
 
                     else
                         ""
 
-                DraggingLassoedMouseState offsetNodeList ->
+                MouseState.DraggingLassoed offsetNodeList ->
                     if List.member node.id (List.map Tuple.first offsetNodeList) then
                         "is-lassoing"
 
@@ -354,19 +366,19 @@ drawNode config mouseState node =
     ]
 
 
-drawEdges : Dict NodeId Node -> List Edge -> List (Html Msg)
+drawEdges : Dict Node.Id Node -> List Edge -> List (Html Msg)
 drawEdges nodes edges =
     List.concat (List.map (drawEdge nodes) edges)
 
 
-drawEdge : Dict NodeId Node -> Edge -> List (Html Msg)
+drawEdge : Dict Node.Id Node -> Edge -> List (Html Msg)
 drawEdge nodes edge =
     let
         node1 =
-            getNode nodes (Tuple.first edge.pair)
+            State.getNode nodes (Tuple.first edge.pair)
 
         node2 =
-            getNode nodes (Tuple.second edge.pair)
+            State.getNode nodes (Tuple.second edge.pair)
 
         className =
             if List.isEmpty edge.overlappingEdges then
@@ -501,7 +513,7 @@ decodeClickLocation =
         )
 
 
-drawLoadingAnim : Config -> Time -> Int -> List (Html Msg)
+drawLoadingAnim : Config -> Float -> Int -> List (Html Msg)
 drawLoadingAnim config age numNodes =
     [ --drawLevelSelect numNodes
       div [ class "constellation-container" ]
@@ -514,7 +526,7 @@ drawLoadingAnim config age numNodes =
                     (\id ->
                         getLoadAnimPos age id numNodes
                             |> posToNode id
-                            |> drawNode config DefaultMouseState
+                            |> drawNode config MouseState.Default
                     )
                 |> List.concat
             )
@@ -523,21 +535,21 @@ drawLoadingAnim config age numNodes =
     ]
 
 
-getLoadAnimPos : Time -> Int -> Int -> Pos
+getLoadAnimPos : Float -> Int -> Int -> Pos
 getLoadAnimPos time id numNodes =
     let
         age =
-            if time < wait then
+            if time < Cfg.wait then
                 0
 
             else
-                min loadAnimDur (time - wait)
+                min Cfg.loadAnimDur (time - Cfg.wait)
 
         ease =
-            Ease.outElastic (age / loadAnimDur)
+            Ease.outElastic (age / Cfg.loadAnimDur)
 
         easeRot =
-            Ease.outCubic (age / loadAnimDur)
+            Ease.outCubic (age / Cfg.loadAnimDur)
 
         easeInv =
             1 - ease
@@ -546,13 +558,13 @@ getLoadAnimPos time id numNodes =
             (toFloat id / toFloat numNodes) + (easeRot * 0.1)
 
         destX =
-            graphCenterX + cos (2 * pi * rotation) * graphRadius
+            Cfg.graphCenterX + cos (2 * pi * rotation) * Cfg.graphRadius
 
         destY =
-            graphCenterY + sin (2 * pi * rotation) * graphRadius
+            Cfg.graphCenterY + sin (2 * pi * rotation) * Cfg.graphRadius
     in
-    Pos (ease * destX + easeInv * graphCenterX)
-        (ease * destY + easeInv * graphCenterY)
+    Pos (ease * destX + easeInv * Cfg.graphCenterX)
+        (ease * destY + easeInv * Cfg.graphCenterY)
 
 
 posToNode : Int -> Pos -> Node
