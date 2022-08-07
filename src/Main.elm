@@ -1,15 +1,14 @@
 module Main exposing (main)
 
+import App
 import Browser
-import Init exposing (init)
-import State exposing (subscriptions, update)
-import View exposing (view)
+import View
 
 
 main =
     Browser.element
-        { init = init
-        , view = view
-        , update = update
-        , subscriptions = subscriptions
+        { init = App.init
+        , view = View.view
+        , update = App.update
+        , subscriptions = App.subscriptions
         }

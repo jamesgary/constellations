@@ -10,5 +10,4 @@ type alias Id =
 type alias Edge =
     { id : Id
     , pair : ( Node.Id, Node.Id )
-    , overlappingEdges : List Id
     }

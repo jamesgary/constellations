@@ -1,5 +1,6 @@
 module ViewGame exposing (drawGameState, drawLoadingAnim)
 
+import App
 import AppState exposing (ActiveStateData, AppState)
 import Cfg
 import Config exposing (Config)
@@ -17,7 +18,6 @@ import Msg exposing (Msg(..))
 import Node exposing (Node)
 import Pos exposing (Pos)
 import Shape exposing (Shape)
-import State
 import Svg exposing (..)
 import Svg.Attributes exposing (class, cx, cy, dx, dy, fill, height, id, offset, r, rx, ry, spreadMethod, stdDeviation, stopColor, transform, viewBox, width, x, x1, x2, y, y1, y2)
 import Svg.Events
@@ -375,17 +375,16 @@ drawEdge : Dict Node.Id Node -> Edge -> List (Html Msg)
 drawEdge nodes edge =
     let
         node1 =
-            State.getNode nodes (Tuple.first edge.pair)
+            App.getNode nodes (Tuple.first edge.pair)
 
         node2 =
-            State.getNode nodes (Tuple.second edge.pair)
+            App.getNode nodes (Tuple.second edge.pair)
 
         className =
-            if List.isEmpty edge.overlappingEdges then
-                "is-overlapping"
-
-            else
-                ""
+            --if List.isEmpty edge.overlappingEdges then
+            --"is-overlapping"
+            --else
+            ""
     in
     [ line
         [ x1 (String.fromFloat node1.pos.x)
