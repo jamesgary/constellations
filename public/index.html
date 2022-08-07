@@ -3,7 +3,7 @@
   <head>
     <title>Constellations</title>
     <link href="https://fonts.googleapis.com/css?family=Comfortaa" rel="stylesheet">
-    <link rel="stylesheet" type="text/css" href="./css/main.css">
+    <link rel="stylesheet" type="text/css" href="../sass/main.scss">
 
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-111577639-1"></script>
@@ -16,9 +16,10 @@
   </head>
   <body>
     <div id="elm-node"></div>
-    <script src="./js/main.js"></script>
-    <script>
-      var tantaloWorker = new Worker("./js/tantalo.js");
+    <script src="../src/Main.elm"></script>
+    <script type="module">
+      var workerUrl = new URL('./js/tantalo.js', import.meta.url);
+      var tantaloWorker = new Worker(workerUrl);
       var app = Elm.Main.init({
         node: document.getElementById("elm-node"),
         flags: loadFlags(),

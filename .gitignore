@@ -3,3 +3,5 @@ notes.txt
 public/js/main.js
 public/css/
 .sass-cache/
+.parcel-cache/
+dist/

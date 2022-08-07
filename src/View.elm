@@ -1,7 +1,5 @@
 module View exposing (view)
 
--- mine
-
 import AppState exposing (AppState)
 import Array exposing (Array)
 import Html exposing (Html, br, button, div, h1, h2, h3, main_, span, text)
@@ -12,18 +10,6 @@ import Model exposing (Model)
 import Msg exposing (Msg(..))
 import ViewGame
 import ViewStella
-
-
-baseStretch =
-    5
-
-
-baseBlur =
-    0.8
-
-
-angleConvert =
-    180 / pi
 
 
 view : Model -> Html Msg
