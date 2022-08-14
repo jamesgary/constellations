@@ -9,14 +9,14 @@ import Node exposing (Node)
 
 
 type Msg
-    = LoadLevel Int -- numNodes
-    | LoadedLevelFresh EdgeData
-    | LoadedLevelInProgress ( { nodes : Array Node, edges : List Edge }, Int )
+    = ClickedGoToLevel Int -- numNodes
+      -- mouse logic
     | MouseDown MousePos
     | MouseMove MousePos
     | MouseUp MousePos
+      -- other subs
     | AnimationMsg Float
-    | ChangeConfigRadius String
+      -- ports
+    | LoadedLevelFresh EdgeData
+    | LoadedLevelInProgress ( { nodes : Array Node, edges : List Edge }, Int )
     | GetIntersectionResults IntersectionResultData
-    | StartCampaign
-    | GoToLevel Int

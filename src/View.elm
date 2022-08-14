@@ -68,22 +68,17 @@ viewStartScreen levelsCleared =
         , if levelsCleared > 1 then
             button
                 [ class "btn start-btn campaign-btn"
-                , Html.Events.onClick (LoadLevel (levelsCleared + 1))
+                , Html.Events.onClick (ClickedGoToLevel (levelsCleared + 1))
                 ]
                 [ text ("Resume Level " ++ String.fromInt (levelsCleared + 1)) ]
 
           else
             button
                 [ class "btn start-btn campaign-btn"
-                , Html.Events.onClick StartCampaign
+                , Html.Events.onClick (ClickedGoToLevel 1)
                 ]
                 [ text "Play Campaign" ]
         , br [] []
-        , button
-            [ class "btn start-btn sandbox-btn"
-            , Html.Events.onClick (LoadLevel 1)
-            ]
-            [ text "Sandbox" ]
         , div [ class "stars-bg" ]
             [ div [ Html.Attributes.id "stars" ] []
             , div [ Html.Attributes.id "stars2" ] []

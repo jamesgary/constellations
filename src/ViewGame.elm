@@ -1,4 +1,4 @@
-module ViewGame exposing (drawGameState, drawLoadingAnim)
+module ViewGame exposing (drawGameState)
 
 import App
 import AppState exposing (ActiveStateData, AppState)
@@ -57,7 +57,7 @@ drawLevelSelect config levelsCleared { difficulty } =
         [ if difficulty > 1 then
             span
                 [ class "level-select-picker level-select-prev"
-                , onClick (GoToLevel (difficulty - 1))
+                , onClick (ClickedGoToLevel (difficulty - 1))
                 ]
                 [ Html.text " <<< " ]
 
@@ -71,7 +71,7 @@ drawLevelSelect config levelsCleared { difficulty } =
         , if levelsCleared >= difficulty then
             span
                 [ class "level-select-picker level-select-next"
-                , onClick (GoToLevel (difficulty + 1))
+                , onClick (ClickedGoToLevel (difficulty + 1))
                 ]
                 [ Html.text " >>> " ]
 
@@ -269,7 +269,7 @@ drawWinModal gameState =
             [ text "You did it!" ]
         , div
             [ class "win-modal-button"
-            , Html.Events.onClick (LoadLevel nextDifficulty)
+            , Html.Events.onClick (ClickedGoToLevel nextDifficulty)
             ]
             [ text "Next Level" ]
         ]
@@ -397,61 +397,6 @@ drawEdge nodes edge =
     ]
 
 
-
---drawLevelSelect : Int -> Html Msg
---drawLevelSelect currentDifficulty =
---    div
---        [ class "levelSelect-container" ]
---        (List.map (drawLevelSelector currentDifficulty) (List.range 1 50))
-
-
-drawLevelSelector : Int -> Int -> Html Msg
-drawLevelSelector currentDifficulty difficulty =
-    let
-        isMatching =
-            currentDifficulty == difficulty
-    in
-    if isMatching then
-        div
-            [ class "levelSelect-selector levelSelect-selector-isCurrent"
-            , Html.Events.onClick (LoadLevel difficulty)
-            ]
-            [ text ("[[" ++ String.fromInt difficulty ++ "]]") ]
-
-    else
-        div
-            [ class "levelSelect-selector"
-            , Html.Events.onClick (LoadLevel difficulty)
-            ]
-            [ text (String.fromInt difficulty) ]
-
-
-drawConfig : Config -> Html Msg
-drawConfig config =
-    div
-        [ class "config-container"
-        ]
-        [ div [ class "config-pair" ]
-            [ Html.label
-                [ class "config-label"
-                ]
-                [ text "Radius" ]
-            , Html.input
-                [ Html.Events.onInput ChangeConfigRadius
-                , Html.Attributes.type_ "range"
-                , Html.Attributes.min "1"
-                , Html.Attributes.max "100"
-                , Html.Attributes.value (String.fromFloat config.radius)
-                ]
-                []
-            , Html.span
-                [ class "config-val"
-                ]
-                [ text (String.fromFloat config.radius) ]
-            ]
-        ]
-
-
 getTransform : Node -> String
 getTransform node =
     let
@@ -510,28 +455,6 @@ decodeClickLocation =
             (Decode.at [ "offsetY" ] Decode.float)
             (Decode.at [ "target", "clientHeight" ] Decode.float)
         )
-
-
-drawLoadingAnim : Config -> Float -> Int -> List (Html Msg)
-drawLoadingAnim config age numNodes =
-    [ --drawLevelSelect numNodes
-      div [ class "constellation-container" ]
-        [ svg
-            [ class "constellation"
-            , viewBox "0 0 1600 900"
-            ]
-            (List.range 0 (numNodes - 1)
-                |> List.map
-                    (\id ->
-                        getLoadAnimPos age id numNodes
-                            |> posToNode id
-                            |> drawNode config MouseState.Default
-                    )
-                |> List.concat
-            )
-        ]
-    , drawConfig config
-    ]
 
 
 getLoadAnimPos : Float -> Int -> Int -> Pos
