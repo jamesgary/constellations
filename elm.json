@@ -6,6 +6,7 @@
     "elm-version": "0.19.1",
     "dependencies": {
         "direct": {
+            "NoRedInk/elm-json-decode-pipeline": "1.0.1",
             "avh4/elm-color": "1.0.0",
             "elm/browser": "1.0.1",
             "elm/core": "1.0.0",
@@ -15,9 +16,11 @@
             "elm/svg": "1.0.1",
             "elm/time": "1.0.0",
             "elm/url": "1.0.0",
+            "elm-community/dict-extra": "2.4.0",
             "elm-community/easing-functions": "2.0.0",
-            "elm-community/list-extra": "8.2.0",
-            "elm-community/random-extra": "3.1.0"
+            "elm-community/list-extra": "8.6.0",
+            "elm-community/random-extra": "3.1.0",
+            "miniBill/elm-codec": "2.0.0"
         },
         "indirect": {
             "elm/virtual-dom": "1.0.2",

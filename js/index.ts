@@ -1,20 +1,49 @@
 import { Elm } from "../src/Main.elm";
 
-var workerUrl = new URL('tantalo.js', import.meta.url);
-var tantaloWorker = new Worker(workerUrl);
+let workerUrl = new URL('worker.js', import.meta.url);
+let worker = new Worker(workerUrl);
+let lsKey = "constellations";
 
-var app = Elm.Main.init({
+let app = Elm.Main.init({
   node: document.getElementById("elm-node"),
-  flags: loadFlags(),
+  flags: {
+    timestamp: Date.now(),
+    localStorage: JSON.parse(localStorage.getItem(lsKey)),
+  },
 });
 
-tantaloWorker.onmessage = function(event) {
+app.ports.elmToJs.subscribe(function(msg) {
+  switch (msg.id) {
+    case 'Save':
+      save(msg.localStorage);
+      break;
+    case 'WorkerMsg':
+      console.log("index.ts got WorkerMsg", msg);
+      worker.postMessage(msg.msg);
+      break;
+  }
+});
+
+function save(ls) {
+  localStorage.setItem(lsKey, JSON.stringify(ls));
+}
+
+worker.onmessage = function(event) {
+  console.log("Got msg from worker:", event);
+  console.log(app);
+
+  app.ports.jsToElm.send(event.data);
+};
+
+
+/*
+worker.onmessage = function(event) {
   var edgeData = event.data;
   console.log("Sending edge data:", edgeData);
   app.ports.loadedLevelFresh.send(edgeData);
 };
 
-app.ports.loadLevel.subscribe(function(difficulty) {
+function loadLevel(difficulty: int) {
   var savedLevelProgress = localStorage.getItem("c:levelProgress:" + difficulty);
   if (savedLevelProgress) {
     try {
@@ -22,7 +51,7 @@ app.ports.loadLevel.subscribe(function(difficulty) {
       app.ports.loadedLevelInProgress.send([levelProgress, difficulty]);
     } catch (e) {
       console.error("Couldn't parse current level progress", e);
-      tantaloWorker.postMessage(difficulty);
+      worker.postMessage(difficulty);
     }
   } else {
     if (difficulty === 1) {
@@ -32,10 +61,17 @@ app.ports.loadLevel.subscribe(function(difficulty) {
       app.ports.loadedLevelFresh.send(firstLevel);
     } else {
       console.log("Generating difficulty of " + difficulty + "...");
-      tantaloWorker.postMessage(difficulty);
+      worker.postMessage(difficulty);
     }
   }
-});
+}
+
+function checkForIntersections(nodes, edges) {
+  console.log("Checking for intersections...");
+
+  var intersectionResults = getIntersectionResults(nodes, edges);
+  app.ports.intersectionResults.send(intersectionResults);
+}
 
 app.ports.saveConfig.subscribe(function(config) {
   console.log("Saving config:", config);
@@ -43,55 +79,19 @@ app.ports.saveConfig.subscribe(function(config) {
 });
 
 app.ports.checkForIntersections.subscribe(function(nodesAndEdgeDataAndDiff) {
-  var nodes = nodesAndEdgeDataAndDiff[0];
-  var edgeData = nodesAndEdgeDataAndDiff[1];
-  var difficulty = nodesAndEdgeDataAndDiff[2];
-
-  localStorage.setItem("c:levelProgress:" + difficulty, JSON.stringify({
-    nodes: nodes,
-    edges: edgeData,
-  }));
-
-  console.log("Checking for intersections...");
-
-  var intersectionResults = getIntersectionResults(nodes, edgeData, difficulty);
-  app.ports.intersectionResults.send(intersectionResults);
 });
 
-function loadFlags() {
-  //var levelProgress = null;
-  //if (localStorage.getItem("c:levelProgress")) {
-  //  try {
-  //    levelProgress =
-  //      JSON.parse(localStorage.getItem("c:levelProgress"));
-  //  } catch (e) {
-  //    console.error("Couldn't parse current level progress");
-  //  }
-  //}
-
-  var flags = {
-    radius: parseFloat(localStorage.getItem("c:config:radius")) || 25,
-    showStella: false, // DEBUGGING
-    levelsCleared: parseFloat(localStorage.getItem("c:levelsCleared")) || 0,
-    timestamp: Date.now(),
-    //levelProgress: levelProgress,
-  };
-
-  console.log("Loading flags:", flags);
-  return flags;
-}
-
-function getIntersectionResults(nodes, edgeData, difficulty) {
+function getIntersectionResults(nodes, edgeData) {
   // clear all the edges
   var hasIntersections = false;
-  for (var i = 0; i < edgeData.length; i++) {
-    edgeData[i].overlappingEdges = [];
+  for (var i = 0; i < edges.length; i++) {
+    edges[i].overlappingEdges = [];
   }
 
-  for (var i = 0; i < edgeData.length; i++) {
-    var edge1 = edgeData[i];
-    for (var j = i + 1; j < edgeData.length; j++) {
-      var edge2 = edgeData[j];
+  for (var i = 0; i < edges.length; i++) {
+    var edge1 = edges[i];
+    for (var j = i + 1; j < edges.length; j++) {
+      var edge2 = edges[j];
 
       // check if edges share a node (skip if so)
       var e1n1 = nodes[edge1.pair[0]];
@@ -105,23 +105,15 @@ function getIntersectionResults(nodes, edgeData, difficulty) {
           e1n2.id !== e2n2.id) {
 
         if (isIntersecting(e1n1.dest, e1n2.dest, e2n1.dest, e2n2.dest)) {
-          edgeData[i].overlappingEdges.push(edge2.id);
-          edgeData[j].overlappingEdges.push(edge1.id);
+          edges[i].overlappingEdges.push(edge2.id);
+          edges[j].overlappingEdges.push(edge1.id);
           hasIntersections = true;
         }
       }
     }
   }
 
-  if (!hasIntersections) {
-    console.log("Cleared level " + difficulty + "! Saved.");
-    var prevDiff = localStorage.getItem("c:levelsCleared");
-    if (!prevDiff || prevDiff < difficulty) {
-      localStorage.setItem("c:levelsCleared", difficulty);
-    }
-  }
-
-  return [hasIntersections, edgeData];
+  return [hasIntersections, edges];
 }
 
 function isIntersecting(p1, p2, p3, p4) {
@@ -159,3 +151,4 @@ var firstLevel = [[
     {"id":7,"pair":[5,0],"overlappingEdges":[]},
   ], 6, 1,
 ];
+*/

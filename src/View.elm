@@ -1,46 +1,41 @@
 module View exposing (view)
 
-import AppState exposing (AppState)
 import Array exposing (Array)
+import Game
 import Html exposing (Html, br, button, div, h1, h2, h3, main_, span, text)
 import Html.Attributes exposing (class, href, target)
 import Html.Events
 import Html.Lazy
 import Model exposing (Model)
 import Msg exposing (Msg(..))
-import ViewGame
+import State exposing (State)
 import ViewStella
 
 
 view : Model -> Html Msg
-view { config, levelsCleared, appState } =
-    Html.Lazy.lazy2
-        div
+view { config, state, localStorage } =
+    --Html.Lazy.lazy2
+    div
         [ class "appState-container" ]
-        (case config.showStella of
-            True ->
-                [ ViewStella.viewStella ]
+        [ case state of
+            State.Start ->
+                viewStartScreen localStorage.numLevelsCleared
 
-            False ->
-                case appState of
-                    AppState.Start ->
-                        viewStartScreen levelsCleared
-
-                    AppState.Active gameState ->
-                        ViewGame.drawGameState config levelsCleared gameState
-        )
+            State.Game game ->
+                Game.view localStorage.numLevelsCleared game
+        ]
 
 
-viewStartScreen : Int -> List (Html Msg)
-viewStartScreen levelsCleared =
-    [ main_ [ Html.Attributes.id "start" ]
+viewStartScreen : Int -> Html Msg
+viewStartScreen numLevelsCleared =
+    main_ [ Html.Attributes.id "start" ]
         [ h1 [ class "title" ] [ text "Constellations" ]
         , h2
             [ class "author" ]
             [ text "By "
             , Html.a
                 [ class "twitter"
-                , href "https://twitter.com/james_gary"
+                , href "https://github.com/jamesgary"
                 , target "_blank"
                 ]
                 [ text "James Gary" ]
@@ -65,12 +60,12 @@ viewStartScreen levelsCleared =
                 ]
                 [ text "European Southern Observatory (ESO)" ]
             ]
-        , if levelsCleared > 1 then
+        , if numLevelsCleared > 1 then
             button
                 [ class "btn start-btn campaign-btn"
-                , Html.Events.onClick (ClickedGoToLevel (levelsCleared + 1))
+                , Html.Events.onClick (ClickedGoToLevel (numLevelsCleared + 1))
                 ]
-                [ text ("Resume Level " ++ String.fromInt (levelsCleared + 1)) ]
+                [ text ("Resume Level " ++ String.fromInt (numLevelsCleared + 1)) ]
 
           else
             button
@@ -85,4 +80,3 @@ viewStartScreen levelsCleared =
             , div [ Html.Attributes.id "stars3" ] []
             ]
         ]
-    ]

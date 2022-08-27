@@ -1,15 +1,20 @@
-module Flags exposing (Flags)
+module Flags exposing (Flags, decoder)
+
+import Codec exposing (Codec)
+import Json.Decode as JD
+import Json.Decode.Pipeline as JDP
+import Json.Encode as JE
+import LocalStorage exposing (LocalStorage)
 
 
 type alias Flags =
-    { radius : Float
-    , showStella : Bool
-    , levelsCleared : Int
+    { localStorage : LocalStorage
     , timestamp : Int
-
-    --, lastLevelProgress :
-    --    Maybe
-    --        { nodes : Array Node
-    --        , edges : List Edge
-    --        }
     }
+
+
+decoder : JD.Decoder Flags
+decoder =
+    JD.succeed Flags
+        |> JDP.required "localStorage" (Codec.decoder LocalStorage.codec)
+        |> JDP.required "timestamp" JD.int

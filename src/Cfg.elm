@@ -19,3 +19,15 @@ graphRadius =
 
 wait =
     500
+
+
+
+-- new
+
+
+radius =
+    25
+
+
+baseWeight =
+    50

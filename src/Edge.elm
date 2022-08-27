@@ -1,13 +1,23 @@
-module Edge exposing (Edge, Id)
+module Edge exposing (Edge, Id, codec)
 
+import Codec exposing (Codec)
 import Node exposing (Node)
 
 
 type alias Id =
-    Int
+    String
 
 
 type alias Edge =
-    { id : Id
-    , pair : ( Node.Id, Node.Id )
-    }
+    ( Node.Id, Node.Id )
+
+
+
+-- codec stuff
+
+
+codec : Codec Edge
+codec =
+    Codec.tuple
+        Codec.string
+        Codec.string

@@ -1,4 +1,4 @@
-port module Ports exposing (..)
+port module Worker.Ports exposing (..)
 
 -- TODO limit exposing
 
@@ -31,7 +31,7 @@ loadLevel : Int -> Cmd msg
 loadLevel difficulty =
     { difficulty = difficulty }
         |> AppToWorkerMsg.GenerateGraph
-        |> AppToWorkerMsg
+        |> WorkerMsg
         |> encodeElmToJsMsg
         |> elmToJs
 
@@ -40,7 +40,7 @@ checkForIntersections : Graph -> Cmd msg
 checkForIntersections graph =
     { graph = graph }
         |> AppToWorkerMsg.CheckForIntersections
-        |> AppToWorkerMsg
+        |> WorkerMsg
         |> encodeElmToJsMsg
         |> elmToJs
 
@@ -50,7 +50,7 @@ port elmToJs : JE.Value -> Cmd msg
 
 type ElmToJsMsg
     = Save LocalStorage
-    | AppToWorkerMsg AppToWorkerMsg
+    | WorkerMsg AppToWorkerMsg
 
 
 encodeElmToJsMsg : ElmToJsMsg -> JE.Value
@@ -64,7 +64,7 @@ encodeElmToJsMsg msg =
                   )
                 ]
 
-        AppToWorkerMsg appToWorkerMsg ->
+        WorkerMsg appToWorkerMsg ->
             JE.object
                 [ ( "id", JE.string "WorkerMsg" )
                 , ( "msg"
@@ -78,23 +78,18 @@ encodeElmToJsMsg msg =
 -- incoming
 
 
-type JsToElmMsg
-    = WorkerToAppMsg WorkerToAppMsg
-
-
 port jsToElm : (JE.Value -> msg) -> Sub msg
 
 
 
--- TODO deprecate below
+{-
+   port loadedLevelFresh : (EdgeData -> msg) -> Sub msg
 
 
-port loadedLevelFresh : (EdgeData -> msg) -> Sub msg
+   port loadedLevelInProgress :
+       (( { nodes : Array Node, edges : List Edge }, Int ) -> msg)
+       -> Sub msg
 
 
-port loadedLevelInProgress :
-    (( { nodes : Array Node, edges : List Edge }, Int ) -> msg)
-    -> Sub msg
-
-
-port intersectionResults : (( Bool, List Edge ) -> msg) -> Sub msg
+   port intersectionResults : (( Bool, List Edge ) -> msg) -> Sub msg
+-}
