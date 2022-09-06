@@ -3,6 +3,7 @@ module Game exposing (Game, init, subscriptions, update, view)
 import Browser.Events
 import Cfg
 import Dict exposing (Dict)
+import Effect exposing (Effect)
 import Element as E exposing (Element)
 import Game.Model as Model exposing (Model)
 import Game.Msg as Msg exposing (Msg(..))
@@ -38,7 +39,7 @@ view (Game model) =
     Game.View.view model
 
 
-update : Msg -> Game -> ( Game, Cmd Msg )
+update : Msg -> Game -> ( Game, Effect )
 update msg game =
     let
         _ =
@@ -77,6 +78,11 @@ update msg game =
                 |> mapModel
                     (Model.goToLvl lvlIndex)
 
+        ClickedBackToTitle ->
+            ( game
+            , Effect.GoToTitle
+            )
+
         GotContainerDom result ->
             case result of
                 Ok element ->
@@ -101,10 +107,10 @@ update msg game =
                     (Model.handleWorkerMsg workerMsg)
 
 
-mapModel : (Model.Model -> ( Model.Model, Cmd Msg )) -> Game -> ( Game, Cmd Msg )
+mapModel : (Model.Model -> ( Model.Model, Cmd Msg )) -> Game -> ( Game, Effect )
 mapModel mapper (Game model) =
     mapper model
-        |> Tuple.mapFirst Game
+        |> Tuple.mapBoth Game Effect.GameCmd
 
 
 subscriptions : Game -> Sub Msg

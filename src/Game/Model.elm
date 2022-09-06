@@ -83,6 +83,7 @@ updateViewport width height ({ canvasEl } as model) =
     ( { model
         | canvasEl =
             { canvasEl
+              -- fixes weird issue where the canvas can't contract vertically
                 | height = height
             }
       }

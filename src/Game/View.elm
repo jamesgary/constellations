@@ -81,7 +81,6 @@ view model =
                 (E.el
                     [ E.width E.fill
                     , E.height E.fill
-                    , onMouseMove
                     , onMouseDown
                     , Attr.class modClass
                         |> E.htmlAttribute
@@ -191,7 +190,7 @@ viewSidebar model =
             )
         , EH.btn
             [ E.padding 5 ]
-            { onPress = Nothing
+            { onPress = Just ClickedBackToTitle
             , label = E.text "Back to Title"
             , colors = Colors.baseBtnColors
             }
@@ -489,13 +488,6 @@ drawShape { dimmerAnimationDurationMs, shimmerAnimationDelayMs, pts, color } =
             ]
             []
         ]
-
-
-onMouseMove : E.Attribute Msg
-onMouseMove =
-    Html.Events.on "mousemove"
-        (Decode.map MouseMove decodeMousePos)
-        |> E.htmlAttribute
 
 
 onMouseDown : E.Attribute Msg

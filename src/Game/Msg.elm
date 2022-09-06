@@ -15,6 +15,7 @@ type Msg
     | MouseDown Pos
     | MouseUp
     | ClickedGoToLevel Int
+    | ClickedBackToTitle
       -- dom stuff
     | GotContainerDom (Result Browser.Dom.Error Browser.Dom.Element)
     | ViewportResized Float Float

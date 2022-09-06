@@ -11,6 +11,7 @@ import Config exposing (Config)
 import Dict exposing (Dict)
 import Ease
 import Edge exposing (Edge)
+import Effect exposing (Effect(..))
 import Flags exposing (Flags)
 import Game exposing (Game)
 import Graph exposing (Graph)
@@ -82,14 +83,21 @@ update msg model =
             case model.state of
                 State.Game game ->
                     let
-                        ( newGame, gameCmd ) =
+                        ( newGame, gameEffect ) =
                             game
                                 |> Game.update gameMsg
                     in
-                    ( { model | state = State.Game newGame }
-                    , gameCmd
-                        |> Cmd.map GameMsg
-                    )
+                    case gameEffect of
+                        Effect.GoToTitle ->
+                            ( { model | state = State.Start }
+                            , Cmd.none
+                            )
+
+                        Effect.GameCmd gameCmd ->
+                            ( { model | state = State.Game newGame }
+                            , gameCmd
+                                |> Cmd.map GameMsg
+                            )
 
                 _ ->
                     ( model, Cmd.none )
