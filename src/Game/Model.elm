@@ -160,7 +160,7 @@ mouseMove origMousePos origModel =
         MouseState.DraggingLassoed nodeOffsetDict ->
             let
                 buffer =
-                    0.1
+                    Cfg.canvasScale * 0.1
             in
             ( { model
                 | graph =
@@ -171,8 +171,8 @@ mouseMove origMousePos origModel =
                                 graph
                                     |> Graph.setNodeDest nodeId
                                         (Pos
-                                            ((mousePos.x + offset.x) |> clamp buffer (1 - buffer))
-                                            ((mousePos.y + offset.y) |> clamp buffer (1 - buffer))
+                                            ((mousePos.x + offset.x) |> clamp buffer (Cfg.canvasScale - buffer))
+                                            ((mousePos.y + offset.y) |> clamp buffer (Cfg.canvasScale - buffer))
                                         )
                             )
                             model.graph
@@ -311,8 +311,8 @@ mouseUp model =
 mousePosToPos : Pos -> Pos
 mousePosToPos { x, y } =
     Pos
-        (1 * x)
-        (1 * y)
+        (Cfg.canvasScale * x)
+        (Cfg.canvasScale * y)
 
 
 tick : Float -> Model -> ( Model, Cmd Msg )

@@ -28,7 +28,7 @@ type alias Model =
 
 init : Int -> Graph
 init lvlIndex =
-    -- NOTE doesn't actually generate random poses, that's handled by Game
+    -- NOTE all poses start at Cfg.graphCenterX,Y
     -- current implementation: create grid
     let
         ( numRows, numCols ) =
@@ -78,7 +78,11 @@ init lvlIndex =
                 |> List.map
                     (\i ->
                         ( String.fromInt i
-                        , Node.init (Pos 0 0)
+                        , Node.init
+                            (Pos
+                                Cfg.graphCenterX
+                                Cfg.graphCenterY
+                            )
                         )
                     )
                 |> Dict.fromList

@@ -6,15 +6,15 @@ loadAnimDur =
 
 
 graphCenterX =
-    0.5
+    0.5 * canvasScale
 
 
 graphCenterY =
-    0.5
+    0.5 * canvasScale
 
 
 graphRadius =
-    0.4
+    0.4 * canvasScale
 
 
 wait =
@@ -26,7 +26,7 @@ wait =
 
 
 radius =
-    0.03
+    30
 
 
 baseWeight =
@@ -40,3 +40,7 @@ constellationContainerId =
 autoSaveInterval =
     -- every 5 seconds
     5 * 1000
+
+
+canvasScale =
+    1000

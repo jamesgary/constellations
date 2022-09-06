@@ -269,7 +269,15 @@ drawConstellation origModel =
             [ SvgAttr.class "constellation"
 
             --, SvgAttr.viewBox "0 0 1 1"
-            , SvgAttr.viewBox ("0 0 " ++ String.fromFloat aspectRatio ++ " 1")
+            , SvgAttr.viewBox
+                ([ 0
+                 , 0
+                 , Cfg.canvasScale * aspectRatio
+                 , Cfg.canvasScale
+                 ]
+                    |> List.map String.fromFloat
+                    |> String.join " "
+                )
 
             --, SvgAttr.preserveAspectRatio "none"
             , style "width" (px width)
@@ -277,12 +285,12 @@ drawConstellation origModel =
             ]
             (List.concat
                 [ drawDefs
-
-                --, drawMouseDebug model
                 , drawShapes model
                 , drawEdges model.graph
                 , drawNodes model.mouseState model.graph
                 , drawLasso model.mouseState
+
+                --, drawMouseDebug model
                 ]
             )
             |> E.html
@@ -301,8 +309,8 @@ drawMouseDebug model =
         [ ellipse
             [ cx (px model.mousePos.x)
             , cy (px model.mousePos.y)
-            , rx (String.fromFloat 0.01)
-            , ry (String.fromFloat 0.01)
+            , rx (String.fromFloat 30)
+            , ry (String.fromFloat 30)
             , SvgAttr.style "fill: red; user-input: none"
             ]
             []
@@ -582,7 +590,7 @@ drawDefs =
         [ Svg.radialGradient
             [ cx "50%", cy "50%", r "100%", spreadMethod "pad", id "radGrad" ]
             [ Svg.stop [ offset "0%", stopColor "hsl(309, 100%, 75%)" ] []
-            , Svg.stop [ offset "100%", stopColor "hsl(309, 100%, 55%)" ] []
+            , Svg.stop [ offset "100%", stopColor "hsl(309, 100%, 65%)" ] []
             ]
         ]
     ]
