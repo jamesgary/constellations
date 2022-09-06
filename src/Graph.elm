@@ -1,5 +1,6 @@
 module Graph exposing (Graph, animateNodes, applyAspectRatio, checkForIntersections, codec, empty, getEdges, getNode, getNodeIdsInBox, getNodeUnsafe, getNodes, getTouching, init, isEmpty, moveNodesForLoadAnim, neighbors, setNodeDest)
 
+import Array exposing (Array)
 import Cfg
 import Codec exposing (Codec)
 import Dict exposing (Dict)
@@ -8,6 +9,8 @@ import Edge exposing (Edge)
 import List.Extra
 import Node exposing (Node)
 import Pos exposing (Pos)
+import Random
+import Random.List
 import Set exposing (Set)
 import Vel exposing (Vel)
 
@@ -71,6 +74,33 @@ init lvlIndex =
                     )
                 |> List.concat
                 |> List.concat
+
+        randomSeed : Random.Seed
+        randomSeed =
+            -- only needs to be random once per level
+            -- so this hacky solution is fine
+            Random.initialSeed (3000000 + lvlIndex)
+
+        shuffledIndices : Array Int
+        shuffledIndices =
+            Random.step
+                (List.range 0 (numNodes - 1)
+                    |> Random.List.shuffle
+                )
+                randomSeed
+                |> Tuple.first
+                |> Array.fromList
+                |> Debug.log "?"
+
+        shuffledEdges : List ( Int, Int )
+        shuffledEdges =
+            edges
+                |> List.map
+                    (\( n1, n2 ) ->
+                        ( Array.get n1 shuffledIndices |> Maybe.withDefault n1
+                        , Array.get n2 shuffledIndices |> Maybe.withDefault n2
+                        )
+                    )
     in
     Graph
         { nodes =
@@ -87,7 +117,7 @@ init lvlIndex =
                     )
                 |> Dict.fromList
         , edges =
-            edges
+            shuffledEdges
                 |> List.map (Tuple.mapBoth String.fromInt String.fromInt)
                 |> List.indexedMap (\i edge -> ( String.fromInt i, edge ))
                 |> Dict.fromList
