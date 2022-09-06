@@ -28,6 +28,7 @@ import Random.Extra
 import Random.List
 import Shape exposing (Shape)
 import State exposing (State)
+import Time
 import Vel exposing (Vel)
 import Worker.WorkerToAppMsg exposing (WorkerToAppMsg)
 
@@ -42,11 +43,14 @@ init jsonFlags =
         Ok flags ->
             let
                 isTestingGame =
-                    True
+                    False
+
+                _ =
+                    Debug.log "flags" flags
             in
             if isTestingGame then
                 Model.init flags
-                    |> update (ClickedGoToLevel 1)
+                    |> update (ClickedGoToLevel 0)
 
             else
                 ( Model.init flags
@@ -64,10 +68,10 @@ init jsonFlags =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        ClickedGoToLevel difficulty ->
+        ClickedGoToLevel lvlIndex ->
             let
                 ( game, cmd ) =
-                    Game.init difficulty
+                    Game.init model.localStorage lvlIndex
             in
             ( { model | state = State.Game game }
             , cmd

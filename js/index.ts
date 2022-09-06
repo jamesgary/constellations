@@ -15,7 +15,7 @@ let app = Elm.Main.init({
 app.ports.elmToJs.subscribe(function(msg) {
   switch (msg.id) {
     case 'Save':
-      console.log("Saving...");
+      console.log("Saving...", msg.localStorage);
       save(msg.localStorage);
       break;
     case 'WorkerMsg':

@@ -5,7 +5,7 @@ import Graph exposing (Graph)
 
 
 type AppToWorkerMsg
-    = GenerateGraph { difficulty : Int }
+    = GenerateGraph { lvlIndex : Int }
     | CheckForIntersections { graph : Graph }
 
 
@@ -27,8 +27,8 @@ codec =
         |> Codec.variant1
             "GenerateGraph"
             GenerateGraph
-            (Codec.object (\diff -> { difficulty = diff })
-                |> Codec.field "difficulty" .difficulty Codec.int
+            (Codec.object (\lvlIndex -> { lvlIndex = lvlIndex })
+                |> Codec.field "lvlIndex" .lvlIndex Codec.int
                 |> Codec.buildObject
             )
         |> Codec.variant1

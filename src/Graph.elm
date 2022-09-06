@@ -1,4 +1,4 @@
-module Graph exposing (Graph, animateNodes, applyAspectRatio, checkForIntersections, codec, empty, getEdges, getNode, getNodeIdsInBox, getNodeUnsafe, getNodes, getTouching, init, moveNodesForLoadAnim, neighbors, setNodeDest)
+module Graph exposing (Graph, animateNodes, applyAspectRatio, checkForIntersections, codec, empty, getEdges, getNode, getNodeIdsInBox, getNodeUnsafe, getNodes, getTouching, init, isEmpty, moveNodesForLoadAnim, neighbors, setNodeDest)
 
 import Cfg
 import Codec exposing (Codec)
@@ -27,30 +27,63 @@ type alias Model =
 
 
 init : Int -> Graph
-init difficulty =
-    -- TODO actually make nodes/edges
+init lvlIndex =
+    -- NOTE doesn't actually generate random poses, that's handled by Game
+    -- current implementation: create grid
+    let
+        ( numRows, numCols ) =
+            ( 2 + lvlIndex
+            , 3 + lvlIndex
+            )
+
+        numNodes =
+            numRows * numCols
+
+        edges =
+            List.range 0 (numRows - 1)
+                |> List.map
+                    (\row ->
+                        List.range 0 (numCols - 1)
+                            |> List.map
+                                (\col ->
+                                    let
+                                        nodeId =
+                                            (row * numCols) + col
+
+                                        checksAndEdge =
+                                            -- connect with top
+                                            [ ( row > 0, ( nodeId, nodeId - numCols ) )
+
+                                            -- connect with left
+                                            , ( col > 0, ( nodeId, nodeId - 1 ) )
+                                            ]
+                                    in
+                                    checksAndEdge
+                                        |> List.filterMap
+                                            (\( check, edge ) ->
+                                                if check then
+                                                    Just edge
+
+                                                else
+                                                    Nothing
+                                            )
+                                )
+                    )
+                |> List.concat
+                |> List.concat
+    in
     Graph
         { nodes =
-            [ Pos 0.2 0.2
-            , Pos 0.8 0.2
-            , Pos 0.2 0.8
-            , Pos 0.8 0.8
-            ]
-                |> List.indexedMap
-                    (\i pos ->
+            List.range 0 (numNodes - 1)
+                |> List.map
+                    (\i ->
                         ( String.fromInt i
-                        , Node.init pos
+                        , Node.init (Pos 0 0)
                         )
                     )
                 |> Dict.fromList
         , edges =
-            [ ( 0, 1 )
-            , ( 0, 2 )
-            , ( 0, 3 )
-            , ( 1, 2 )
-            , ( 1, 3 )
-            , ( 2, 3 )
-            ]
+            edges
                 |> List.map (Tuple.mapBoth String.fromInt String.fromInt)
                 |> List.indexedMap (\i edge -> ( String.fromInt i, edge ))
                 |> Dict.fromList
@@ -63,6 +96,11 @@ empty =
         { nodes = Dict.empty
         , edges = Dict.empty
         }
+
+
+isEmpty : Graph -> Bool
+isEmpty (Graph model) =
+    Dict.isEmpty model.nodes
 
 
 getNode : String -> Graph -> Maybe Node

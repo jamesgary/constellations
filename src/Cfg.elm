@@ -35,3 +35,8 @@ baseWeight =
 
 constellationContainerId =
     "constellation-container"
+
+
+autoSaveInterval =
+    -- every 5 seconds
+    5 * 1000

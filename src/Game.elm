@@ -11,10 +11,12 @@ import Graph exposing (Graph)
 import Html exposing (Html)
 import Json.Decode as Decode
 import List.Extra
+import LocalStorage exposing (LocalStorage)
 import MouseState exposing (MouseState)
 import Ports
 import Pos exposing (Pos)
 import Shape exposing (Shape)
+import Time
 import Worker.WorkerToAppMsg as WorkerToAppMsg exposing (WorkerToAppMsg)
 
 
@@ -22,18 +24,18 @@ type Game
     = Game Model
 
 
-init : Int -> ( Game, Cmd Msg )
-init diff =
+init : LocalStorage -> Int -> ( Game, Cmd Msg )
+init localStorage lvlIndex =
     let
         ( model, cmd ) =
-            Model.init diff
+            Model.init localStorage lvlIndex
     in
     ( Game model, cmd )
 
 
-view : Int -> Game -> Element Msg
-view numLevelsCleared (Game model) =
-    Game.View.view numLevelsCleared model
+view : Game -> Element Msg
+view (Game model) =
+    Game.View.view model
 
 
 update : Msg -> Game -> ( Game, Cmd Msg )
@@ -70,9 +72,10 @@ update msg game =
                 |> mapModel
                     Model.mouseUp
 
-        ClickedGoToLevel numLvl ->
-            -- TODO
-            ( game, Cmd.none )
+        ClickedGoToLevel lvlIndex ->
+            game
+                |> mapModel
+                    (Model.goToLvl lvlIndex)
 
         GotContainerDom result ->
             case result of

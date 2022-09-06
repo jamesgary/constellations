@@ -1,6 +1,7 @@
 module Game.View exposing (view)
 
 import Cfg
+import Colors
 import Config exposing (Config)
 import Dict exposing (Dict)
 import Ease
@@ -45,8 +46,8 @@ angleConvert =
     180 / pi
 
 
-view : Int -> Model -> Element Msg
-view numLevelsCleared model =
+view : Model -> Element Msg
+view model =
     let
         modClass =
             case model.mouseState of
@@ -158,6 +159,7 @@ viewSidebar model =
                 E.el
                     [ E.padding 5 ]
                     (E.text "Collapse")
+            , colors = Colors.baseBtnColors
             }
         , E.el
             [ E.centerX
@@ -176,10 +178,13 @@ viewSidebar model =
                                 |> List.map
                                     (\colIndex ->
                                         let
-                                            numLvl =
-                                                (numCols * rowIndex) + colIndex + 1
+                                            lvlIndex =
+                                                (numCols * rowIndex) + colIndex
+
+                                            isLocked =
+                                                lvlIndex > model.localStorage.numLevelsCleared
                                         in
-                                        viewLevelSelectBtn numLvl
+                                        viewLevelSelectBtn isLocked lvlIndex model
                                     )
                             )
                     )
@@ -188,6 +193,7 @@ viewSidebar model =
             [ E.padding 5 ]
             { onPress = Nothing
             , label = E.text "Back to Title"
+            , colors = Colors.baseBtnColors
             }
 
         -- mascot
@@ -200,13 +206,29 @@ viewSidebar model =
         ]
 
 
-viewLevelSelectBtn : Int -> Element Msg
-viewLevelSelectBtn numLvl =
+viewLevelSelectBtn : Bool -> Int -> Model -> Element Msg
+viewLevelSelectBtn isLocked lvlIndex model =
+    let
+        ( onPress, text, colors ) =
+            if isLocked then
+                ( Nothing
+                , "🔒"
+                , Colors.baseBtnColors
+                )
+
+            else
+                ( Just <| ClickedGoToLevel lvlIndex
+                , String.fromInt <| (lvlIndex + 1)
+                , if lvlIndex < model.localStorage.numLevelsCleared then
+                    Colors.greenBtnColors
+
+                  else
+                    Colors.baseBtnColors
+                )
+    in
     EH.btn
         [ EBorder.width 1 ]
-        { onPress =
-            Just
-                (ClickedGoToLevel numLvl)
+        { onPress = onPress
         , label =
             E.el
                 [ E.width <| E.px 20
@@ -217,11 +239,9 @@ viewLevelSelectBtn numLvl =
                     [ E.centerX
                     , E.centerY
                     ]
-                    (E.text <|
-                        String.fromInt <|
-                            numLvl
-                    )
+                    (E.text text)
                 )
+        , colors = colors
         }
 
 
@@ -519,65 +539,6 @@ getLoadAnimPos time id numNodes =
         (ease * destY + easeInv * Cfg.graphCenterY)
 
 
-
-{-
-    drawGameState : Config -> Int -> ActiveStateData -> List (Html Msg)
-    drawGameState config numLevelsCleared gameState =
-
-
-   drawLevelSelect : Config -> Int -> ActiveStateData -> Html Msg
-   drawLevelSelect config numLevelsCleared { difficulty } =
-       div [ class "level-select-container" ]
-           [ if difficulty > 1 then
-               span
-                   [ class "level-select-picker level-select-prev"
-                   , onClick (ClickedGoToLevel (difficulty - 1))
-                   ]
-                   [ Html.text " <<< " ]
-
-             else
-               span
-                   [ property "innerHTML" (Json.Encode.string "&nbsp;")
-                   , class "level-select-picker level-select-prev"
-                   ]
-                   []
-           , span [ class "level-select-level" ] [ text ("Level " ++ String.fromInt difficulty) ]
-           , if numLevelsCleared >= difficulty then
-               span
-                   [ class "level-select-picker level-select-next"
-                   , onClick (ClickedGoToLevel (difficulty + 1))
-                   ]
-                   [ Html.text " >>> " ]
-
-             else
-               span
-                   [ class "level-select-picker level-select-next"
-                   ]
-                   [ Html.text " ???" ]
-           ]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
--}
-
-
 drawLasso : MouseState -> List (Html Msg)
 drawLasso mouseState =
     case mouseState of
@@ -620,11 +581,8 @@ drawDefs =
     [ Svg.defs []
         [ Svg.radialGradient
             [ cx "50%", cy "50%", r "100%", spreadMethod "pad", id "radGrad" ]
-            [ Svg.stop [ offset "0%", stopColor "rgb(255,255,255)" ] []
-            , Svg.stop [ offset "30%", stopColor "rgb(255,255,250)" ] []
-            , Svg.stop [ offset "66%", stopColor "rgb(255,255,94)" ] []
-            , Svg.stop [ offset "76%", stopColor "rgb(255,243,13)" ] []
-            , Svg.stop [ offset "100%", stopColor "rgb(255,243,13)" ] []
+            [ Svg.stop [ offset "0%", stopColor "hsl(309, 100%, 75%)" ] []
+            , Svg.stop [ offset "100%", stopColor "hsl(309, 100%, 55%)" ] []
             ]
         ]
     ]

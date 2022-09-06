@@ -1,5 +1,6 @@
-module Game.Model exposing (Model, applyAspectRatio, getContainerDomCmd, handleWorkerMsg, init, mouseDown, mouseMove, mouseUp, tick, updateDom)
+module Game.Model exposing (Model, applyAspectRatio, getContainerDomCmd, goToLvl, handleWorkerMsg, init, mouseDown, mouseMove, mouseUp, save, tick, updateDom)
 
+import Array exposing (Array)
 import Browser.Dom
 import Cfg
 import Colors
@@ -10,6 +11,7 @@ import Game.Mode as Mode exposing (Mode)
 import Game.Msg as Msg exposing (Msg(..))
 import Graph exposing (Graph)
 import List.Extra
+import LocalStorage exposing (LocalStorage)
 import MouseState exposing (MouseState)
 import Node exposing (Node)
 import Ports
@@ -28,21 +30,43 @@ type alias Model =
     , mouseState : MouseState
     , mode : Mode
     , canvasSize : ( Float, Float )
+    , localStorage : LocalStorage
+    , currentLvlIndex : Int
     }
 
 
-init : Int -> ( Model, Cmd Msg )
-init diff =
-    ( { graph = Graph.empty
+init : LocalStorage -> Int -> ( Model, Cmd Msg )
+init localStorage lvlIndex =
+    let
+        ( graph, mode, cmd ) =
+            case Array.get lvlIndex localStorage.levels of
+                Just lvl ->
+                    ( lvl
+                    , Mode.Playing
+                    , [ Ports.getIntersections lvl
+                      , getContainerDomCmd
+                      ]
+                        |> Cmd.batch
+                    )
+
+                Nothing ->
+                    ( Graph.empty
+                    , Mode.Loading 0
+                    , [ Ports.loadLevel lvlIndex
+                      , getContainerDomCmd
+                      ]
+                        |> Cmd.batch
+                    )
+    in
+    ( { graph = graph
       , mousePos = Pos -9999 -9999
       , mouseState = MouseState.Default
-      , mode = Mode.Loading 0
+      , mode = mode
       , canvasSize = ( 1, 1 )
+      , localStorage = localStorage
+      , currentLvlIndex = lvlIndex
       }
-    , [ Ports.loadLevel diff
-      , getContainerDomCmd
-      ]
-        |> Cmd.batch
+    , cmd
     )
 
 
@@ -423,19 +447,20 @@ handleWorkerMsg msg model =
             ( { model | graph = graph }, Cmd.none )
 
         WorkerToAppMsg.GotIntersections { edges } ->
-            if Set.isEmpty edges then
-                ( { model
-                    | mode =
-                        Mode.Won 0
-                            (getShapes model.graph)
-                  }
-                , Cmd.none
-                )
+            let
+                newModel =
+                    if Set.isEmpty edges then
+                        { model
+                            | mode =
+                                Mode.Won 0
+                                    (getShapes model.graph)
+                        }
 
-            else
-                ( { model | mode = Mode.Playing }
-                , Cmd.none
-                )
+                    else
+                        { model | mode = Mode.Playing }
+            in
+            newModel
+                |> save
 
 
 updateDom : Browser.Dom.Element -> Model -> ( Model, Cmd Msg )
@@ -466,6 +491,56 @@ applyAspectRatio ratio model =
         , mode =
             model.mode
                 |> Mode.applyAspectRatio ratio
+    }
+
+
+goToLvl : Int -> Model -> ( Model, Cmd Msg )
+goToLvl lvlIndex model =
+    let
+        ls =
+            toLocalStorage model
+    in
+    init ls lvlIndex
+
+
+save : Model -> ( Model, Cmd Msg )
+save model =
+    let
+        newLocalStorage =
+            toLocalStorage model
+    in
+    ( { model
+        | localStorage = newLocalStorage
+      }
+    , Ports.save newLocalStorage
+    )
+
+
+toLocalStorage : Model -> LocalStorage
+toLocalStorage model =
+    let
+        newLevels =
+            if Graph.isEmpty model.graph then
+                -- no-op just in case it autosaves while loading a level
+                model.localStorage.levels
+
+            else if Array.length model.localStorage.levels > model.currentLvlIndex then
+                model.localStorage.levels
+                    |> Array.set model.currentLvlIndex model.graph
+
+            else
+                model.localStorage.levels
+                    |> Array.push model.graph
+    in
+    { numLevelsCleared =
+        case model.mode of
+            Mode.Won _ _ ->
+                max (model.currentLvlIndex + 1)
+                    model.localStorage.numLevelsCleared
+
+            _ ->
+                model.localStorage.numLevelsCleared
+    , levels = newLevels
     }
 
 

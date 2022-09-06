@@ -20,16 +20,9 @@ import Worker.WorkerToAppMsg as WorkerToAppMsg exposing (WorkerToAppMsg)
 -- outgoing
 
 
-save : LocalStorage -> Cmd msg
-save ls =
-    Save ls
-        |> encodeElmToJsMsg
-        |> elmToJs
-
-
 loadLevel : Int -> Cmd msg
-loadLevel difficulty =
-    { difficulty = difficulty }
+loadLevel lvlIndex =
+    { lvlIndex = lvlIndex }
         |> AppToWorkerMsg.GenerateGraph
         |> WorkerMsg
         |> encodeElmToJsMsg
@@ -49,21 +42,12 @@ port elmToJs : JE.Value -> Cmd msg
 
 
 type ElmToJsMsg
-    = Save LocalStorage
-    | WorkerMsg AppToWorkerMsg
+    = WorkerMsg AppToWorkerMsg
 
 
 encodeElmToJsMsg : ElmToJsMsg -> JE.Value
 encodeElmToJsMsg msg =
     case msg of
-        Save ls ->
-            JE.object
-                [ ( "id", JE.string "Save" )
-                , ( "localStorage"
-                  , ls |> Codec.encodeToValue LocalStorage.codec
-                  )
-                ]
-
         WorkerMsg appToWorkerMsg ->
             JE.object
                 [ ( "id", JE.string "WorkerMsg" )

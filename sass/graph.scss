@@ -1,17 +1,15 @@
-$nodeFill: hsl(49, 100%, 95%);
-$hoveringNodeFill: hsl(309, 100%, 80%);
+$nodeFill: hsl(49, 100%, 75%);
+//$hoveringNodeFill: hsl(309, 100%, 80%);
+$hoveringNodeFill: url(#radGrad);//hsl(309, 100%, 80%);
 $draggingNodeFill: hsl(309, 80%, 70%);
 $neighborNodeFill: hsl(270, 100%, 70%);
-$lassoingNodeFill: hsl(100, 89%, 70%);
-$lassoedNodeFill: hsl(90, 89%, 70%);
+$lassoingNodeFill: hsl(100, 89%, 50%);
+$lassoedNodeFill: hsl(90, 89%, 50%);
 $lassoedNodeStroke: hsl(90, 100%, 90%);
 
 $edgeFillOpacity: 0.9;
 $edgeFill: hsl(51, 100%, 90%);
-
-// Gets us an opaque version of edge fill
-
-$edgeWidth: 0.0001vmin;
+$edgeWidth: 0.0004vmin;
 
 .is-hovering {
   cursor: pointer;
@@ -19,18 +17,6 @@ $edgeWidth: 0.0001vmin;
 
 .is-dragging {
   cursor: pointer;
-}
-
-.game-container {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: row;
-  align-items: stretch;
-  align-content: stretch;
-  justify-content: flex-start;
-
-  @import 'sidebar';
 }
 
 /* Nodes */
@@ -61,9 +47,9 @@ $edgeWidth: 0.0001vmin;
 .node.is-lassoed {
   fill: $lassoedNodeFill;
   stroke: $lassoedNodeStroke;
-  stroke-dasharray: 8 8;
+  stroke-dasharray: 0.01 0.01;
   animation-name: marchingAnts;
-  animation-duration: 1s;
+  animation-duration: 360s;
   animation-iteration-count: infinite;
   animation-timing-function: linear;
 }
@@ -72,7 +58,9 @@ $edgeWidth: 0.0001vmin;
 // everything else is fast
 .node.is-hovering,
 .node.is-dragging,
-.node.is-neighboring {
+.node.is-neighboring,
+.node.is-lassoing,
+.node.is-lassoed {
   transition: fill 0.05s;
 }
 
@@ -90,54 +78,4 @@ $edgeWidth: 0.0001vmin;
   stroke: $lassoingNodeFill;
   stroke-width: $edgeWidth;
   stroke-dasharray: 8 8;
-}
-
-/* Narration */
-.narration {
-  background: pink;
-}
-
-.instructions {
-  position: absolute;
-  color: white;
-  top: 20px;
-  left: 20px;
-}
-
-/* Level select */
-
-.level-select-container {
-  position: relative;
-  z-index: 50;
-  font-size: 24px;
-  color: white;
-  text-align: center;
-}
-
-.level-select-level {
-  margin: 0 7px 0 6px;
-  width: 120px;
-  display: inline-block;
-}
-
-.level-select-picker {
-  width: 50px;
-  display: inline-block;
-  -webkit-text-stroke: 1px rgba(0,0,0,0.8);
-}
-
-.level-select-picker:hover {
-  color: pink;
-  cursor: pointer;
-  text-shadow: 0px 0px 6px #fcc;
-  -webkit-text-stroke: 1px #a00;
-}
-
-/* OMG https://stackoverflow.com/q/17995873 */
-.level-select-prev {
-  //transform: rotate(-90deg);
-}
-
-.level-select-next {
-  //transform: rotate(90deg);
 }

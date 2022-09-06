@@ -24,27 +24,34 @@ vw vws =
         |> E.htmlAttribute
 
 
-btn : List (E.Attribute msg) -> { onPress : Maybe msg, label : Element msg } -> Element msg
-btn attrs ({ onPress, label } as params) =
+btn :
+    List (E.Attribute msg)
+    ->
+        { onPress : Maybe msg
+        , label : Element msg
+        , colors : Colors.BtnColors
+        }
+    -> Element msg
+btn attrs ({ onPress, label, colors } as params) =
     btnHelper
         ([ E.centerX
          , EBackground.gradient
             { angle = pi -- down
-            , steps = Colors.baseBtnColors.default
+            , steps = colors.default
             }
          , EBorder.rounded 5
          , EBorder.width 2
-         , EBorder.color Colors.baseBtnColors.border
+         , EBorder.color colors.border
          , E.mouseDown
             [ EBackground.gradient
                 { angle = pi -- down
-                , steps = Colors.baseBtnColors.down
+                , steps = colors.down
                 }
             ]
          , E.mouseOver
             [ EBackground.gradient
                 { angle = pi -- down
-                , steps = Colors.baseBtnColors.hover
+                , steps = colors.hover
                 }
             ]
          ]
@@ -53,7 +60,14 @@ btn attrs ({ onPress, label } as params) =
         params
 
 
-btnHelper : List (E.Attribute msg) -> { onPress : Maybe msg, label : Element msg } -> Element msg
+btnHelper :
+    List (E.Attribute msg)
+    ->
+        { onPress : Maybe msg
+        , label : Element msg
+        , colors : Colors.BtnColors
+        }
+    -> Element msg
 btnHelper attrs { onPress, label } =
     EInput.button
         attrs

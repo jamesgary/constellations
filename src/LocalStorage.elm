@@ -1,26 +1,22 @@
 module LocalStorage exposing (LocalStorage, codec)
 
+import Array exposing (Array)
 import Codec exposing (Codec)
 import Edge exposing (Edge)
+import Graph exposing (Graph)
 import Node exposing (Node)
 
 
 type alias LocalStorage =
     { numLevelsCleared : Int
-    , levels : List Level
-    }
-
-
-type alias Level =
-    { nodes : List Node
-    , edges : List Edge
+    , levels : Array Graph
     }
 
 
 init : LocalStorage
 init =
     { numLevelsCleared = 0
-    , levels = []
+    , levels = Array.empty
     }
 
 
@@ -33,15 +29,7 @@ codec =
     Codec.oneOf
         (Codec.object LocalStorage
             |> Codec.field "numLevelsCleared" .numLevelsCleared Codec.int
-            |> Codec.field "levels" .levels (Codec.list levelCodec)
+            |> Codec.field "levels" .levels (Codec.array Graph.codec)
             |> Codec.buildObject
         )
         [ Codec.succeed init ]
-
-
-levelCodec : Codec Level
-levelCodec =
-    Codec.object Level
-        |> Codec.field "nodes" .nodes (Codec.list Node.codec)
-        |> Codec.field "edges" .edges (Codec.list Edge.codec)
-        |> Codec.buildObject

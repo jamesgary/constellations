@@ -1,4 +1,4 @@
-module Colors exposing (baseBtnColors, starryNightColorGen)
+module Colors exposing (BtnColors, baseBtnColors, greenBtnColors, starryNightColorGen)
 
 import Element as E exposing (Element)
 import HSLuv exposing (HSLuv)
@@ -7,44 +7,18 @@ import List.Extra
 import Random
 
 
-baseBtnColors :
+type alias BtnColors =
     { default : List E.Color
     , hover : List E.Color
     , down : List E.Color
     , border : E.Color
     }
+
+
+baseBtnColors : BtnColors
 baseBtnColors =
-    { default =
-        [ baseBtnColor
-        , baseBtnColor
-            |> HSLuv.Manipulate.mapSaturation ((*) 0.5)
-            |> HSLuv.Manipulate.mapLightness ((*) 0.5)
-        ]
-            |> List.map hsluvToE
-    , hover =
-        [ baseBtnColor
-            |> HSLuv.Manipulate.mapSaturation ((*) 1.1)
-            |> HSLuv.Manipulate.mapLightness ((*) 1.1)
-        , baseBtnColor
-            |> HSLuv.Manipulate.mapSaturation ((*) 0.7)
-            |> HSLuv.Manipulate.mapLightness ((*) 0.7)
-        ]
-            |> List.map hsluvToE
-    , down =
-        [ baseBtnColor
-            |> HSLuv.Manipulate.mapSaturation ((*) 0.6)
-            |> HSLuv.Manipulate.mapLightness ((*) 0.6)
-        , baseBtnColor
-            |> HSLuv.Manipulate.mapSaturation ((*) 1.1)
-            |> HSLuv.Manipulate.mapLightness ((*) 1.1)
-        ]
-            |> List.map hsluvToE
-    , border =
-        baseBtnColor
-            |> HSLuv.Manipulate.mapSaturation ((*) 1.5)
-            |> HSLuv.Manipulate.mapLightness ((*) 1.5)
-            |> hsluvToE
-    }
+    baseBtnColor
+        |> toBtnColors
 
 
 baseBtnColor =
@@ -54,6 +28,56 @@ baseBtnColor =
         , lightness = 54
         , alpha = 1
         }
+
+
+greenBtnColors : BtnColors
+greenBtnColors =
+    greenBtnColor
+        |> toBtnColors
+
+
+greenBtnColor =
+    HSLuv.hsluv360
+        { hue = 140
+        , saturation = 100
+        , lightness = 54
+        , alpha = 1
+        }
+
+
+toBtnColors : HSLuv -> BtnColors
+toBtnColors hsluv =
+    { default =
+        [ hsluv
+        , hsluv
+            |> HSLuv.Manipulate.mapSaturation ((*) 0.5)
+            |> HSLuv.Manipulate.mapLightness ((*) 0.5)
+        ]
+            |> List.map hsluvToE
+    , hover =
+        [ hsluv
+            |> HSLuv.Manipulate.mapSaturation ((*) 1.1)
+            |> HSLuv.Manipulate.mapLightness ((*) 1.1)
+        , hsluv
+            |> HSLuv.Manipulate.mapSaturation ((*) 0.7)
+            |> HSLuv.Manipulate.mapLightness ((*) 0.7)
+        ]
+            |> List.map hsluvToE
+    , down =
+        [ hsluv
+            |> HSLuv.Manipulate.mapSaturation ((*) 0.6)
+            |> HSLuv.Manipulate.mapLightness ((*) 0.6)
+        , hsluv
+            |> HSLuv.Manipulate.mapSaturation ((*) 1.1)
+            |> HSLuv.Manipulate.mapLightness ((*) 1.1)
+        ]
+            |> List.map hsluvToE
+    , border =
+        hsluv
+            |> HSLuv.Manipulate.mapSaturation ((*) 1.5)
+            |> HSLuv.Manipulate.mapLightness ((*) 1.5)
+            |> hsluvToE
+    }
 
 
 

@@ -1,6 +1,7 @@
 module View exposing (view)
 
 import Array exposing (Array)
+import Colors
 import Element as E exposing (Element)
 import Element.Background as EBackground
 import Element.Border as EBorder
@@ -33,7 +34,6 @@ view model =
 
             State.Game game ->
                 Game.view
-                    model.localStorage.numLevelsCleared
                     game
                     |> E.map GameMsg
         )
@@ -56,11 +56,11 @@ viewStartScreen model =
         startBtn =
             EH.btn
                 []
-                { onPress = Just (ClickedGoToLevel (numLevelsCleared + 1))
+                { onPress = Just (ClickedGoToLevel numLevelsCleared)
                 , label =
                     E.el
                         [ E.paddingXY 20 10 ]
-                        (if numLevelsCleared > 1 then
+                        (if numLevelsCleared >= 1 then
                             E.text
                                 ("Resume Level "
                                     ++ String.fromInt (numLevelsCleared + 1)
@@ -69,6 +69,7 @@ viewStartScreen model =
                          else
                             E.text "Start"
                         )
+                , colors = Colors.baseBtnColors
                 }
     in
     E.el

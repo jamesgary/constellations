@@ -45,9 +45,9 @@ update msg model =
             case Codec.decodeValue AppToWorkerMsg.codec jsonVal of
                 Ok appToWorkerMsg ->
                     case appToWorkerMsg of
-                        AppToWorkerMsg.GenerateGraph { difficulty } ->
+                        AppToWorkerMsg.GenerateGraph { lvlIndex } ->
                             ( {}
-                            , { graph = Graph.init difficulty }
+                            , { graph = Graph.init lvlIndex }
                                 |> WorkerToAppMsg.GeneratedGraph
                                 |> Codec.encodeToValue WorkerToAppMsg.codec
                                 |> Ports.elmToJs

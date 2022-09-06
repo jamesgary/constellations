@@ -28,8 +28,8 @@ save ls =
 
 
 loadLevel : Int -> Cmd msg
-loadLevel difficulty =
-    { difficulty = difficulty }
+loadLevel lvlIndex =
+    { lvlIndex = lvlIndex }
         |> AppToWorkerMsg.GenerateGraph
         |> AppToWorkerMsg
         |> encodeElmToJsMsg

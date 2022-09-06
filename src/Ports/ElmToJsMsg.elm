@@ -2,7 +2,7 @@ module ElmToJsMsg exposing (ElmToJsMsg)
 
 
 type AppToWorkerMsg
-    = GenerateLevel { difficulty : Int }
+    = GenerateLevel { lvlIndex : Int }
     | CheckForIntersections { nodes : List Node, edges : List Edge }
 
 
@@ -20,8 +20,8 @@ codec =
         |> Codec.variant1
             "GenerateLevel"
             GenerateLevel
-            (Codec.object (\diff -> { difficulty = diff })
-                |> Codec.field "difficulty" .difficulty Codec.int
+            (Codec.object (\lvlIndex -> { lvlIndex = lvlIndex })
+                |> Codec.field "lvlIndex" .lvlIndex Codec.int
                 |> Codec.buildObject
             )
         |> Codec.variant1
