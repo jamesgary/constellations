@@ -286,7 +286,7 @@ drawConstellation origModel =
             (List.concat
                 [ drawDefs
                 , drawShapes model
-                , drawEdges model.graph
+                , drawEdges model
                 , drawNodes model.mouseState model.graph
                 , drawLasso model.mouseState
 
@@ -318,28 +318,29 @@ drawMouseDebug model =
     ]
 
 
-drawEdges : Graph -> List (Html Msg)
-drawEdges graph =
-    graph
+drawEdges : Model -> List (Html Msg)
+drawEdges model =
+    model.graph
         |> Graph.getEdges
+        |> Dict.map (drawEdge model)
         |> Dict.values
-        |> List.map (drawEdge graph)
 
 
-drawEdge : Graph -> Edge -> Html Msg
-drawEdge graph ( id1, id2 ) =
+drawEdge : Model -> Edge.Id -> Edge -> Html Msg
+drawEdge model edgeId ( nodeId1, nodeId2 ) =
     let
         node1 =
-            Graph.getNodeUnsafe id1 graph
+            Graph.getNodeUnsafe nodeId1 model.graph
 
         node2 =
-            Graph.getNodeUnsafe id2 graph
+            Graph.getNodeUnsafe nodeId2 model.graph
 
         className =
-            --if List.isEmpty edge.overlappingEdges then
-            --"is-overlapping"
-            --else
-            ""
+            if Set.member edgeId model.intersectingEdges then
+                "is-overlapping"
+
+            else
+                ""
     in
     line
         [ x1 (String.fromFloat node1.pos.x)

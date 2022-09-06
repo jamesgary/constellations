@@ -26,6 +26,7 @@ import Worker.WorkerToAppMsg as WorkerToAppMsg exposing (WorkerToAppMsg)
 
 type alias Model =
     { graph : Graph
+    , intersectingEdges : Set Edge.Id
     , mousePos : Pos
     , mouseState : MouseState
     , mode : Mode
@@ -59,6 +60,7 @@ init localStorage lvlIndex =
                     )
     in
     ( { graph = graph
+      , intersectingEdges = Set.empty
       , mousePos = Pos -9999 -9999
       , mouseState = MouseState.Default
       , mode = mode
@@ -454,10 +456,14 @@ handleWorkerMsg msg model =
                             | mode =
                                 Mode.Won 0
                                     (getShapes model.graph)
+                            , intersectingEdges = edges
                         }
 
                     else
-                        { model | mode = Mode.Playing }
+                        { model
+                            | mode = Mode.Playing
+                            , intersectingEdges = edges
+                        }
             in
             newModel
                 |> save

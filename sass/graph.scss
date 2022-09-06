@@ -9,6 +9,7 @@ $lassoedNodeStroke: hsl(90, 100%, 90%);
 
 $edgeFillOpacity: 0.9;
 $edgeFill: hsl(51, 100%, 90%);
+$overlappingEdgeFill: hsl(0, 100%, 60%);
 $edgeWidth: 0.4vmin;
 
 .is-hovering {
@@ -69,6 +70,11 @@ $edgeWidth: 0.4vmin;
 .edge {
   stroke: rgba($edgeFill, $edgeFillOpacity);
   stroke-width: $edgeWidth;
+}
+
+.edge.is-overlapping {
+  // Kinda distracting? TODO make it opt-in
+  // stroke: rgba($overlappingEdgeFill, $edgeFillOpacity);
 }
 
 /* Lasso */
