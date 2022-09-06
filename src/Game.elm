@@ -83,6 +83,11 @@ update msg game =
             , Effect.GoToTitle
             )
 
+        ToggledCollapse ->
+            game
+                |> mapModel
+                    Model.toggleCollapse
+
         GotContainerDom result ->
             case result of
                 Ok element ->

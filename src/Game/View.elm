@@ -66,8 +66,19 @@ view model =
     E.row
         [ E.width E.fill
         , E.height E.fill
+        , E.inFront
+            (if model.isSidebarCollapsed then
+                viewCollapsedSidebar model
+
+             else
+                E.none
+            )
         ]
-        [ viewSidebar model
+        [ if model.isSidebarCollapsed then
+            E.none
+
+          else
+            viewSidebar model
         , E.el
             [ E.width E.fill
             , E.height E.fill
@@ -135,6 +146,20 @@ view model =
         ]
 
 
+viewCollapsedSidebar : Model -> Element Msg
+viewCollapsedSidebar model =
+    EH.btn
+        [ E.alignLeft
+        ]
+        { onPress = Just ToggledCollapse
+        , label =
+            E.el
+                [ E.padding 5 ]
+                (E.text "Expand")
+        , colors = Colors.baseBtnColors
+        }
+
+
 viewSidebar : Model -> Element Msg
 viewSidebar model =
     let
@@ -153,7 +178,7 @@ viewSidebar model =
         ]
         [ EH.btn
             []
-            { onPress = Nothing
+            { onPress = Just ToggledCollapse
             , label =
                 E.el
                     [ E.padding 5 ]

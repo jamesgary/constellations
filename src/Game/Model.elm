@@ -1,4 +1,4 @@
-module Game.Model exposing (Model, applyAspectRatio, goToLvl, handleWorkerMsg, init, mouseDown, mouseMove, mouseUp, save, tick, updateDom, updateViewport)
+module Game.Model exposing (Model, applyAspectRatio, goToLvl, handleWorkerMsg, init, mouseDown, mouseMove, mouseUp, save, tick, toggleCollapse, updateDom, updateViewport)
 
 import Array exposing (Array)
 import Browser.Dom
@@ -30,6 +30,7 @@ type alias Model =
     , mousePos : Pos
     , mouseState : MouseState
     , mode : Mode
+    , isSidebarCollapsed : Bool
     , canvasEl : { x : Float, y : Float, width : Float, height : Float }
     , localStorage : LocalStorage
     , currentLvlIndex : Int
@@ -64,6 +65,7 @@ init localStorage lvlIndex =
       , mousePos = Pos -9999 -9999
       , mouseState = MouseState.Default
       , mode = mode
+      , isSidebarCollapsed = False
       , canvasEl = { x = 1, y = 1, width = 1, height = 1 }
       , localStorage = localStorage
       , currentLvlIndex = lvlIndex
@@ -518,6 +520,13 @@ goToLvl lvlIndex model =
             toLocalStorage model
     in
     init ls lvlIndex
+
+
+toggleCollapse : Model -> ( Model, Cmd Msg )
+toggleCollapse model =
+    ( { model | isSidebarCollapsed = not model.isSidebarCollapsed }
+    , Cmd.none
+    )
 
 
 save : Model -> ( Model, Cmd Msg )
