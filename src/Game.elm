@@ -83,6 +83,11 @@ update msg game =
             , Effect.GoToTitle
             )
 
+        ClickedResetLvl ->
+            game
+                |> mapModel
+                    Model.resetLvl
+
         ToggledCollapse ->
             game
                 |> mapModel

@@ -1,4 +1,4 @@
-module Game.Model exposing (Model, applyAspectRatio, goToLvl, handleWorkerMsg, init, mouseDown, mouseMove, mouseUp, save, tick, toggleCollapse, updateDom, updateViewport)
+module Game.Model exposing (Model, applyAspectRatio, goToLvl, handleWorkerMsg, init, mouseDown, mouseMove, mouseUp, resetLvl, save, tick, toggleCollapse, updateDom, updateViewport)
 
 import Array exposing (Array)
 import Browser.Dom
@@ -520,6 +520,15 @@ goToLvl lvlIndex model =
             toLocalStorage model
     in
     init ls lvlIndex
+
+
+resetLvl : Model -> ( Model, Cmd Msg )
+resetLvl model =
+    ( { model
+        | mode = Mode.Loading 0
+      }
+    , Ports.loadLevel model.currentLvlIndex
+    )
 
 
 toggleCollapse : Model -> ( Model, Cmd Msg )

@@ -1,4 +1,4 @@
-module Colors exposing (BtnColors, baseBtnColors, greenBtnColors, starryNightColorGen)
+module Colors exposing (BtnColors, baseBtnColors, greenBtnColors, redBtnColors, starryNightColorGen)
 
 import Element as E exposing (Element)
 import HSLuv exposing (HSLuv)
@@ -17,32 +17,35 @@ type alias BtnColors =
 
 baseBtnColors : BtnColors
 baseBtnColors =
-    baseBtnColor
-        |> toBtnColors
-
-
-baseBtnColor =
     HSLuv.hsluv360
         { hue = 252
         , saturation = 100
         , lightness = 54
         , alpha = 1
         }
+        |> toBtnColors
 
 
 greenBtnColors : BtnColors
 greenBtnColors =
-    greenBtnColor
-        |> toBtnColors
-
-
-greenBtnColor =
     HSLuv.hsluv360
         { hue = 140
         , saturation = 100
         , lightness = 54
         , alpha = 1
         }
+        |> toBtnColors
+
+
+redBtnColors : BtnColors
+redBtnColors =
+    HSLuv.hsluv360
+        { hue = 0
+        , saturation = 100
+        , lightness = 44
+        , alpha = 1
+        }
+        |> toBtnColors
 
 
 toBtnColors : HSLuv -> BtnColors

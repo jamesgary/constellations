@@ -16,6 +16,7 @@ type Msg
     | MouseUp
     | ClickedGoToLevel Int
     | ClickedBackToTitle
+    | ClickedResetLvl
     | ToggledCollapse
       -- dom stuff
     | GotContainerDom (Result Browser.Dom.Error Browser.Dom.Element)

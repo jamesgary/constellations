@@ -219,6 +219,12 @@ viewSidebar model =
             , label = E.text "Back to Title"
             , colors = Colors.baseBtnColors
             }
+        , EH.btn
+            [ E.padding 5 ]
+            { onPress = Just ClickedResetLvl
+            , label = E.text "Reset Level"
+            , colors = Colors.redBtnColors
+            }
 
         -- mascot
         , E.paragraph
