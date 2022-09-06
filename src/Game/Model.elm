@@ -1,4 +1,4 @@
-module Game.Model exposing (Model, applyAspectRatio, getContainerDomCmd, goToLvl, handleWorkerMsg, init, mouseDown, mouseMove, mouseUp, save, tick, updateDom)
+module Game.Model exposing (Model, applyAspectRatio, goToLvl, handleWorkerMsg, init, mouseDown, mouseMove, mouseUp, save, tick, updateDom, updateViewport)
 
 import Array exposing (Array)
 import Browser.Dom
@@ -30,7 +30,7 @@ type alias Model =
     , mousePos : Pos
     , mouseState : MouseState
     , mode : Mode
-    , canvasSize : ( Float, Float )
+    , canvasEl : { x : Float, y : Float, width : Float, height : Float }
     , localStorage : LocalStorage
     , currentLvlIndex : Int
     }
@@ -64,7 +64,7 @@ init localStorage lvlIndex =
       , mousePos = Pos -9999 -9999
       , mouseState = MouseState.Default
       , mode = mode
-      , canvasSize = ( 1, 1 )
+      , canvasEl = { x = 1, y = 1, width = 1, height = 1 }
       , localStorage = localStorage
       , currentLvlIndex = lvlIndex
       }
@@ -76,6 +76,18 @@ getContainerDomCmd : Cmd Msg
 getContainerDomCmd =
     Browser.Dom.getElement Cfg.constellationContainerId
         |> Task.attempt GotContainerDom
+
+
+updateViewport : Float -> Float -> Model -> ( Model, Cmd Msg )
+updateViewport width height ({ canvasEl } as model) =
+    ( { model
+        | canvasEl =
+            { canvasEl
+                | height = height
+            }
+      }
+    , getContainerDomCmd
+    )
 
 
 mouseMove : Pos -> Model -> ( Model, Cmd Msg )
@@ -132,6 +144,7 @@ mouseMove origMousePos origModel =
 
                 newDest =
                     Pos destX destY
+                        |> Pos.clampToCanvas
             in
             ( { model
                 | graph =
@@ -173,8 +186,9 @@ mouseMove origMousePos origModel =
                                 graph
                                     |> Graph.setNodeDest nodeId
                                         (Pos
-                                            ((mousePos.x + offset.x) |> clamp buffer (Cfg.canvasScale - buffer))
-                                            ((mousePos.y + offset.y) |> clamp buffer (Cfg.canvasScale - buffer))
+                                            (mousePos.x + offset.x)
+                                            (mousePos.y + offset.y)
+                                            |> Pos.clampToCanvas
                                         )
                             )
                             model.graph
@@ -472,11 +486,7 @@ handleWorkerMsg msg model =
 updateDom : Browser.Dom.Element -> Model -> ( Model, Cmd Msg )
 updateDom element model =
     ( { model
-        | canvasSize =
-            ( element.element.width
-              -- use viewport's height
-            , element.viewport.height
-            )
+        | canvasEl = element.element
       }
     , Cmd.none
     )

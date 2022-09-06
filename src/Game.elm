@@ -90,10 +90,10 @@ update msg game =
                             ++ Debug.toString err
                         )
 
-        ViewportResized ->
-            ( game
-            , Model.getContainerDomCmd
-            )
+        ViewportResized width height ->
+            game
+                |> mapModel
+                    (Model.updateViewport width height)
 
         GotWorkerMsg workerMsg ->
             game
@@ -107,10 +107,28 @@ mapModel mapper (Game model) =
         |> Tuple.mapFirst Game
 
 
-subscriptions =
+subscriptions : Game -> Sub Msg
+subscriptions (Game model) =
     [ Browser.Events.onAnimationFrameDelta Tick
     , Browser.Events.onMouseUp (Decode.succeed MouseUp)
     , Ports.workerToAppSub GotWorkerMsg
-    , Browser.Events.onResize (\x_ y_ -> ViewportResized)
+    , Browser.Events.onResize
+        (\w h ->
+            ViewportResized
+                (toFloat w)
+                (toFloat h)
+        )
+    , Browser.Events.onMouseMove
+        (Decode.map2 Pos
+            (Decode.at [ "pageX" ] Decode.float)
+            (Decode.at [ "pageY" ] Decode.float)
+            |> Decode.map
+                (\{ x, y } ->
+                    MouseMove
+                        { x = (x - model.canvasEl.x) / model.canvasEl.width
+                        , y = (y - model.canvasEl.y) / model.canvasEl.height
+                        }
+                )
+        )
     ]
         |> Sub.batch

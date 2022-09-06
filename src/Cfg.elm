@@ -44,3 +44,8 @@ autoSaveInterval =
 
 canvasScale =
     1000
+
+
+canvasBuffer =
+    -- dead-space around canvas
+    0.02 * canvasScale

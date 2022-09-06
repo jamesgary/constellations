@@ -17,6 +17,6 @@ type Msg
     | ClickedGoToLevel Int
       -- dom stuff
     | GotContainerDom (Result Browser.Dom.Error Browser.Dom.Element)
-    | ViewportResized
+    | ViewportResized Float Float
       -- incoming port subscriptions
     | GotWorkerMsg WorkerToAppMsg

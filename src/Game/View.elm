@@ -249,7 +249,9 @@ drawConstellation : Model -> Element Msg
 drawConstellation origModel =
     let
         ( width, height ) =
-            origModel.canvasSize
+            ( origModel.canvasEl.width
+            , origModel.canvasEl.height
+            )
 
         aspectRatio =
             width / height
@@ -492,19 +494,19 @@ drawShape { dimmerAnimationDurationMs, shimmerAnimationDelayMs, pts, color } =
 onMouseMove : E.Attribute Msg
 onMouseMove =
     Html.Events.on "mousemove"
-        (Decode.map MouseMove decodeClickLocation)
+        (Decode.map MouseMove decodeMousePos)
         |> E.htmlAttribute
 
 
 onMouseDown : E.Attribute Msg
 onMouseDown =
     Html.Events.on "mousedown"
-        (Decode.map MouseDown decodeClickLocation)
+        (Decode.map MouseDown decodeMousePos)
         |> E.htmlAttribute
 
 
-decodeClickLocation : Decode.Decoder Pos
-decodeClickLocation =
+decodeMousePos : Decode.Decoder Pos
+decodeMousePos =
     Decode.map2 Pos
         (Decode.map2 (/)
             (Decode.at [ "offsetX" ] Decode.float)

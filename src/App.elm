@@ -102,5 +102,11 @@ update msg model =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ Game.subscriptions |> Sub.map GameMsg
+        [ case model.state of
+            State.Start ->
+                Sub.none
+
+            State.Game game ->
+                Game.subscriptions game
+                    |> Sub.map GameMsg
         ]
