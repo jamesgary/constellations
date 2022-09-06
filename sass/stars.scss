@@ -6,14 +6,14 @@
   position: absolute;
   background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
   overflow: hidden;
-  z-index: -1;
+  z-index: 0;
 
   #stars, #stars2, #stars3 {
     transform: translateX(-1000px);
     left: -2000px;
     &:after {
-    transform: translateX(-1000px);
-    left: -2000px;
+      transform: translateX(-1000px);
+      left: -2000px;
     }
   }
 

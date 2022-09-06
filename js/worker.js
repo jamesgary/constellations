@@ -13,12 +13,9 @@ let app = Elm.Worker.Main.init({
 });
 
 app.ports.elmToJs.subscribe(function(msg) {
-  console.log("sub msg", msg);
   postMessage(msg);
 });
 
 onmessage = function(msg) {
-  console.log("worker.js got msg", msg);
-
   app.ports.jsToElm.send(msg.data);
 }

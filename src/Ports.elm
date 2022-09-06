@@ -17,7 +17,7 @@ import Worker.WorkerToAppMsg as WorkerToAppMsg exposing (WorkerToAppMsg)
 
 
 
--- outgoing
+-- outgoing (from elm to js/worker)
 
 
 save : LocalStorage -> Cmd msg
@@ -36,8 +36,8 @@ loadLevel difficulty =
         |> elmToJs
 
 
-checkForIntersections : Graph -> Cmd msg
-checkForIntersections graph =
+getIntersections : Graph -> Cmd msg
+getIntersections graph =
     { graph = graph }
         |> AppToWorkerMsg.CheckForIntersections
         |> AppToWorkerMsg
@@ -75,26 +75,25 @@ encodeElmToJsMsg msg =
 
 
 
--- incoming
+-- incoming (from js/worker to elm)
 
 
 type JsToElmMsg
     = WorkerToAppMsg WorkerToAppMsg
 
 
+workerToAppSub : (WorkerToAppMsg -> msg) -> Sub msg
+workerToAppSub mapper =
+    jsToElm
+        (\json ->
+            -- currently only expecting WorkerToAppMsgs
+            case Codec.decodeValue WorkerToAppMsg.codec json of
+                Ok workerMsg ->
+                    mapper workerMsg
+
+                Err err ->
+                    Debug.todo "Can't decode worker msg" err
+        )
+
+
 port jsToElm : (JE.Value -> msg) -> Sub msg
-
-
-
--- TODO deprecate below
-
-
-port loadedLevelFresh : (EdgeData -> msg) -> Sub msg
-
-
-port loadedLevelInProgress :
-    (( { nodes : Array Node, edges : List Edge }, Int ) -> msg)
-    -> Sub msg
-
-
-port intersectionResults : (( Bool, List Edge ) -> msg) -> Sub msg

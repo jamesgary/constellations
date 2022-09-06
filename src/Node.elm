@@ -1,4 +1,4 @@
-module Node exposing (Id, Node, codec, init)
+module Node exposing (Id, Node, applyAspectRatio, codec, init)
 
 import Codec exposing (Codec)
 import Pos exposing (Pos)
@@ -21,6 +21,18 @@ init pos =
     { pos = pos
     , dest = pos
     , vel = Vel 0 0 0 0
+    }
+
+
+applyAspectRatio : Float -> Node -> Node
+applyAspectRatio ratio node =
+    { node
+        | pos =
+            node.pos
+                |> Pos.applyAspectRatio ratio
+        , dest =
+            node.dest
+                |> Pos.applyAspectRatio ratio
     }
 
 

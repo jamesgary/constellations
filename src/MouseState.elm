@@ -1,4 +1,4 @@
-module MouseState exposing (MouseState(..))
+module MouseState exposing (MouseState(..), applyAspectRatio)
 
 import Dict exposing (Dict)
 import Node exposing (Node)
@@ -14,3 +14,40 @@ type MouseState
     | Dragging String Pos (Set String) -- dragging 1 node
     | Lassoing Pos Pos (Set String) -- drawing lasso rect
     | DraggingLassoed (Dict String Pos) -- dragging group of nodes
+
+
+applyAspectRatio : Float -> MouseState -> MouseState
+applyAspectRatio ratio mouseState =
+    let
+        updatePos =
+            Pos.applyAspectRatio ratio
+    in
+    case mouseState of
+        Default ->
+            mouseState
+
+        Hovering id ->
+            mouseState
+
+        Lassoed ids ->
+            mouseState
+
+        Dragging id pos ids ->
+            Dragging
+                id
+                (pos |> updatePos)
+                ids
+
+        Lassoing start end ids ->
+            Lassoing
+                (start |> updatePos)
+                (end |> updatePos)
+                ids
+
+        DraggingLassoed nodeOffsetDict ->
+            nodeOffsetDict
+                |> Dict.map
+                    (\id pos ->
+                        updatePos pos
+                    )
+                |> DraggingLassoed

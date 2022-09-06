@@ -1,7 +1,7 @@
 $nodeFill: hsl(49, 100%, 95%);
 $hoveringNodeFill: hsl(309, 100%, 80%);
 $draggingNodeFill: hsl(309, 80%, 70%);
-$neighborNodeFill: hsl(62, 100%, 70%);
+$neighborNodeFill: hsl(270, 100%, 70%);
 $lassoingNodeFill: hsl(100, 89%, 70%);
 $lassoedNodeFill: hsl(90, 89%, 70%);
 $lassoedNodeStroke: hsl(90, 100%, 90%);
@@ -10,9 +10,16 @@ $edgeFillOpacity: 0.9;
 $edgeFill: hsl(51, 100%, 90%);
 
 // Gets us an opaque version of edge fill
-$nodeStroke: mix($edgeFill, $background, (100 * $edgeFillOpacity));
 
 $edgeWidth: 0.0001vmin;
+
+.is-hovering {
+  cursor: pointer;
+}
+
+.is-dragging {
+  cursor: pointer;
+}
 
 .game-container {
   width: 100%;
@@ -29,10 +36,11 @@ $edgeWidth: 0.0001vmin;
 /* Nodes */
 
 .node {
-  fill: url(#radGrad);
-  stroke: $nodeStroke;
+  fill: $nodeFill;
+  stroke: $edgeFill;
   stroke-width: $edgeWidth;
-  transition: fill 2s cubic-bezier(0.0, 1.0, 0.0, 1.0); // slow, leaves a stain
+  transition: fill 2s;
+  transition-easing-function: cubic-bezier(0.0, 1.0, 0.0, 1.0);
   cursor: pointer;
 }
 

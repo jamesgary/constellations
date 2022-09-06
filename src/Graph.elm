@@ -1,4 +1,4 @@
-module Graph exposing (Graph, animateNodes, codec, getEdges, getNode, getNodeIdsInBox, getNodeUnsafe, getNodes, getTouching, init, moveNodesForLoadAnim, setNodeDest)
+module Graph exposing (Graph, animateNodes, applyAspectRatio, checkForIntersections, codec, empty, getEdges, getNode, getNodeIdsInBox, getNodeUnsafe, getNodes, getTouching, init, moveNodesForLoadAnim, neighbors, setNodeDest)
 
 import Cfg
 import Codec exposing (Codec)
@@ -31,10 +31,10 @@ init difficulty =
     -- TODO actually make nodes/edges
     Graph
         { nodes =
-            [ Pos 200 200
-            , Pos 800 200
-            , Pos 200 800
-            , Pos 800 800
+            [ Pos 0.2 0.2
+            , Pos 0.8 0.2
+            , Pos 0.2 0.8
+            , Pos 0.8 0.8
             ]
                 |> List.indexedMap
                     (\i pos ->
@@ -54,6 +54,14 @@ init difficulty =
                 |> List.map (Tuple.mapBoth String.fromInt String.fromInt)
                 |> List.indexedMap (\i edge -> ( String.fromInt i, edge ))
                 |> Dict.fromList
+        }
+
+
+empty : Graph
+empty =
+    Graph
+        { nodes = Dict.empty
+        , edges = Dict.empty
         }
 
 
@@ -116,6 +124,37 @@ setNodeDest nodeId dest (Graph model) =
         |> Graph
 
 
+applyAspectRatio : Float -> Graph -> Graph
+applyAspectRatio ratio (Graph model) =
+    { model
+        | nodes =
+            model.nodes
+                |> Dict.map
+                    (\id node ->
+                        Node.applyAspectRatio ratio node
+                    )
+    }
+        |> Graph
+
+
+neighbors : Node.Id -> Graph -> Set Node.Id
+neighbors nodeId (Graph model) =
+    model.edges
+        |> Dict.values
+        |> List.filterMap
+            (\( n1, n2 ) ->
+                if n1 == nodeId then
+                    Just n2
+
+                else if n2 == nodeId then
+                    Just n1
+
+                else
+                    Nothing
+            )
+        |> Set.fromList
+
+
 
 -- juice stuff
 
@@ -169,11 +208,6 @@ animateNode timeElapsed nodeId_ node =
         | pos = newPos
         , vel = newVel
     }
-
-
-
---moveNodesForLoadAnim : Float -> Int -> Node.Id -> Node -> Node
---moveNodesForLoadAnim timeElapsed numNodes id node =
 
 
 moveNodesForLoadAnim : Float -> Graph -> Graph
@@ -258,7 +292,95 @@ getNodeIdsInBox pos1 pos2 (Graph model) =
         |> Set.fromList
 
 
+checkForIntersections : Graph -> Set Edge.Id
+checkForIntersections ((Graph model) as graph) =
+    -- O(n^2)
+    -- See https://gist.github.com/Joncom/e8e8d18ebe7fe55c3894
+    model.edges
+        |> Dict.toList
+        |> List.map
+            (\( edgeId1, ( nodeIdA, nodeIdB ) ) ->
+                let
+                    ( ( x1, y1 ), ( x2, y2 ) ) =
+                        ( getNodeUnsafe nodeIdA graph |> .pos |> Pos.toTuple
+                        , getNodeUnsafe nodeIdB graph |> .pos |> Pos.toTuple
+                        )
+                in
+                model.edges
+                    |> Dict.toList
+                    |> List.map
+                        (\( edgeId2, ( nodeIdC, nodeIdD ) ) ->
+                            if
+                                [ nodeIdA
+                                , nodeIdB
+                                , nodeIdC
+                                , nodeIdD
+                                ]
+                                    |> Set.fromList
+                                    |> Set.size
+                                    |> (==) 4
+                            then
+                                let
+                                    ( ( x3, y3 ), ( x4, y4 ) ) =
+                                        ( getNodeUnsafe nodeIdC graph |> .pos |> Pos.toTuple
+                                        , getNodeUnsafe nodeIdD graph |> .pos |> Pos.toTuple
+                                        )
 
+                                    s1_x =
+                                        x2 - x1
+
+                                    s1_y =
+                                        y2 - y1
+
+                                    s2_x =
+                                        x4 - x3
+
+                                    s2_y =
+                                        y4 - y3
+
+                                    thing =
+                                        -s2_x * s1_y + s1_x * s2_y
+
+                                    s =
+                                        (-s1_y * (x1 - x3) + s1_x * (y1 - y3)) / thing
+
+                                    t =
+                                        (s2_x * (y1 - y3) - s2_y * (x1 - x3)) / thing
+                                in
+                                if s >= 0 && s <= 1 && t >= 0 && t <= 1 then
+                                    [ edgeId1, edgeId2 ]
+
+                                else
+                                    []
+
+                            else
+                                []
+                        )
+                    |> List.concat
+            )
+        |> List.concat
+        |> Set.fromList
+
+
+
+{-
+   Maybe.map2
+       (\nodeA nodeB ->
+           model.edges
+               |> Dict.toList
+               |> List.filterMap
+                   (\edgeId2 ( nodeIdC, nodeIdD ) ->
+                       Maybe.map2
+                           (\nodeC nodeD ->
+                               f
+                           )
+                           (getNode nodeIdC graph)
+                           (getNode nodeIdD graph)
+                   )
+       )
+       (getNode nodeId1 graph)
+       (getNode nodeId2 graph)
+-}
 -- codec stuff
 
 

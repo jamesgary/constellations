@@ -3,11 +3,12 @@ module Worker.WorkerToAppMsg exposing (WorkerToAppMsg(..), codec)
 import Codec exposing (Codec)
 import Edge exposing (Edge)
 import Graph exposing (Graph)
+import Set exposing (Set)
 
 
 type WorkerToAppMsg
     = GeneratedGraph { graph : Graph }
-    | GotIntersections { edges : List Edge.Id }
+    | GotIntersections { edges : Set Edge.Id }
 
 
 codec : Codec WorkerToAppMsg
@@ -32,7 +33,7 @@ codec =
             "GotIntersections"
             GotIntersections
             (Codec.object (\edges -> { edges = edges })
-                |> Codec.field "edges" .edges (Codec.list Codec.string)
+                |> Codec.field "edges" .edges (Codec.set Codec.string)
                 |> Codec.buildObject
             )
         |> Codec.buildCustom

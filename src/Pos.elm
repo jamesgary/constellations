@@ -1,4 +1,4 @@
-module Pos exposing (Pos, codec)
+module Pos exposing (Pos, applyAspectRatio, codec, toTuple)
 
 import Codec exposing (Codec)
 
@@ -7,6 +7,16 @@ type alias Pos =
     { x : Float
     , y : Float
     }
+
+
+toTuple : Pos -> ( Float, Float )
+toTuple pos =
+    ( pos.x, pos.y )
+
+
+applyAspectRatio : Float -> Pos -> Pos
+applyAspectRatio ratio pos =
+    { pos | x = pos.x * ratio }
 
 
 

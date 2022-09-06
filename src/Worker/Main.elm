@@ -40,20 +40,10 @@ init flags =
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    let
-        _ =
-            Debug.log "Worker.App got Msg!" msg
-    in
     case msg of
         ReceivedFromPort jsonVal ->
             case Codec.decodeValue AppToWorkerMsg.codec jsonVal of
                 Ok appToWorkerMsg ->
-                    let
-                        _ =
-                            Debug.log
-                                "Woo!"
-                                appToWorkerMsg
-                    in
                     case appToWorkerMsg of
                         AppToWorkerMsg.GenerateGraph { difficulty } ->
                             ( {}
@@ -64,7 +54,15 @@ update msg model =
                             )
 
                         AppToWorkerMsg.CheckForIntersections { graph } ->
-                            ( {}, Cmd.none )
+                            ( {}
+                            , { edges =
+                                    graph
+                                        |> Graph.checkForIntersections
+                              }
+                                |> WorkerToAppMsg.GotIntersections
+                                |> Codec.encodeToValue WorkerToAppMsg.codec
+                                |> Ports.elmToJs
+                            )
 
                 Err err ->
                     let

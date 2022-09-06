@@ -1,7 +1,74 @@
-module Colors exposing (starryNightColorGen)
+module Colors exposing (baseBtnColors, starryNightColorGen)
 
+import Element as E exposing (Element)
+import HSLuv exposing (HSLuv)
+import HSLuv.Manipulate
 import List.Extra
 import Random
+
+
+baseBtnColors :
+    { default : List E.Color
+    , hover : List E.Color
+    , down : List E.Color
+    , border : E.Color
+    }
+baseBtnColors =
+    { default =
+        [ baseBtnColor
+        , baseBtnColor
+            |> HSLuv.Manipulate.mapSaturation ((*) 0.5)
+            |> HSLuv.Manipulate.mapLightness ((*) 0.5)
+        ]
+            |> List.map hsluvToE
+    , hover =
+        [ baseBtnColor
+            |> HSLuv.Manipulate.mapSaturation ((*) 1.1)
+            |> HSLuv.Manipulate.mapLightness ((*) 1.1)
+        , baseBtnColor
+            |> HSLuv.Manipulate.mapSaturation ((*) 0.7)
+            |> HSLuv.Manipulate.mapLightness ((*) 0.7)
+        ]
+            |> List.map hsluvToE
+    , down =
+        [ baseBtnColor
+            |> HSLuv.Manipulate.mapSaturation ((*) 0.6)
+            |> HSLuv.Manipulate.mapLightness ((*) 0.6)
+        , baseBtnColor
+            |> HSLuv.Manipulate.mapSaturation ((*) 1.1)
+            |> HSLuv.Manipulate.mapLightness ((*) 1.1)
+        ]
+            |> List.map hsluvToE
+    , border =
+        baseBtnColor
+            |> HSLuv.Manipulate.mapSaturation ((*) 1.5)
+            |> HSLuv.Manipulate.mapLightness ((*) 1.5)
+            |> hsluvToE
+    }
+
+
+baseBtnColor =
+    HSLuv.hsluv360
+        { hue = 252
+        , saturation = 100
+        , lightness = 54
+        , alpha = 1
+        }
+
+
+
+-- utils
+
+
+hsluvToE : HSLuv -> E.Color
+hsluvToE hsluv =
+    hsluv
+        |> HSLuv.toRgba
+        |> E.fromRgb
+
+
+
+-- starry night stuff
 
 
 starryNightColors =

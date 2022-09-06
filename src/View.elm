@@ -1,82 +1,164 @@
 module View exposing (view)
 
 import Array exposing (Array)
+import Element as E exposing (Element)
+import Element.Background as EBackground
+import Element.Border as EBorder
+import Element.Events as EEvents
+import Element.Font as EFont
+import Element.Input as EInput
+import ElementHelpers as EH
 import Game
-import Html exposing (Html, br, button, div, h1, h2, h3, main_, span, text)
-import Html.Attributes exposing (class, href, target)
+import Html exposing (Html)
+import Html.Attributes as Attr exposing (style)
 import Html.Events
 import Html.Lazy
 import Model exposing (Model)
 import Msg exposing (Msg(..))
 import State exposing (State)
-import ViewStella
 
 
 view : Model -> Html Msg
-view { config, state, localStorage } =
-    --Html.Lazy.lazy2
-    div
-        [ class "appState-container" ]
-        [ case state of
+view model =
+    E.layout
+        [ E.width E.fill
+        , E.height E.fill
+        , EBackground.color (E.rgb 0 0 0)
+        , EFont.color (E.rgb 0.9 0.9 0.9)
+        , EFont.family [ EFont.typeface "Comfortaa" ]
+        ]
+        (case model.state of
             State.Start ->
-                viewStartScreen localStorage.numLevelsCleared
+                viewStartScreen model
 
             State.Game game ->
-                Game.view localStorage.numLevelsCleared game
+                Game.view
+                    model.localStorage.numLevelsCleared
+                    game
+                    |> E.map GameMsg
+        )
+
+
+viewStartScreen : Model -> Element Msg
+viewStartScreen model =
+    let
+        numLevelsCleared =
+            model.localStorage.numLevelsCleared
+
+        link href text =
+            E.newTabLink
+                [ EFont.color <| E.rgb 0.4 0.8 1
+                ]
+                { url = href
+                , label = E.text text
+                }
+
+        startBtn =
+            EH.btn
+                []
+                { onPress = Just (ClickedGoToLevel (numLevelsCleared + 1))
+                , label =
+                    E.el
+                        [ E.paddingXY 20 10 ]
+                        (if numLevelsCleared > 1 then
+                            E.text
+                                ("Resume Level "
+                                    ++ String.fromInt (numLevelsCleared + 1)
+                                )
+
+                         else
+                            E.text "Start"
+                        )
+                }
+    in
+    E.el
+        [ E.width E.fill
+        , E.height E.fill
+        , E.behindContent viewStarBg
         ]
+        (E.column
+            [ E.centerX
+            , E.centerY
+            , E.spacing 20
+            ]
+            -- title
+            [ E.el
+                [ E.centerX
+                , EFont.bold
+                , EH.vw 7
+                ]
+                (E.text "Constellations")
+
+            -- smaller author/source/credits
+            , E.column [ E.spacing 10 ]
+                -- author (me!)
+                [ E.row
+                    [ E.centerX
+                    , EFont.bold
+                    , EH.vw 3
+                    ]
+                    [ E.text "By "
+                    , link
+                        "https://github.com/jamesgary"
+                        "James Gary"
+                    ]
+
+                -- source (elm!)
+                , E.row
+                    [ E.centerX
+                    , EH.vw 3
+                    ]
+                    [ E.text "Written in elm"
+                    , link
+                        "https://github.com/jamesgary/constellations"
+                        "(github)"
+                    ]
+
+                -- credits
+                , E.column
+                    [ E.centerX
+                    , EH.vw 3
+                    ]
+                    [ link
+                        "https://commons.wikimedia.org/wiki/File:Carina_Nebula.jpg"
+                        "European Southern Observatory (ESO)"
+                    ]
+                ]
+            , startBtn
+            ]
+        )
 
 
-viewStartScreen : Int -> Html Msg
-viewStartScreen numLevelsCleared =
-    main_ [ Html.Attributes.id "start" ]
-        [ h1 [ class "title" ] [ text "Constellations" ]
-        , h2
-            [ class "author" ]
-            [ text "By "
-            , Html.a
-                [ class "twitter"
-                , href "https://github.com/jamesgary"
-                , target "_blank"
-                ]
-                [ text "James Gary" ]
-            ]
-        , h3
-            [ class "source" ]
-            [ text "Source code: "
-            , Html.a
-                [ class "link"
-                , href "https://github.com/jamesgary/constellations"
-                , target "_blank"
-                ]
-                [ text "github.com/jamesgary/constellations" ]
-            ]
-        , h3
-            [ class "source" ]
-            [ text "Images courtesy of "
-            , Html.a
-                [ class "link"
-                , href "https://commons.wikimedia.org/wiki/File:Carina_Nebula.jpg"
-                , target "_blank"
-                ]
-                [ text "European Southern Observatory (ESO)" ]
-            ]
-        , if numLevelsCleared > 1 then
-            button
-                [ class "btn start-btn campaign-btn"
-                , Html.Events.onClick (ClickedGoToLevel (numLevelsCleared + 1))
-                ]
-                [ text ("Resume Level " ++ String.fromInt (numLevelsCleared + 1)) ]
-
-          else
-            button
-                [ class "btn start-btn campaign-btn"
-                , Html.Events.onClick (ClickedGoToLevel 1)
-                ]
-                [ text "Play Campaign" ]
-        , br [] []
-        , div [ class "stars-bg" ]
-            [ div [ Html.Attributes.id "stars" ] []
-            , div [ Html.Attributes.id "stars2" ] []
-            , div [ Html.Attributes.id "stars3" ] []
-            ]
+viewStarBg : Element Msg
+viewStarBg =
+    Html.div [ Attr.class "stars-bg" ]
+        [ Html.div [ Attr.id "stars" ] []
+        , Html.div [ Attr.id "stars2" ] []
+        , Html.div [ Attr.id "stars3" ] []
         ]
+        |> E.html
+
+
+
+{-
+   , if numLevelsCleared > 1 then
+       button
+           [ class "btn start-btn campaign-btn"
+           , Html.Events.onClick (ClickedGoToLevel (numLevelsCleared + 1))
+           ]
+           [ text ("Resume Level " ++ String.fromInt (numLevelsCleared + 1)) ]
+
+     else
+       button
+           [ class "btn start-btn campaign-btn"
+           , Html.Events.onClick (ClickedGoToLevel 1)
+           ]
+           [ text "Play Campaign" ]
+-}
+{-
+   , div [ class "stars-bg" ]
+       [ div [ Attrs.id "stars" ] []
+       , div [ Attrs.id "stars2" ] []
+       , div [ Attrs.id "stars3" ] []
+       ]
+-}

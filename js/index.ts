@@ -15,10 +15,11 @@ let app = Elm.Main.init({
 app.ports.elmToJs.subscribe(function(msg) {
   switch (msg.id) {
     case 'Save':
+      console.log("Saving...");
       save(msg.localStorage);
       break;
     case 'WorkerMsg':
-      console.log("index.ts got WorkerMsg", msg);
+      console.log("index.ts got msg from Main.elm", msg);
       worker.postMessage(msg.msg);
       break;
   }
@@ -29,9 +30,7 @@ function save(ls) {
 }
 
 worker.onmessage = function(event) {
-  console.log("Got msg from worker:", event);
-  console.log(app);
-
+  console.log("index.ts got msg from worker", event.data);
   app.ports.jsToElm.send(event.data);
 };
 

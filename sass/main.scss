@@ -1,32 +1,43 @@
+// disable text-selection
+* {
+  user-select: none;
+}
+
+// underline links on hover
+a:hover { text-decoration: underline; }
+
+// parallax background for start screen
+@import 'stars';
+
+// styles for svg graph
+@import 'graph';
+
+// styles for victory shapes
+@import 'shapes';
+
+/*
 $background: hsl(213, 55%, 0%);
 
-* {
-  -webkit-touch-callout: none; /* iOS Safari */
-  -webkit-user-select: none; /* Chrome/Safari/Opera */
-  -khtml-user-select: none; /* Konqueror */
-  -moz-user-select: none; /* Firefox */
-  -ms-user-select: none; /* Internet Explorer/Edge */
-  user-select: none; /* Non-prefixed version, currently
-  not supported by any browser */
-}
-
-@mixin centered {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  top: 50%;
-  left: 50%;
-  //margin: auto;
-  //top:0;bottom:0; /* vertical center */
-  //left:0;right:0; /* horizontal center */
-}
-
 html, body {
+  width: 100%;
   height: 100%;
   margin: 0;
   padding: 0;
-  overflow: hidden;
   font-family: 'Comfortaa', cursive;
-  background: #001;
+  background: $background;
+}
+
+.main-container {
+  width: 100%;
+  height: 100%;
+}
+
+
+.canvas-container {
+  align-self: stretch;
+  overflow: hidden;
+  min-width: 80vw;
+  background: #333;
 }
 
 button {
@@ -78,23 +89,27 @@ button {
 
 .constellation-container {
   z-index: 5;
-  height: 100%;
-  width: 100%;
-  position: absolute;
+  position: relative;
 }
 
 .shapes-container {
   z-index: 4;
-  height: 100%;
-  width: 100%;
+  position: relative;
+}
+
+@mixin centered {
   position: absolute;
+  transform: translate(-50%, -50%);
+  top: 50%;
+  left: 50%;
 }
 
 @import 'game';
 @import 'gameBg';
 @import 'menus';
 @import 'narration';
-@import 'start';
 @import 'stars';
+@import 'start';
 @import 'stella';
 @import 'shapes';
+*/

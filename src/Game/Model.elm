@@ -1,41 +1,58 @@
-module Game.Model exposing (Model, init, mouseDown, mouseMove, mouseUp, tick)
+module Game.Model exposing (Model, applyAspectRatio, getContainerDomCmd, handleWorkerMsg, init, mouseDown, mouseMove, mouseUp, tick, updateDom)
 
+import Browser.Dom
 import Cfg
+import Colors
 import Dict exposing (Dict)
 import Ease
+import Edge exposing (Edge)
 import Game.Mode as Mode exposing (Mode)
+import Game.Msg as Msg exposing (Msg(..))
 import Graph exposing (Graph)
 import List.Extra
 import MouseState exposing (MouseState)
 import Node exposing (Node)
+import Ports
 import Pos exposing (Pos)
+import Random
 import Set exposing (Set)
 import Shape exposing (Shape)
+import Task exposing (Task)
 import Vel exposing (Vel)
+import Worker.WorkerToAppMsg as WorkerToAppMsg exposing (WorkerToAppMsg)
 
 
 type alias Model =
     { graph : Graph
-    , nodeDests : Dict Node.Id Pos
-    , nodeVels : Dict Node.Id Vel
     , mousePos : Pos
     , mouseState : MouseState
     , mode : Mode
+    , canvasSize : ( Float, Float )
     }
 
 
-init : Graph -> Model
-init graph =
-    { graph = graph
-    , nodeDests = Dict.empty
-    , nodeVels = Dict.empty
-    , mousePos = Pos -9999 -9999
-    , mouseState = MouseState.Default
-    , mode = Mode.Loading 0
-    }
+init : Int -> ( Model, Cmd Msg )
+init diff =
+    ( { graph = Graph.empty
+      , mousePos = Pos -9999 -9999
+      , mouseState = MouseState.Default
+      , mode = Mode.Loading 0
+      , canvasSize = ( 1, 1 )
+      }
+    , [ Ports.loadLevel diff
+      , getContainerDomCmd
+      ]
+        |> Cmd.batch
+    )
 
 
-mouseMove : Pos -> Model -> Model
+getContainerDomCmd : Cmd Msg
+getContainerDomCmd =
+    Browser.Dom.getElement Cfg.constellationContainerId
+        |> Task.attempt GotContainerDom
+
+
+mouseMove : Pos -> Model -> ( Model, Cmd Msg )
 mouseMove origMousePos origModel =
     let
         mousePos =
@@ -58,7 +75,9 @@ mouseMove origMousePos origModel =
                         Nothing ->
                             MouseState.Default
             in
-            { model | mouseState = newMouseState }
+            ( { model | mouseState = newMouseState }
+            , Cmd.none
+            )
 
         MouseState.Hovering _ ->
             let
@@ -70,7 +89,9 @@ mouseMove origMousePos origModel =
                         Nothing ->
                             MouseState.Default
             in
-            { model | mouseState = newMouseState }
+            ( { model | mouseState = newMouseState }
+            , Cmd.none
+            )
 
         MouseState.Dragging nodeId offset neighboringNodeIds ->
             let
@@ -86,11 +107,13 @@ mouseMove origMousePos origModel =
                 newDest =
                     Pos destX destY
             in
-            { model
+            ( { model
                 | graph =
                     model.graph
                         |> Graph.setNodeDest nodeId newDest
-            }
+              }
+            , Cmd.none
+            )
 
         MouseState.Lassoing startPos _ nodeIds ->
             let
@@ -98,20 +121,24 @@ mouseMove origMousePos origModel =
                     model.graph
                         |> Graph.getNodeIdsInBox startPos mousePos
             in
-            { model
+            ( { model
                 | mouseState =
                     MouseState.Lassoing startPos mousePos lassoedNodes
-            }
+              }
+            , Cmd.none
+            )
 
         MouseState.Lassoed nodeIds ->
-            model
+            ( model
+            , Cmd.none
+            )
 
         MouseState.DraggingLassoed nodeOffsetDict ->
             let
                 buffer =
-                    10
+                    0.1
             in
-            { model
+            ( { model
                 | graph =
                     nodeOffsetDict
                         |> Dict.toList
@@ -120,21 +147,23 @@ mouseMove origMousePos origModel =
                                 graph
                                     |> Graph.setNodeDest nodeId
                                         (Pos
-                                            ((mousePos.x + offset.x) |> clamp buffer (1600 - buffer))
-                                            ((mousePos.y + offset.y) |> clamp buffer (900 - buffer))
+                                            ((mousePos.x + offset.x) |> clamp buffer (1 - buffer))
+                                            ((mousePos.y + offset.y) |> clamp buffer (1 - buffer))
                                         )
                             )
                             model.graph
-            }
+              }
+            , Cmd.none
+            )
 
 
-mouseDown : Pos -> Model -> Model
+mouseDown : Pos -> Model -> ( Model, Cmd Msg )
 mouseDown origMousePos model =
     let
         mousePos =
             mousePosToPos origMousePos
 
-        newMouseState =
+        ( newMouseState, cmd ) =
             case Graph.getTouching mousePos model.graph of
                 Just ( clickedNodeId, clickedNode ) ->
                     let
@@ -150,7 +179,6 @@ mouseDown origMousePos model =
                                 let
                                     nodeOffsetDict =
                                         nodeIds
-                                            --|> List.map (nodeIdToNodeOffset mousePos model.nodes)
                                             |> Set.toList
                                             |> List.filterMap
                                                 (\nodeId ->
@@ -166,93 +194,84 @@ mouseDown origMousePos model =
                                                 )
                                             |> Dict.fromList
                                 in
-                                MouseState.DraggingLassoed nodeOffsetDict
+                                ( MouseState.DraggingLassoed nodeOffsetDict
+                                , Cmd.none
+                                )
 
                             else
                                 -- clicked some rando non-lassoed node
                                 let
-                                    getNeighborNodeIfMatchingEdge nodeId edge =
-                                        let
-                                            ( node1, node2 ) =
-                                                edge.pair
-                                        in
-                                        if node1 == nodeId then
-                                            Just node2
-
-                                        else if node2 == nodeId then
-                                            Just node1
-
-                                        else
-                                            Nothing
-
                                     neighboringNodeIds =
-                                        []
-                                            --model.edges
-                                            --|> List.filterMap (getNeighborNodeIfMatchingEdge clickedNodeId)
-                                            |> always []
-                                            |> Set.fromList
+                                        model.graph
+                                            |> Graph.neighbors clickedNodeId
                                 in
-                                MouseState.Dragging clickedNodeId dragOffset neighboringNodeIds
+                                ( MouseState.Dragging clickedNodeId dragOffset neighboringNodeIds
+                                , Cmd.none
+                                )
 
                         _ ->
                             let
-                                getNeighborNodeIfMatchingEdge nodeId edge =
-                                    let
-                                        ( node1, node2 ) =
-                                            edge.pair
-                                    in
-                                    if node1 == nodeId then
-                                        Just node2
-
-                                    else if node2 == nodeId then
-                                        Just node1
-
-                                    else
-                                        Nothing
-
                                 neighboringNodeIds =
-                                    --List.filterMap (getNeighborNodeIfMatchingEdge clickedNodeId) model.edges
-                                    []
-                                        |> Set.fromList
+                                    model.graph
+                                        |> Graph.neighbors clickedNodeId
                             in
-                            MouseState.Dragging clickedNodeId dragOffset neighboringNodeIds
+                            ( MouseState.Dragging clickedNodeId dragOffset neighboringNodeIds
+                            , Cmd.none
+                            )
 
                 Nothing ->
-                    MouseState.Lassoing mousePos mousePos Set.empty
+                    ( MouseState.Lassoing mousePos mousePos Set.empty
+                    , Cmd.none
+                    )
     in
-    { model | mouseState = newMouseState }
+    ( { model | mouseState = newMouseState }
+    , cmd
+    )
 
 
-mouseUp : Model -> Model
+mouseUp : Model -> ( Model, Cmd Msg )
 mouseUp model =
-    -- TODO check for win state
     case model.mouseState of
         MouseState.Default ->
             -- should never get here
-            model
+            ( model
+            , Cmd.none
+            )
 
         MouseState.Hovering nodeId ->
             -- should never get here
-            model
+            ( model
+            , Cmd.none
+            )
 
         MouseState.Lassoed nodeIds ->
             -- should never get here
-            model
+            ( model
+            , Cmd.none
+            )
 
         MouseState.Dragging nodeId offset nodeIds ->
-            { model
+            ( { model
                 | mouseState =
                     MouseState.Hovering nodeId
-            }
+              }
+            , Ports.getIntersections model.graph
+            )
 
         MouseState.Lassoing startPos currentPos nodeIds ->
-            { model
+            ( { model
                 | mouseState =
-                    MouseState.Lassoed nodeIds
-            }
+                    if Set.isEmpty nodeIds then
+                        MouseState.Default
+
+                    else
+                        MouseState.Lassoed nodeIds
+              }
+            , Cmd.none
+            )
 
         MouseState.DraggingLassoed nodeOffsetDict ->
-            { model
+            ( { model
                 | mouseState =
                     case Graph.getTouching model.mousePos model.graph of
                         Just ( nodeId, node ) ->
@@ -260,17 +279,19 @@ mouseUp model =
 
                         Nothing ->
                             MouseState.Default
-            }
+              }
+            , Ports.getIntersections model.graph
+            )
 
 
 mousePosToPos : Pos -> Pos
 mousePosToPos { x, y } =
     Pos
-        (1600 * x)
-        (900 * y)
+        (1 * x)
+        (1 * y)
 
 
-tick : Float -> Model -> Model
+tick : Float -> Model -> ( Model, Cmd Msg )
 tick delta model =
     case model.mode of
         Mode.Loading age ->
@@ -278,7 +299,7 @@ tick delta model =
                 newAge =
                     age + delta
             in
-            { model
+            ( { model
                 | graph =
                     model.graph
                         |> Graph.moveNodesForLoadAnim newAge
@@ -289,23 +310,29 @@ tick delta model =
 
                     else
                         Mode.Playing
-            }
+              }
+            , Cmd.none
+            )
 
         Mode.Playing ->
-            { model
+            ( { model
                 | graph =
                     model.graph
                         |> Graph.animateNodes delta
-            }
+              }
+            , Cmd.none
+            )
 
         Mode.Won time shapes ->
-            { model
+            ( { model
                 | graph =
                     model.graph
                         |> Graph.animateNodes delta
                 , mode =
                     Mode.Won (time + delta) shapes
-            }
+              }
+            , Cmd.none
+            )
 
 
 animateNode : Float -> Node.Id -> Node -> Node
@@ -387,3 +414,207 @@ moveNodeForLoadAnim time numNodes id node =
             Pos (ease * destX + easeInv * Cfg.graphCenterX)
                 (ease * destY + easeInv * Cfg.graphCenterY)
     }
+
+
+handleWorkerMsg : WorkerToAppMsg -> Model -> ( Model, Cmd Msg )
+handleWorkerMsg msg model =
+    case msg of
+        WorkerToAppMsg.GeneratedGraph { graph } ->
+            ( { model | graph = graph }, Cmd.none )
+
+        WorkerToAppMsg.GotIntersections { edges } ->
+            if Set.isEmpty edges then
+                ( { model
+                    | mode =
+                        Mode.Won 0
+                            (getShapes model.graph)
+                  }
+                , Cmd.none
+                )
+
+            else
+                ( { model | mode = Mode.Playing }
+                , Cmd.none
+                )
+
+
+updateDom : Browser.Dom.Element -> Model -> ( Model, Cmd Msg )
+updateDom element model =
+    ( { model
+        | canvasSize =
+            ( element.element.width
+              -- use viewport's height
+            , element.viewport.height
+            )
+      }
+    , Cmd.none
+    )
+
+
+applyAspectRatio : Float -> Model -> Model
+applyAspectRatio ratio model =
+    { model
+        | graph =
+            model.graph
+                |> Graph.applyAspectRatio ratio
+        , mousePos =
+            model.mousePos
+                |> Pos.applyAspectRatio ratio
+        , mouseState =
+            model.mouseState
+                |> MouseState.applyAspectRatio ratio
+        , mode =
+            model.mode
+                |> Mode.applyAspectRatio ratio
+    }
+
+
+
+-- shape stuff
+
+
+getShapes : Graph -> List Shape
+getShapes graph =
+    let
+        nodes =
+            Graph.getNodes graph
+
+        edges =
+            Graph.getEdges graph
+
+        edgesList =
+            edges
+                |> Dict.values
+    in
+    edgesList
+        |> List.map
+            (\( id1, id2 ) ->
+                let
+                    node1 =
+                        Graph.getNodeUnsafe id1 graph
+
+                    node2 =
+                        Graph.getNodeUnsafe id2 graph
+                in
+                [ getShapeNodeIdsForRay nodes edgesList ( ( id1, node1 ), ( id2, node2 ) )
+                , getShapeNodeIdsForRay nodes edgesList ( ( id2, node2 ), ( id1, node1 ) )
+                ]
+            )
+        |> List.concat
+        -- reduce shapes to unique-ify
+        |> List.Extra.uniqueBy
+            (\nodeIds ->
+                List.sort nodeIds
+            )
+        |> (\nodeIdsList ->
+                let
+                    perimeterShape =
+                        List.Extra.maximumBy List.length nodeIdsList
+                            |> Maybe.withDefault []
+                in
+                List.Extra.remove perimeterShape nodeIdsList
+           )
+        -- sort topright to bottomleft for shimmer
+        |> List.sortBy
+            (\nodeIds ->
+                nodeIds
+                    |> List.Extra.maximumBy
+                        (\nodeId ->
+                            Graph.getNodeUnsafe nodeId graph
+                                |> (\{ pos } ->
+                                        pos.y - pos.x
+                                   )
+                        )
+                    |> Maybe.withDefault ""
+            )
+        |> List.indexedMap
+            (\i nodeIds ->
+                { pts =
+                    nodeIds
+                        |> List.map (\id -> Graph.getNodeUnsafe id graph)
+                        |> List.map (\{ dest } -> dest)
+                , color = getRandomColor (i * 1)
+                , dimmerAnimationDurationMs =
+                    Random.step
+                        (Random.int 0 800)
+                        (Random.initialSeed (i * 1))
+                        |> Tuple.first
+                        |> (\n -> n + 2000)
+                , shimmerAnimationDelayMs = 70 * i
+                }
+            )
+
+
+getShapeNodeIdsForRay : Dict Node.Id Node -> List Edge -> ( ( Node.Id, Node ), ( Node.Id, Node ) ) -> List Node.Id
+getShapeNodeIdsForRay nodes edges (( ( node1Id, node1 ), ( node2Id, node2 ) ) as ray) =
+    getShapeForRayHelper nodes edges node1 [ ( node2Id, node2 ), ( node1Id, node1 ) ] ray
+        |> List.map Tuple.first
+
+
+getShapeForRayHelper : Dict Node.Id Node -> List Edge -> Node -> List ( Node.Id, Node ) -> ( ( Node.Id, Node ), ( Node.Id, Node ) ) -> List ( Node.Id, Node )
+getShapeForRayHelper nodes edges genesisNode shapeNodes ( ( node1Id, node1 ), ( node2Id, node2 ) ) =
+    -- get neighbors of node2 (but not node1)
+    getNeighborsOfNode nodes edges node2Id
+        |> List.filter (\( id, n ) -> n /= node1)
+        -- then find the ccw-most node of node2
+        |> List.Extra.minimumBy (\( id, n ) -> angleFor3Pts node1.pos node2.pos n.pos)
+        |> Maybe.map
+            (\( nextNodeId, nextNode ) ->
+                if nextNode == genesisNode then
+                    shapeNodes
+
+                else
+                    getShapeForRayHelper nodes edges genesisNode (( nextNodeId, nextNode ) :: shapeNodes) ( ( node2Id, node2 ), ( nextNodeId, nextNode ) )
+            )
+        |> Maybe.withDefault []
+
+
+getRandomColor : Int -> String
+getRandomColor seed =
+    Random.step Colors.starryNightColorGen (Random.initialSeed seed)
+        |> Tuple.first
+
+
+angleFor3Pts : Pos -> Pos -> Pos -> Float
+angleFor3Pts pos1 pos2 pos3 =
+    -- https://www.gamedev.net/forums/topic/487576-angle-between-two-lines-clockwise/?tab=comments#comment-4184664
+    -- and https://stackoverflow.com/a/21484228
+    let
+        v1x =
+            pos1.x - pos2.x
+
+        v1y =
+            pos1.y - pos2.y
+
+        v2x =
+            pos3.x - pos2.x
+
+        v2y =
+            pos3.y - pos2.y
+
+        angleVal =
+            atan2 v2y v2x - atan2 v1y v1x
+    in
+    if angleVal < 0 then
+        angleVal + 2 * pi
+
+    else
+        angleVal
+
+
+getNeighborsOfNode : Dict Node.Id Node -> List Edge -> Node.Id -> List ( Node.Id, Node )
+getNeighborsOfNode nodes edges nodeId =
+    edges
+        |> List.filterMap
+            (\( node1, node2 ) ->
+                if node1 == nodeId then
+                    Dict.get node2 nodes
+                        |> Maybe.map (\node -> ( node2, node ))
+
+                else if node2 == nodeId then
+                    Dict.get node1 nodes
+                        |> Maybe.map (\node -> ( node1, node ))
+
+                else
+                    Nothing
+            )

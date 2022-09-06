@@ -6,15 +6,15 @@ loadAnimDur =
 
 
 graphCenterX =
-    800
+    0.5
 
 
 graphCenterY =
-    450
+    0.5
 
 
 graphRadius =
-    300
+    0.4
 
 
 wait =
@@ -26,8 +26,12 @@ wait =
 
 
 radius =
-    25
+    0.03
 
 
 baseWeight =
     50
+
+
+constellationContainerId =
+    "constellation-container"
