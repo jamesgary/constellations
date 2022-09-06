@@ -1,20 +1,25 @@
 .star-bg-container {
-  height: 100%;
-  width: 100%;
-  position: absolute;
-  overflow: hidden;
+  // back-up background in case front one doesn't cover area
+  // probably a way to make sure it does, but it's not that important
+  background: url("../public/images/Carina_Nebula.jpg");
+  background-size: cover;
 }
 
-.star-bg {
-  position: absolute;
+.star-bg-outer {
   animation: rotatoPotato 1200s linear infinite;
-  background: repeat center url("../public/images/Carina_Nebula.jpg");
-  background-size: 100%;
+  transform-origin: bottom center;
+}
 
-  width: 300%;
-  height: 300%;
-  top: -50%;
-  left: -100%;
+.star-bg-inner {
+  background: url("../public/images/Carina_Nebula.jpg");
+  background-size: cover;
+
+  scale: 4;
+}
+
+@keyframes rotatoPotato {
+  0%   { transform: rotate(0turn); }
+  100% { transform: rotate(1turn); }
 }
 
 .star-bg-screen {
@@ -29,9 +34,4 @@
 
   background-image: radial-gradient(circle, $color, $color $dotSize, transparent $dotSize, transparent);
   background-size: $spaceSize $spaceSize;
-}
-
-@keyframes rotatoPotato {
-  0%   { transform: rotate(0turn); }
-  100% { transform: rotate(1turn); }
 }

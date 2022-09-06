@@ -70,6 +70,7 @@ view numLevelsCleared model =
         , E.el
             [ E.width E.fill
             , E.height E.fill
+            , E.clip
 
             -- constellation
             , E.inFront (drawConstellation model)
@@ -83,6 +84,38 @@ view numLevelsCleared model =
                     , onMouseDown
                     , Attr.class modClass
                         |> E.htmlAttribute
+                    ]
+                    E.none
+                )
+
+            -- starry rotating bg
+            , E.behindContent
+                (E.el
+                    [ E.width E.fill
+                    , E.height E.fill
+                    , EH.class "star-bg-container"
+                    , E.inFront
+                        (E.el
+                            [ E.width E.fill
+                            , E.height E.fill
+                            , EH.class "star-bg-outer"
+                            ]
+                            (E.el
+                                [ E.width E.fill
+                                , E.height E.fill
+                                , EH.class "star-bg-inner"
+                                ]
+                                E.none
+                            )
+                        )
+                    , E.inFront
+                        (E.el
+                            [ E.width E.fill
+                            , E.height E.fill
+                            , EH.class "star-bg-screen"
+                            ]
+                            E.none
+                        )
                     ]
                     E.none
                 )
@@ -209,7 +242,6 @@ drawConstellation origModel =
         [ E.width E.fill
         , E.height E.fill
         , E.clip
-        , EBackground.color (E.rgb 0.4 0 0)
         , Attr.id Cfg.constellationContainerId
             |> E.htmlAttribute
         ]
@@ -222,7 +254,6 @@ drawConstellation origModel =
             --, SvgAttr.preserveAspectRatio "none"
             , style "width" (px width)
             , style "height" (px height)
-            , style "background" "#aaf"
             ]
             (List.concat
                 [ drawDefs

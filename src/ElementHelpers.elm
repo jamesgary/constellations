@@ -12,6 +12,12 @@ import Html.Attributes as Attr exposing (style)
 import Html.Events
 
 
+class : String -> E.Attribute msg
+class className =
+    Attr.class className
+        |> E.htmlAttribute
+
+
 vw : Float -> E.Attribute msg
 vw vws =
     style "font-size" (String.fromFloat vws ++ "vw")

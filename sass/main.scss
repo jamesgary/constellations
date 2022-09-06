@@ -9,11 +9,14 @@ a:hover { text-decoration: underline; }
 // parallax background for start screen
 @import 'stars';
 
-// styles for svg graph
+// svg graph
 @import 'graph';
 
-// styles for victory shapes
+// victory shapes
 @import 'shapes';
+
+// slowly rotating stars bg in-game
+@import 'gameBg';
 
 /*
 $background: hsl(213, 55%, 0%);
