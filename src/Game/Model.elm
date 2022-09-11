@@ -1,4 +1,4 @@
-module Game.Model exposing (Model, applyAspectRatio, goToLvl, handleWorkerMsg, init, mouseDown, mouseMove, mouseUp, resetLvl, save, tick, toggleCollapse, updateDom, updateViewport)
+module Game.Model exposing (Model, applyAspectRatio, goToLvl, handleWorkerMsg, hasWon, init, mouseDown, mouseMove, mouseUp, resetLvl, save, tick, toggleCollapse, updateDom, updateViewport)
 
 import Array exposing (Array)
 import Browser.Dom
@@ -728,3 +728,13 @@ getNeighborsOfNode nodes edges nodeId =
                 else
                     Nothing
             )
+
+
+hasWon : Model -> Bool
+hasWon model =
+    case model.mode of
+        Mode.Won time shapes ->
+            True
+
+        _ ->
+            False

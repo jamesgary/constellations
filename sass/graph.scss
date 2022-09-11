@@ -7,7 +7,7 @@ $lassoingNodeFill: hsl(100, 89%, 50%);
 $lassoedNodeFill: hsl(90, 89%, 50%);
 $lassoedNodeStroke: hsl(90, 100%, 90%);
 
-$edgeFillOpacity: 0.9;
+$edgeFillOpacity: 0.7;
 $edgeFill: hsl(51, 100%, 90%);
 $overlappingEdgeFill: hsl(0, 100%, 60%);
 $edgeWidth: 0.4vmin;
@@ -48,9 +48,9 @@ $edgeWidth: 0.4vmin;
 .node.is-lassoed {
   fill: $lassoedNodeFill;
   stroke: $lassoedNodeStroke;
-  stroke-dasharray: 0.01 0.01;
+  stroke-dasharray: 8 8;
   animation-name: marchingAnts;
-  animation-duration: 360s;
+  animation-duration: 1s;
   animation-iteration-count: infinite;
   animation-timing-function: linear;
 }

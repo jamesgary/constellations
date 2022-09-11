@@ -44,7 +44,7 @@ init jsonFlags =
         Ok flags ->
             let
                 isTestingGame =
-                    False
+                    True
 
                 _ =
                     Debug.log "flags" flags

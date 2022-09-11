@@ -24,6 +24,7 @@ view model =
     E.layout
         [ E.width E.fill
         , E.height E.fill
+        , E.clip
         , EBackground.color (E.rgb 0 0 0)
         , EFont.color (E.rgb 0.9 0.9 0.9)
         , EFont.family [ EFont.typeface "Comfortaa" ]

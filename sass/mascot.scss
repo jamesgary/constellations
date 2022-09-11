@@ -1,0 +1,42 @@
+.mascot {
+  width: 175px;
+  height: 175px;
+  background: url("../public/images/cuteplanet.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+.mascot.won {
+    animation: cute-rotate 0.9s ease-in-out alternate infinite both;
+}
+
+@keyframes cute-rotate {
+	0% {
+		transform: rotate(-15deg);
+	}
+	100% {
+		transform: rotate(15deg);
+	}
+}
+/* From https://projects.verou.me/bubbly/ */
+
+.speech-bubble {
+  position: relative;
+  background: #eef;
+  border-radius: .4em;
+  top: -20px;
+}
+
+.speech-bubble:after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border: 20px solid transparent;
+  border-top-color: #eef;
+  border-bottom: 0;
+  margin-left: -20px;
+  margin-bottom: -20px;
+}

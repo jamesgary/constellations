@@ -171,10 +171,12 @@ viewSidebar model =
     in
     E.column
         [ E.height E.fill
-        , E.width <| E.px 200
+        , E.width <| E.px 250
         , E.paddingXY 15 10
         , E.spacing 20
         , EBackground.color (E.rgb 0 0 0.1)
+        , EBorder.color (E.rgb255 53 113 195)
+        , EBorder.widthEach { sides | right = 2 }
         ]
         [ EH.btn
             []
@@ -227,12 +229,51 @@ viewSidebar model =
             }
 
         -- mascot
-        , E.paragraph
-            [ E.alignBottom ]
-            [ E.el []
-                (E.text "Untangle all the stars so that no lines cross!")
+        , E.column
+            [ E.alignBottom
             ]
-        , E.el [] E.none
+            [ E.el
+                [ class "speech-bubble"
+                    |> E.htmlAttribute
+                ]
+                (E.column
+                    [ E.padding 10
+                    , E.spacing 10
+                    , EFont.color (E.rgb 0 0 0.1)
+                    ]
+                    (getMascotSpeech model)
+                )
+            , let
+                className =
+                    if Model.hasWon model then
+                        "mascot won"
+
+                    else
+                        "mascot"
+              in
+              E.el
+                [ class className |> E.htmlAttribute
+                ]
+                E.none
+            ]
+        ]
+
+
+getMascotSpeech : Model -> List (Element Msg)
+getMascotSpeech model =
+    -- TODO add more speeches
+    if Model.hasWon model then
+        [ E.paragraph []
+            [ E.el [] (E.text "Hooray!")
+            ]
+        , E.paragraph []
+            [ E.el [] (E.text "Try Level 2!")
+            ]
+        ]
+
+    else
+        [ E.paragraph []
+            [ E.text "Untangle all the stars so that no lines cross!" ]
         ]
 
 
@@ -404,9 +445,6 @@ drawNode mouseState ( nodeId, node ) =
 
         stretch =
             baseStretch * nodeVel.r
-
-        blur =
-            getBlur nodeVel
 
         rad =
             Cfg.radius
@@ -620,18 +658,6 @@ drawDefs =
             ]
         ]
     ]
-
-
-getBlur : Vel -> String
-getBlur vel =
-    let
-        xStr =
-            String.fromFloat (baseBlur * vel.x)
-
-        yStr =
-            String.fromFloat (baseBlur * vel.y)
-    in
-    xStr ++ "," ++ yStr
 
 
 getTransform : Node -> String
