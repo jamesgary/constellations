@@ -168,12 +168,95 @@ viewSidebar model =
 
         numRows =
             5
+
+        shouldSeeNonMascotStuff =
+            model.localStorage.numLevelsCleared > 0
+
+        nonMascotStuff =
+            E.column [ E.spacing 20 ]
+                [ EH.btn
+                    []
+                    { onPress = Just ToggledCollapse
+                    , label =
+                        E.el
+                            [ E.padding 5 ]
+                            (E.text "Collapse")
+                    , colors = Colors.baseBtnColors
+                    }
+                , E.el
+                    [ E.centerX
+                    , EFont.underline
+                    ]
+                    (E.text "Level Select")
+                , E.column
+                    [ E.centerX
+                    ]
+                    (List.range 0 (numRows - 1)
+                        |> List.map
+                            (\rowIndex ->
+                                E.row []
+                                    (List.range 0 (numCols - 1)
+                                        |> List.map
+                                            (\colIndex ->
+                                                let
+                                                    lvlIndex =
+                                                        (numCols * rowIndex) + colIndex
+
+                                                    isLocked =
+                                                        lvlIndex > model.localStorage.numLevelsCleared
+                                                in
+                                                viewLevelSelectBtn isLocked lvlIndex model
+                                            )
+                                    )
+                            )
+                    )
+                , EH.btn
+                    [ E.padding 5 ]
+                    { onPress = Just ClickedBackToTitle
+                    , label = E.text "Back to Title"
+                    , colors = Colors.baseBtnColors
+                    }
+                , EH.btn
+                    [ E.padding 5 ]
+                    { onPress = Just ClickedResetLvl
+                    , label = E.text "Reset Level"
+                    , colors = Colors.redBtnColors
+                    }
+                ]
+
+        mascotStuff =
+            E.column
+                [ E.alignBottom
+                ]
+                [ E.el
+                    [ class "speech-bubble"
+                        |> E.htmlAttribute
+                    ]
+                    (E.column
+                        [ E.padding 10
+                        , E.spacing 10
+                        , EFont.color (E.rgb 0 0 0.1)
+                        ]
+                        (getMascotSpeech model)
+                    )
+                , let
+                    className =
+                        if Model.hasWon model then
+                            "mascot won"
+
+                        else
+                            "mascot"
+                  in
+                  E.el
+                    [ class className |> E.htmlAttribute
+                    ]
+                    E.none
+                ]
     in
     E.column
         [ E.height E.fill
         , E.width <| E.px 250
         , E.paddingXY 15 10
-        , E.spacing 20
         , EBackground.color (E.rgb 0 0 0.1)
         , EBackground.gradient
             { angle = pi
@@ -185,83 +268,12 @@ viewSidebar model =
         , EBorder.color (E.rgb255 53 113 195)
         , EBorder.widthEach { sides | right = 2 }
         ]
-        [ EH.btn
-            []
-            { onPress = Just ToggledCollapse
-            , label =
-                E.el
-                    [ E.padding 5 ]
-                    (E.text "Collapse")
-            , colors = Colors.baseBtnColors
-            }
-        , E.el
-            [ E.centerX
-            , EFont.underline
-            ]
-            (E.text "Level Select")
-        , E.column
-            [ E.centerX
-            ]
-            (List.range 0 (numRows - 1)
-                |> List.map
-                    (\rowIndex ->
-                        E.row []
-                            (List.range 0 (numCols - 1)
-                                |> List.map
-                                    (\colIndex ->
-                                        let
-                                            lvlIndex =
-                                                (numCols * rowIndex) + colIndex
+        [ if shouldSeeNonMascotStuff then
+            nonMascotStuff
 
-                                            isLocked =
-                                                lvlIndex > model.localStorage.numLevelsCleared
-                                        in
-                                        viewLevelSelectBtn isLocked lvlIndex model
-                                    )
-                            )
-                    )
-            )
-        , EH.btn
-            [ E.padding 5 ]
-            { onPress = Just ClickedBackToTitle
-            , label = E.text "Back to Title"
-            , colors = Colors.baseBtnColors
-            }
-        , EH.btn
-            [ E.padding 5 ]
-            { onPress = Just ClickedResetLvl
-            , label = E.text "Reset Level"
-            , colors = Colors.redBtnColors
-            }
-
-        -- mascot
-        , E.column
-            [ E.alignBottom
-            ]
-            [ E.el
-                [ class "speech-bubble"
-                    |> E.htmlAttribute
-                ]
-                (E.column
-                    [ E.padding 10
-                    , E.spacing 10
-                    , EFont.color (E.rgb 0 0 0.1)
-                    ]
-                    (getMascotSpeech model)
-                )
-            , let
-                className =
-                    if Model.hasWon model then
-                        "mascot won"
-
-                    else
-                        "mascot"
-              in
-              E.el
-                [ class className |> E.htmlAttribute
-                ]
-                E.none
-            ]
+          else
+            E.none
+        , mascotStuff
         ]
 
 
