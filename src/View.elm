@@ -62,7 +62,9 @@ viewStartScreen model =
                 { onPress = Just (ClickedGoToLevel numLevelsCleared)
                 , label =
                     E.el
-                        [ E.paddingXY 20 10 ]
+                        [ E.paddingXY 20 10
+                        , EH.vw 5
+                        ]
                         (if numLevelsCleared >= 1 then
                             E.text
                                 ("Resume Level "
@@ -83,7 +85,7 @@ viewStartScreen model =
         (E.column
             [ E.centerX
             , E.centerY
-            , E.spacing 20
+            , E.spacing 40
             ]
             -- title
             [ E.el
