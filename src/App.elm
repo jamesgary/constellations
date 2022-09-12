@@ -44,10 +44,7 @@ init jsonFlags =
         Ok flags ->
             let
                 isTestingGame =
-                    True
-
-                _ =
-                    Debug.log "flags" flags
+                    False
             in
             if isTestingGame then
                 Model.init flags

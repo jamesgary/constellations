@@ -9,6 +9,7 @@ import Element.Events as EEvents
 import Element.Font as EFont
 import Element.Input as EInput
 import ElementHelpers as EH
+import ElmLogo
 import Game
 import Html exposing (Html)
 import Html.Attributes as Attr exposing (style)
@@ -17,6 +18,7 @@ import Html.Lazy
 import Model exposing (Model)
 import Msg exposing (Msg(..))
 import State exposing (State)
+import ViewHelpers exposing (..)
 
 
 view : Model -> Html Msg
@@ -92,7 +94,10 @@ viewStartScreen model =
                 (E.text "Constellations")
 
             -- smaller author/source/credits
-            , E.column [ E.spacing 10 ]
+            , E.column
+                [ E.spacing 15
+                , E.centerX
+                ]
                 -- author (me!)
                 [ E.row
                     [ E.centerX
@@ -110,20 +115,35 @@ viewStartScreen model =
                     [ E.centerX
                     , EH.vw 3
                     ]
-                    [ E.text "Written in elm"
+                    [ E.text "Made with "
+
+                    -- TODO scale like vw
+                    , ElmLogo.element 50
+                    , E.text " elm "
                     , link
                         "https://github.com/jamesgary/constellations"
                         "(github)"
                     ]
 
-                -- credits
-                , E.column
+                -- other credits
+                , E.row
                     [ E.centerX
-                    , EH.vw 3
+                    , EH.vw 2
+                    , E.paddingEach { sides | top = 30 }
                     ]
-                    [ link
+                    [ E.text "Background Image by "
+                    , link
                         "https://commons.wikimedia.org/wiki/File:Carina_Nebula.jpg"
-                        "European Southern Observatory (ESO)"
+                        "European Southern Observatory / T. Preibisch"
+                    ]
+                , E.row
+                    [ E.centerX
+                    , EH.vw 2
+                    ]
+                    [ E.text "Cute planet by "
+                    , link
+                        "https://www.kindpng.com/imgv/hbbxTb_cute-saturn-clip-art-cute-planet-clipart-hd/"
+                        "Sayre Weaver"
                     ]
                 ]
             , startBtn

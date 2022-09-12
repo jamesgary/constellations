@@ -33,16 +33,17 @@ init : Int -> Graph
 init lvlIndex =
     -- NOTE all poses start at Cfg.graphCenterX,Y
     -- current implementation: create grid
+    -- don't remove nodes with 2 or less neighbors (to keep graph intact)
     let
         ( numRows, numCols ) =
-            ( 2 + lvlIndex
-            , 3 + lvlIndex
+            ( 2 + (ceiling <| toFloat lvlIndex / 2)
+            , 3 + (floor <| toFloat lvlIndex / 2)
             )
 
         numNodes =
             numRows * numCols
 
-        edges =
+        edgeList =
             List.range 0 (numRows - 1)
                 |> List.map
                     (\row ->
@@ -59,6 +60,9 @@ init lvlIndex =
 
                                             -- connect with left
                                             , ( col > 0, ( nodeId, nodeId - 1 ) )
+
+                                            -- connect with top-left
+                                            , ( row > 0 && col > 0, ( nodeId, nodeId - 1 - numCols ) )
                                             ]
                                     in
                                     checksAndEdge
@@ -90,20 +94,18 @@ init lvlIndex =
                 randomSeed
                 |> Tuple.first
                 |> Array.fromList
-                |> Debug.log "?"
 
         shuffledEdges : List ( Int, Int )
         shuffledEdges =
-            edges
+            edgeList
                 |> List.map
                     (\( n1, n2 ) ->
                         ( Array.get n1 shuffledIndices |> Maybe.withDefault n1
                         , Array.get n2 shuffledIndices |> Maybe.withDefault n2
                         )
                     )
-    in
-    Graph
-        { nodes =
+
+        nodeDict =
             List.range 0 (numNodes - 1)
                 |> List.map
                     (\i ->
@@ -116,11 +118,40 @@ init lvlIndex =
                         )
                     )
                 |> Dict.fromList
-        , edges =
+
+        edgeDict =
             shuffledEdges
                 |> List.map (Tuple.mapBoth String.fromInt String.fromInt)
                 |> List.indexedMap (\i edge -> ( String.fromInt i, edge ))
                 |> Dict.fromList
+
+        -- remove a couple nodes, just for variety
+        -- FIXME small chance of orphan nodes?
+        ( newNodes, newEdges ) =
+            List.range 0 ((floor <| 0.1 * toFloat numNodes) - 1)
+                |> List.foldl
+                    (\i ( nodes, edges ) ->
+                        let
+                            indexToRemove =
+                                shuffledIndices
+                                    |> Array.get i
+                                    |> Maybe.map String.fromInt
+                                    |> Maybe.withDefault "no-op i guess?"
+                        in
+                        ( nodes
+                            |> Dict.remove indexToRemove
+                        , edges
+                            |> Dict.filter
+                                (\id ( n1, n2 ) ->
+                                    n1 /= indexToRemove && n2 /= indexToRemove
+                                )
+                        )
+                    )
+                    ( nodeDict, edgeDict )
+    in
+    Graph
+        { nodes = newNodes
+        , edges = newEdges
         }
 
 

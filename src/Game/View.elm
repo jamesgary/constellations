@@ -175,6 +175,13 @@ viewSidebar model =
         , E.paddingXY 15 10
         , E.spacing 20
         , EBackground.color (E.rgb 0 0 0.1)
+        , EBackground.gradient
+            { angle = pi
+            , steps =
+                [ E.rgb255 1 5 11
+                , E.rgb255 26 50 93
+                ]
+            }
         , EBorder.color (E.rgb255 53 113 195)
         , EBorder.widthEach { sides | right = 2 }
         ]
@@ -193,13 +200,12 @@ viewSidebar model =
             ]
             (E.text "Level Select")
         , E.column
-            [ E.spacing 4
-            , E.centerX
+            [ E.centerX
             ]
             (List.range 0 (numRows - 1)
                 |> List.map
                     (\rowIndex ->
-                        E.row [ E.spacing 4 ]
+                        E.row []
                             (List.range 0 (numCols - 1)
                                 |> List.map
                                     (\colIndex ->
@@ -296,24 +302,43 @@ viewLevelSelectBtn isLocked lvlIndex model =
                   else
                     Colors.baseBtnColors
                 )
+
+        isActive =
+            lvlIndex == model.currentLvlIndex
+
+        borderBgColor =
+            if isActive then
+                E.rgb 1 1 0.5
+
+            else
+                E.rgba 0 0 0 0
     in
-    EH.btn
-        [ EBorder.width 1 ]
-        { onPress = onPress
-        , label =
-            E.el
-                [ E.width <| E.px 20
-                , E.height <| E.px 20
-                , EFont.size 14
-                ]
-                (E.el
-                    [ E.centerX
-                    , E.centerY
+    E.el
+        [ EBackground.color borderBgColor
+        , EBorder.color borderBgColor
+        , EBorder.rounded 7
+        , EBorder.width 3
+        ]
+        (EH.btn
+            [ EBorder.width 1
+            ]
+            { onPress = onPress
+            , label =
+                E.el
+                    [ E.width <| E.px 30
+                    , E.height <| E.px 30
+                    , EFont.size 16
+                    , EFont.bold
                     ]
-                    (E.text text)
-                )
-        , colors = colors
-        }
+                    (E.el
+                        [ E.centerX
+                        , E.centerY
+                        ]
+                        (E.text text)
+                    )
+            , colors = colors
+            }
+        )
 
 
 drawConstellation : Model -> Element Msg
