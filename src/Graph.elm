@@ -183,12 +183,22 @@ getNodeUnsafe id graph =
             Debug.todo ("can't find node id " ++ id)
 
 
-getTouching : Float -> Pos -> Graph -> Maybe ( Node.Id, Node )
-getTouching aspectRatio mousePos (Graph model) =
-    model.nodes
-        |> Dict.toList
-        |> List.Extra.find
-            (\( id, node ) -> isTouching aspectRatio mousePos node.pos)
+getTouching : Float -> List Node.Id -> Pos -> Graph -> Maybe ( Node.Id, Node )
+getTouching aspectRatio nodeOrder mousePos (Graph model) =
+    nodeOrder
+        |> List.Extra.findMap
+            (\nodeId ->
+                model.nodes
+                    |> Dict.get nodeId
+                    |> Maybe.andThen
+                        (\node ->
+                            if isTouching aspectRatio mousePos node.pos then
+                                Just ( nodeId, node )
+
+                            else
+                                Nothing
+                        )
+            )
 
 
 getEdges : Graph -> Dict Edge.Id Edge

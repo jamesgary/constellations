@@ -268,6 +268,9 @@ viewSidebar model =
 getMascotSpeech : Model -> List (Element Msg)
 getMascotSpeech model =
     let
+        maxLevelIndex =
+            24
+
         ( inProgText, winText ) =
             case model.currentLvlIndex of
                 0 ->
@@ -401,15 +404,40 @@ getMascotSpeech model =
     if Model.hasWon model then
         [ E.paragraph [ E.alpha 0.5 ] [ E.el [] (E.text inProgText) ]
         , E.paragraph [] [ E.el [] (E.text winText) ]
-        , EH.btn
-            [ EFont.color (E.rgb 1 1 1) ]
-            { onPress = Just (ClickedGoToLevel (model.currentLvlIndex + 1))
-            , label =
-                E.el
-                    [ E.padding 5 ]
-                    (E.text "Go to Next Level")
-            , colors = Colors.baseBtnColors
-            }
+
+        -- *shrug* gotta do something at least a little special for beating game
+        -- TODO more juice and fanfare
+        , if model.currentLvlIndex >= maxLevelIndex then
+            [ "⭐"
+            , "🌝"
+            , "🪐"
+            , "🌍"
+            , "🤩"
+            , "💖"
+            , "🌞"
+            , "☄️"
+            , "🌟"
+            ]
+                |> String.join " "
+                |> E.text
+                |> List.singleton
+                |> E.paragraph
+                    [ E.paddingXY 0 10
+                    , EFont.size 40
+                    , EBackground.color (E.rgb 0 0.2 0.5)
+                    , EFont.center
+                    ]
+
+          else
+            EH.btn
+                [ EFont.color (E.rgb 1 1 1) ]
+                { onPress = Just (ClickedGoToLevel (model.currentLvlIndex + 1))
+                , label =
+                    E.el
+                        [ E.padding 5 ]
+                        (E.text "Go to Next Level")
+                , colors = Colors.baseBtnColors
+                }
         ]
 
     else
@@ -520,7 +548,7 @@ drawConstellation origModel =
                 [ drawDefs
                 , drawShapes model
                 , drawEdges model
-                , drawNodes model.mouseState model.graph
+                , drawNodes model.mouseState model.nodeOrder model.graph
                 , drawLasso model.mouseState
 
                 --, drawMouseDebug model
@@ -587,18 +615,21 @@ drawEdge model edgeId ( nodeId1, nodeId2 ) =
         []
 
 
-drawNodes : MouseState -> Graph -> List (Html Msg)
-drawNodes mouseState graph =
-    graph
-        |> Graph.getNodes
-        |> Dict.toList
+drawNodes : MouseState -> List Node.Id -> Graph -> List (Html Msg)
+drawNodes mouseState nodeOrder graph =
+    nodeOrder
+        -- svgs draw last-on-top, so reverse it first
         |> List.reverse
-        -- for correct overlapping
-        |> List.map (drawNode mouseState)
+        |> List.filterMap
+            (\nodeId ->
+                graph
+                    |> Graph.getNode nodeId
+                    |> Maybe.map (drawNode mouseState nodeId)
+            )
 
 
-drawNode : MouseState -> ( Node.Id, Node ) -> Html Msg
-drawNode mouseState ( nodeId, node ) =
+drawNode : MouseState -> Node.Id -> Node -> Html Msg
+drawNode mouseState nodeId node =
     let
         nodeVel =
             node.vel

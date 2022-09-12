@@ -26,6 +26,7 @@ import Worker.WorkerToAppMsg as WorkerToAppMsg exposing (WorkerToAppMsg)
 
 type alias Model =
     { graph : Graph
+    , nodeOrder : List Node.Id
     , intersectingEdges : Set Edge.Id
     , mousePos : Pos
     , mouseState : MouseState
@@ -61,6 +62,10 @@ init localStorage lvlIndex =
                     )
     in
     ( { graph = graph
+      , nodeOrder =
+            graph
+                |> Graph.getNodes
+                |> Dict.keys
       , intersectingEdges = Set.empty
       , mousePos = Pos -9999 -9999
       , mouseState = MouseState.Default
@@ -108,7 +113,7 @@ mouseMove origMousePos origModel =
             { origModel | mousePos = mousePos }
 
         topTouchingNodeId =
-            Graph.getTouching (getAspectRatio model) mousePos model.graph
+            Graph.getTouching (getAspectRatio model) model.nodeOrder mousePos model.graph
     in
     case model.mouseState of
         MouseState.Default ->
@@ -211,8 +216,8 @@ mouseDown origMousePos model =
         mousePos =
             mousePosToPos origMousePos
 
-        ( newMouseState, cmd ) =
-            case Graph.getTouching (getAspectRatio model) mousePos model.graph of
+        ( newMouseState, newTopNodeIds, cmd ) =
+            case Graph.getTouching (getAspectRatio model) model.nodeOrder mousePos model.graph of
                 Just ( clickedNodeId, clickedNode ) ->
                     let
                         dragOffset =
@@ -243,6 +248,7 @@ mouseDown origMousePos model =
                                             |> Dict.fromList
                                 in
                                 ( MouseState.DraggingLassoed nodeOffsetDict
+                                , [ clickedNodeId ]
                                 , Cmd.none
                                 )
 
@@ -254,27 +260,44 @@ mouseDown origMousePos model =
                                             |> Graph.neighbors clickedNodeId
                                 in
                                 ( MouseState.Dragging clickedNodeId dragOffset neighboringNodeIds
+                                , clickedNodeId :: Set.toList neighboringNodeIds
                                 , Cmd.none
                                 )
 
                         _ ->
+                            -- clicked a node (normal)
                             let
                                 neighboringNodeIds =
                                     model.graph
                                         |> Graph.neighbors clickedNodeId
                             in
                             ( MouseState.Dragging clickedNodeId dragOffset neighboringNodeIds
+                            , clickedNodeId :: Set.toList neighboringNodeIds
                             , Cmd.none
                             )
 
                 Nothing ->
                     ( MouseState.Lassoing mousePos mousePos Set.empty
+                    , []
                     , Cmd.none
                     )
     in
-    ( { model | mouseState = newMouseState }
+    ( { model
+        | mouseState = newMouseState
+        , nodeOrder =
+            newTopNodeIds
+                ++ (model.nodeOrder
+                        |> removeAll (newTopNodeIds |> Set.fromList)
+                   )
+      }
     , cmd
     )
+
+
+removeAll : Set comparable -> List comparable -> List comparable
+removeAll itemsToRemove origList =
+    origList
+        |> List.filter (\item -> not <| Set.member item itemsToRemove)
 
 
 mouseUp : Model -> ( Model, Cmd Msg )
@@ -321,7 +344,7 @@ mouseUp model =
         MouseState.DraggingLassoed nodeOffsetDict ->
             ( { model
                 | mouseState =
-                    case Graph.getTouching (getAspectRatio model) model.mousePos model.graph of
+                    case Graph.getTouching (getAspectRatio model) model.nodeOrder model.mousePos model.graph of
                         Just ( nodeId, node ) ->
                             MouseState.Hovering nodeId
 
@@ -632,15 +655,13 @@ getShapes graph =
         -- sort topright to bottomleft for shimmer
         |> List.sortBy
             (\nodeIds ->
+                -- rough average of the center
                 nodeIds
-                    |> List.Extra.maximumBy
-                        (\nodeId ->
-                            Graph.getNodeUnsafe nodeId graph
-                                |> (\{ pos } ->
-                                        pos.y - pos.x
-                                   )
-                        )
-                    |> Maybe.withDefault ""
+                    |> List.filterMap (\id -> Graph.getNode id graph)
+                    |> List.map .pos
+                    |> List.foldl Pos.add (Pos 0 0)
+                    -- prioritize top right
+                    |> (\{ x, y } -> y - x)
             )
         |> List.indexedMap
             (\i nodeIds ->
@@ -655,7 +676,7 @@ getShapes graph =
                         (Random.initialSeed (i * 1))
                         |> Tuple.first
                         |> (\n -> n + 2000)
-                , shimmerAnimationDelayMs = 70 * i
+                , shimmerAnimationDelayMs = 20 * i
                 }
             )
 

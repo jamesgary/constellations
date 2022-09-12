@@ -1,4 +1,4 @@
-module Pos exposing (Pos, applyAspectRatio, clampToCanvas, codec, toTuple)
+module Pos exposing (Pos, add, applyAspectRatio, clampToCanvas, codec, toTuple)
 
 import Cfg
 import Codec exposing (Codec)
@@ -25,6 +25,13 @@ clampToCanvas pos =
     Pos
         (pos.x |> clamp Cfg.canvasBuffer (Cfg.canvasScale - Cfg.canvasBuffer))
         (pos.y |> clamp Cfg.canvasBuffer (Cfg.canvasScale - Cfg.canvasBuffer))
+
+
+add : Pos -> Pos -> Pos
+add p1 p2 =
+    { x = p1.x + p2.x
+    , y = p1.y + p2.y
+    }
 
 
 
