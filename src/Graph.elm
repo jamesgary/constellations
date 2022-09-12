@@ -1,4 +1,4 @@
-module Graph exposing (Graph, animateNodes, applyAspectRatio, checkForIntersections, codec, empty, getEdges, getNode, getNodeIdsInBox, getNodeUnsafe, getNodes, getTouching, init, isEmpty, moveNodesForLoadAnim, neighbors, setNodeDest)
+module Graph exposing (Graph, animateNodes, applyAspectRatio, checkForIntersections, codec, empty, getEdges, getNode, getNodeIdsInBox, getNodeUnsafe, getNodes, getTouching, init, initNodeOrder, isEmpty, moveNodesForLoadAnim, neighbors, setNodeDest)
 
 import Array exposing (Array)
 import Cfg
@@ -153,6 +153,16 @@ init lvlIndex =
         { nodes = newNodes
         , edges = newEdges
         }
+
+
+initNodeOrder : Graph -> List Node.Id
+initNodeOrder (Graph model) =
+    model.nodes
+        |> Dict.keys
+        |> List.sortBy
+            (String.toInt
+                >> Maybe.withDefault 0
+            )
 
 
 empty : Graph
@@ -363,19 +373,15 @@ moveNodesForLoadAnim timeElapsed (Graph model) =
 
         newNodes =
             model.nodes
-                |> Dict.map
-                    (\id node ->
+                |> Dict.toList
+                |> List.indexedMap
+                    (\i ( id, node ) ->
                         let
                             easeInv =
                                 1 - ease
 
-                            index =
-                                id
-                                    |> String.toFloat
-                                    |> Maybe.withDefault -1
-
                             rotation =
-                                (index / toFloat numNodes) + (easeRot * 0.1)
+                                (toFloat i / toFloat numNodes) + (easeRot * 0.1)
 
                             destX =
                                 Cfg.graphCenterX + cos (2 * pi * rotation) * Cfg.graphRadius
@@ -383,12 +389,15 @@ moveNodesForLoadAnim timeElapsed (Graph model) =
                             destY =
                                 Cfg.graphCenterY + sin (2 * pi * rotation) * Cfg.graphRadius
                         in
-                        { node
+                        ( id
+                        , { node
                             | dest =
                                 Pos (ease * destX + easeInv * Cfg.graphCenterX)
                                     (ease * destY + easeInv * Cfg.graphCenterY)
-                        }
+                          }
+                        )
                     )
+                |> Dict.fromList
     in
     Graph { model | nodes = newNodes }
 

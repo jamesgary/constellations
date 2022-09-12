@@ -309,7 +309,7 @@ getMascotSpeech model =
                     )
 
                 7 ->
-                    ( "Astronauts returning from space have reported interesting odors on their spacesuits, such as burning coal, wood, gasolate, and charcoal-broiled meat! These smells are due to polycyclic armoatic hydrocarbons which are by-products of dying stars."
+                    ( "Astronauts returning from space have reported interesting odors on their spacesuits, such as burning coal, wood, gasolate, and char-broiled meat! These smells are due to by-products of dying stars."
                     , "Fresh!"
                     )
 

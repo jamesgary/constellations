@@ -62,10 +62,7 @@ init localStorage lvlIndex =
                     )
     in
     ( { graph = graph
-      , nodeOrder =
-            graph
-                |> Graph.getNodes
-                |> Dict.keys
+      , nodeOrder = []
       , intersectingEdges = Set.empty
       , mousePos = Pos -9999 -9999
       , mouseState = MouseState.Default
@@ -75,8 +72,17 @@ init localStorage lvlIndex =
       , localStorage = localStorage
       , currentLvlIndex = lvlIndex
       }
+        |> resetNodeOrder
     , cmd
     )
+
+
+resetNodeOrder : Model -> Model
+resetNodeOrder model =
+    { model
+        | nodeOrder =
+            Graph.initNodeOrder model.graph
+    }
 
 
 getContainerDomCmd : Cmd Msg
@@ -447,51 +453,16 @@ animateNode timeElapsed _ node =
     }
 
 
-moveNodeForLoadAnim : Float -> Int -> Node.Id -> Node -> Node
-moveNodeForLoadAnim time numNodes id node =
-    let
-        age =
-            if time < Cfg.wait then
-                0
-
-            else
-                min Cfg.loadAnimDur (time - Cfg.wait)
-
-        ease =
-            Ease.outElastic (age / Cfg.loadAnimDur)
-
-        easeRot =
-            Ease.outCubic (age / Cfg.loadAnimDur)
-
-        easeInv =
-            1 - ease
-
-        index =
-            id
-                |> String.toFloat
-                |> Maybe.withDefault -1
-
-        rotation =
-            (index / toFloat numNodes) + (easeRot * 0.1)
-
-        destX =
-            Cfg.graphCenterX + cos (2 * pi * rotation) * Cfg.graphRadius
-
-        destY =
-            Cfg.graphCenterY + sin (2 * pi * rotation) * Cfg.graphRadius
-    in
-    { node
-        | dest =
-            Pos (ease * destX + easeInv * Cfg.graphCenterX)
-                (ease * destY + easeInv * Cfg.graphCenterY)
-    }
-
-
 handleWorkerMsg : WorkerToAppMsg -> Model -> ( Model, Cmd Msg )
 handleWorkerMsg msg model =
     case msg of
         WorkerToAppMsg.GeneratedGraph { graph } ->
-            ( { model | graph = graph }, Cmd.none )
+            ( { model
+                | graph = graph
+              }
+                |> resetNodeOrder
+            , Cmd.none
+            )
 
         WorkerToAppMsg.GotIntersections { edges } ->
             let
