@@ -1,4 +1,7 @@
 #!/bin/bash
-aws s3 cp public s3://constellationsgame.com/ --recursive --grants=read=uri=http://acs.amazonaws.com/groups/global/AllUsers
 
-echo "Deployed to https://s3-us-west-1.amazonaws.com/tangelo/index.html!"
+echo "Make sure you've ran `npm run build` first!"
+
+aws s3 cp build s3://constellationsgame.com/ --recursive --grants=read=uri=http://acs.amazonaws.com/groups/global/AllUsers
+
+echo "Deployed to http://constellationsgame.com.s3-website-us-east-1.amazonaws.com/ !"

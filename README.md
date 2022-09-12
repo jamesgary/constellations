@@ -11,5 +11,6 @@ npm run start
 ## To Deploy to S3
 
 ```
+npm run build
 ./bin/deploy
 ```

@@ -5,3 +5,4 @@ public/css/
 .sass-cache/
 .parcel-cache/
 dist/
+build/
