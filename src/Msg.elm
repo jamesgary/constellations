@@ -11,5 +11,5 @@ import Pos exposing (Pos)
 
 
 type Msg
-    = ClickedGoToLevel Int -- numNodes
+    = ClickedGoToLevel Int -- lvl index
     | GameMsg Game.Msg.Msg

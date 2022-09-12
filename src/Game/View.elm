@@ -267,19 +267,153 @@ viewSidebar model =
 
 getMascotSpeech : Model -> List (Element Msg)
 getMascotSpeech model =
-    -- TODO add more speeches
+    let
+        ( inProgText, winText ) =
+            case model.currentLvlIndex of
+                0 ->
+                    ( "The stars are in disarray! Click and drag to untangle them so no lines cross."
+                    , "Hooray! You did it!"
+                    )
+
+                1 ->
+                    ( "This next level is more complex, but I believe in you!"
+                    , "Great job!"
+                    )
+
+                2 ->
+                    ( "Did you know you can lasso stars to move many at once?"
+                    , "Yee haw!"
+                    )
+
+                3 ->
+                    ( "This game is still a work in progress. All I've got left to say are astronomy facts. Did you know it takes our solar system 230 million years to complete an orbit around the Milky Way?"
+                    , "Neato!"
+                    )
+
+                4 ->
+                    ( "Enceladus is the sixth-larget moon of Saturn. It's mostly covered by fresh, clean ice making one of the most reflective bodies of our solar system."
+                    , "Cool!"
+                    )
+
+                5 ->
+                    ( "Space is big! If our sun was the size of a basketball, Earth would be 2.2mm wide, 29m meters away from the sun, or about the length of a basketball court. The nearest star would be 7000km away!"
+                    , "Far out!"
+                    )
+
+                6 ->
+                    ( "33 light years away is an exoplanet called Gliese 436 b, which is composed of burning ice! The surface temperature is 300° C, but the ice remain solid due to pressure."
+                    , "Awesome!"
+                    )
+
+                7 ->
+                    ( "Astronauts returning from space have reported interesting odors on their spacesuits, such as burning coal, wood, gasolate, and charcoal-broiled meat! These smells are due to polycyclic armoatic hydrocarbons which are by-products of dying stars."
+                    , "Fresh!"
+                    )
+
+                8 ->
+                    ( "Uranus rotates on its side. In our solar system, we love planets of all orientations!"
+                    , "Aw yeah!"
+                    )
+
+                9 ->
+                    ( "It takes our solar system 230 million years to complete an orbit around the Milky Way."
+                    , "Woah!"
+                    )
+
+                10 ->
+                    ( "The sun and moon look the same size in the sky, but they actually are not! The sun is 400 times larger than the moon, but also 400 times further away from us."
+                    , "Far out!"
+                    )
+
+                11 ->
+                    ( "The North Star is Polaris, but won't always be. In 12,000 years, Vega will replace it. This is because Earth's axis changes over a 26,000-year cycle."
+                    , "Trippy!"
+                    )
+
+                12 ->
+                    ( "Venus has a temperature of over 500° C, but also has a cold layer with temperatures of -175° C."
+                    , "Wild!"
+                    )
+
+                13 ->
+                    ( "Clouds at the center of the Milky Way are packed with ethyl formate, which smells like rum and gives raspberries their flavor and smell of rum!"
+                    , "Delicious!"
+                    )
+
+                14 ->
+                    ( "One day on Mercury lasts 59 Earth days, while a year lasts 88. Due to Mercury's eccentric orbit and alignment with the Sun, the length of time from sunrise to sunrise is equal to 176 Earth days — twice as long as a Mercurian year!"
+                    , "Trippy!"
+                    )
+
+                15 ->
+                    ( "One teaspoonful of a neutron star would weigh over a trillion kilograms! That's more than the weight of the entire human population!"
+                    , "Heavy!"
+                    )
+
+                16 ->
+                    ( "Gamma-ray bursts can release more energy in 10 seconds than our Sun will in its entire life. GRBs happen when a massive star implodes or when two neutron stars merge together."
+                    , "Incredible!"
+                    )
+
+                17 ->
+                    ( "Neptune takes 165 years to complete one full orbit around the sun."
+                    , "Great!"
+                    )
+
+                18 ->
+                    ( "It's believed that three of Jupiter's moons (Europa, Ganymede, and Callisto) and two of Saturn's (Enceladus and Titan) have underwater seas."
+                    , "Spiffy!"
+                    )
+
+                19 ->
+                    ( "The entire asteroid belt's total mass is just 3% of the Moon's mass."
+                    , "Neato!"
+                    )
+
+                20 ->
+                    ( "The Milky Way contains around 100 million stars."
+                    , "Fantastic!"
+                    )
+
+                21 ->
+                    ( "Saturn has a hexagonal-shaped storm centered around its north pole."
+                    , "Bizarre!"
+                    )
+
+                22 ->
+                    ( "Venus has around 1,600 volcanos. Its largest volcano is Maat Mons, which rises 8 km above the surface. Mars has the largest volcano: Olympus Mons, 25 km high!"
+                    , "Hot!"
+                    )
+
+                23 ->
+                    ( "On Mars, the temperature at your feet can be a temperate 24° C, but 0° C at your head! This is because the atmosphere is so thin, the heat from the Sun quickly escapes the planet."
+                    , "Wowie!"
+                    )
+
+                24 ->
+                    ( "This is the last level!"
+                    , "You beat the game! I'm so proud of you."
+                    )
+
+                _ ->
+                    ( "This level should not exist!", "But you beat it? Well done!" )
+    in
     if Model.hasWon model then
-        [ E.paragraph []
-            [ E.el [] (E.text "Hooray!")
-            ]
-        , E.paragraph []
-            [ E.el [] (E.text "Try Level 2!")
-            ]
+        [ E.paragraph [ E.alpha 0.5 ] [ E.el [] (E.text inProgText) ]
+        , E.paragraph [] [ E.el [] (E.text winText) ]
+        , EH.btn
+            [ EFont.color (E.rgb 1 1 1) ]
+            { onPress = Just (ClickedGoToLevel (model.currentLvlIndex + 1))
+            , label =
+                E.el
+                    [ E.padding 5 ]
+                    (E.text "Go to Next Level")
+            , colors = Colors.baseBtnColors
+            }
         ]
 
     else
-        [ E.paragraph []
-            [ E.text "Untangle all the stars so that no lines cross!" ]
+        [ E.paragraph [] [ E.el [] (E.text inProgText) ]
         ]
 
 
@@ -287,6 +421,7 @@ viewLevelSelectBtn : Bool -> Int -> Model -> Element Msg
 viewLevelSelectBtn isLocked lvlIndex model =
     let
         ( onPress, text, colors ) =
+            --if False then
             if isLocked then
                 ( Nothing
                 , "🔒"
@@ -350,7 +485,7 @@ drawConstellation origModel =
             )
 
         aspectRatio =
-            width / height
+            Model.getAspectRatio origModel
 
         model =
             origModel

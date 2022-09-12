@@ -183,12 +183,12 @@ getNodeUnsafe id graph =
             Debug.todo ("can't find node id " ++ id)
 
 
-getTouching : Pos -> Graph -> Maybe ( Node.Id, Node )
-getTouching mousePos (Graph model) =
+getTouching : Float -> Pos -> Graph -> Maybe ( Node.Id, Node )
+getTouching aspectRatio mousePos (Graph model) =
     model.nodes
         |> Dict.toList
         |> List.Extra.find
-            (\( id, node ) -> isTouching mousePos node.pos)
+            (\( id, node ) -> isTouching aspectRatio mousePos node.pos)
 
 
 getEdges : Graph -> Dict Edge.Id Edge
@@ -201,8 +201,27 @@ getNodes (Graph model) =
     model.nodes
 
 
-isTouching : Pos -> Pos -> Bool
-isTouching pos1 pos2 =
+isTouching : Float -> Pos -> Pos -> Bool
+isTouching aspectRatio mousePos nodePos =
+    -- see https://math.stackexchange.com/questions/76457/check-if-a-point-is-within-an-ellipse
+    let
+        ( x, y ) =
+            Pos.toTuple mousePos
+
+        ( h, k ) =
+            Pos.toTuple nodePos
+
+        rx =
+            Cfg.radius * (1 / aspectRatio)
+
+        ry =
+            Cfg.radius
+    in
+    ((((x - h) ^ 2) / (rx ^ 2)) + (((y - k) ^ 2) / ry ^ 2)) <= 1
+
+
+isTouching_ : Float -> Pos -> Pos -> Bool
+isTouching_ aspectRatio pos1 pos2 =
     let
         aSquared =
             (pos1.x - pos2.x) ^ 2

@@ -1,4 +1,4 @@
-module Game.Model exposing (Model, applyAspectRatio, goToLvl, handleWorkerMsg, hasWon, init, mouseDown, mouseMove, mouseUp, resetLvl, save, tick, toggleCollapse, updateDom, updateViewport)
+module Game.Model exposing (Model, applyAspectRatio, getAspectRatio, goToLvl, handleWorkerMsg, hasWon, init, mouseDown, mouseMove, mouseUp, resetLvl, save, tick, toggleCollapse, updateDom, updateViewport)
 
 import Array exposing (Array)
 import Browser.Dom
@@ -93,6 +93,11 @@ updateViewport width height ({ canvasEl } as model) =
     )
 
 
+getAspectRatio : Model -> Float
+getAspectRatio model =
+    model.canvasEl.width / model.canvasEl.height
+
+
 mouseMove : Pos -> Model -> ( Model, Cmd Msg )
 mouseMove origMousePos origModel =
     let
@@ -103,7 +108,7 @@ mouseMove origMousePos origModel =
             { origModel | mousePos = mousePos }
 
         topTouchingNodeId =
-            Graph.getTouching mousePos model.graph
+            Graph.getTouching (getAspectRatio model) mousePos model.graph
     in
     case model.mouseState of
         MouseState.Default ->
@@ -207,7 +212,7 @@ mouseDown origMousePos model =
             mousePosToPos origMousePos
 
         ( newMouseState, cmd ) =
-            case Graph.getTouching mousePos model.graph of
+            case Graph.getTouching (getAspectRatio model) mousePos model.graph of
                 Just ( clickedNodeId, clickedNode ) ->
                     let
                         dragOffset =
@@ -316,7 +321,7 @@ mouseUp model =
         MouseState.DraggingLassoed nodeOffsetDict ->
             ( { model
                 | mouseState =
-                    case Graph.getTouching model.mousePos model.graph of
+                    case Graph.getTouching (getAspectRatio model) model.mousePos model.graph of
                         Just ( nodeId, node ) ->
                             MouseState.Hovering nodeId
 
@@ -534,7 +539,7 @@ resetLvl model =
 toggleCollapse : Model -> ( Model, Cmd Msg )
 toggleCollapse model =
     ( { model | isSidebarCollapsed = not model.isSidebarCollapsed }
-    , Cmd.none
+    , getContainerDomCmd
     )
 
 
